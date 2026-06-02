@@ -1,7 +1,8 @@
 /**
  * PlanShare API 客户端：对后端 /api/* 端点的 fetch 封装。
  * 单一权威：所有网络请求只经此层；返回值用 data/types.ts 的契约类型。
- * 全部走相对路径（dev 由 Vite proxy 反代到 3001，生产同源）。
+ * 默认走相对路径（dev 由 Vite proxy 反代到 3001，CloudBase 生产同源）。
+ * 静态托管到第三方域名时，可用 VITE_API_BASE 指向 CloudBase API 源站。
  */
 import type {
   Raid,
@@ -21,9 +22,15 @@ import type {
 } from '../data/types'
 import { getToken, clearToken, UnauthorizedError } from './adminAuth'
 
+const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
+
+function apiUrl(path: string): string {
+  return `${API_BASE}${path}`
+}
+
 /** 统一 JSON 请求：非 2xx 抛错，带上后端的错误文案（若有）。 */
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     ...init,
     headers: init?.body
       ? { 'Content-Type': 'application/json', ...init?.headers }
@@ -48,7 +55,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
  */
 async function adminRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken()
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     ...init,
     headers: {
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),

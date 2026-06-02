@@ -4,5 +4,13 @@
   "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
   "cloudrun": {
     "name": "planshare"
+  },
+  "app": {
+    "serviceName": "planshare-static",
+    "framework": "static",
+    "installCommand": "",
+    "buildCommand": "",
+    "outputDir": "./dist",
+    "deployPath": "/"
   }
 }
