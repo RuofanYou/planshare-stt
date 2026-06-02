@@ -12,6 +12,19 @@ interface BoardCardProps {
   variant?: 'default' | 'compact' | 'market'
 }
 
+const PREVIEW_LINE_COUNT = 4
+
+function getBoardPreviewLines(board: Board): string[] {
+  const lines = board.contentText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, PREVIEW_LINE_COUNT)
+
+  if (lines.length > 0) return lines
+  return [board.description || board.title]
+}
+
 /**
  * 板子卡片：整卡可点链到 /board/:id（外壳复用 GlassCard interactive：玻璃 chrome + hover 上浮 + 金辉描边 + 斜向光扫）。
  * 含 板名 + 团本/BOSS + 难度标签 + 作者署名 + 浏览量/点赞。
@@ -27,6 +40,7 @@ export default function BoardCard({ board, variant = 'default' }: BoardCardProps
 
   // 适用范围：团本 · BOSS（BOSS 可能为 null）
   const scope = [raidName, bossName].filter(Boolean).join(' · ')
+  const previewLines = variant === 'market' ? getBoardPreviewLines(board) : []
 
   return (
     <GlassCard as="article" interactive className={`ps-card ps-card--${variant}`}>
@@ -41,9 +55,14 @@ export default function BoardCard({ board, variant = 'default' }: BoardCardProps
       <Link to={`/board/${board.id}`} className="ps-card__link">
         {variant === 'market' && (
           <div className="ps-card__preview" aria-hidden="true">
-            <span className="ps-card__preview-line ps-card__preview-line--wide" />
-            <span className="ps-card__preview-line" />
-            <span className="ps-card__preview-line ps-card__preview-line--short" />
+            <pre className="ps-card__preview-code">
+              {previewLines.map((line, index) => (
+                <span key={`${board.id}-preview-${index}`} className="ps-card__preview-row">
+                  <span className="ps-card__preview-index">{index + 1}</span>
+                  <span className="ps-card__preview-text">{line}</span>
+                </span>
+              ))}
+            </pre>
             <span className="ps-card__preview-mark">{board.difficulty === 'mythic' ? 'M' : 'H'}</span>
           </div>
         )}

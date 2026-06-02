@@ -52,23 +52,45 @@
   box-shadow: inset 0 1px 0 0 var(--glass-highlight);
 }
 
-.ps-card__preview-line {
+.ps-card__preview-code {
   position: relative;
   z-index: 1;
-  width: 64%;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: var(--glass-border);
-  box-shadow: 0 0 12px var(--color-gold-glow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+  padding-right: var(--space-8);
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  white-space: normal;
 }
 
-.ps-card__preview-line--wide {
-  width: 78%;
-  background: var(--color-gold-glow);
+.ps-card__preview-row {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
 }
 
-.ps-card__preview-line--short {
-  width: 46%;
+.ps-card__preview-index {
+  color: var(--color-gold);
+  opacity: 0.72;
+  text-align: right;
+}
+
+.ps-card__preview-text {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ps-card__preview-row:first-child .ps-card__preview-text {
+  color: var(--color-gold-cream);
 }
 
 .ps-card__preview-mark {
