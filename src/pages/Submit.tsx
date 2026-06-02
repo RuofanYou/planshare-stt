@@ -72,7 +72,7 @@ export default function Submit() {
     setSubmittedId('')
     setSubmittedKind('')
     if (!canSubmit) {
-      setLocalError(wantsCreatorProfile && !contact.trim() ? '申请成为创作者需要填写联系方式。' : '请补全必填项。')
+      setLocalError(wantsCreatorProfile && !contact.trim() ? '申请创作者需要填写联系方式。' : '请补全必填项。')
       return
     }
 
