@@ -216,17 +216,129 @@ export default function Submit() {
         <motion.div className="ps-submit__grid" variants={reduce ? undefined : staggerItem}>
           <div className="ps-submit__field">
             <label className="ps-submit__label" htmlFor="ps-submit-name">
-              投稿署名
+              {wantsCreatorProfile ? '作者名 / 投稿署名' : '投稿署名'}
             </label>
             <input
               id="ps-submit-name"
               className="ps-submit__input"
               value={submitterName}
               onChange={(e) => setSubmitterName(e.target.value)}
-              placeholder="公开展示前会由管理员确认"
+              placeholder={wantsCreatorProfile ? '将作为作者主页名称' : '公开展示前会由管理员确认'}
               maxLength={40}
             />
           </div>
+          <div className="ps-submit__field">
+            <span className="ps-submit__label" id="ps-submit-identity-label">
+              发布身份
+            </span>
+            <div className="ps-submit__identity" role="radiogroup" aria-labelledby="ps-submit-identity-label">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={!wantsCreatorProfile}
+                className={!wantsCreatorProfile ? 'ps-submit__identity-btn is-active' : 'ps-submit__identity-btn'}
+                onClick={() => setWantsCreatorProfile(false)}
+              >
+                <span>普通投稿</span>
+                <small>只给这块板署名</small>
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={wantsCreatorProfile}
+                className={wantsCreatorProfile ? 'ps-submit__identity-btn is-active' : 'ps-submit__identity-btn'}
+                onClick={() => setWantsCreatorProfile(true)}
+              >
+                <span>申请创作者</span>
+                <small>用署名建立作者页</small>
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {wantsCreatorProfile && (
+          <motion.div className="ps-submit__creator glass-strong" variants={reduce ? undefined : staggerItem}>
+            <div className="ps-submit__creator-section">
+              <div className="ps-submit__creator-section-head">
+                <span>审核联系</span>
+                <span>仅管理员可见</span>
+              </div>
+              <div className="ps-submit__field">
+                <label className="ps-submit__label" htmlFor="ps-submit-contact">
+                  联系方式
+                </label>
+                <input
+                  id="ps-submit-contact"
+                  className="ps-submit__input"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  placeholder="微信 / QQ / BattleTag / 邮箱，任选一种"
+                  maxLength={80}
+                />
+              </div>
+            </div>
+
+            <div className="ps-submit__creator-section">
+              <div className="ps-submit__creator-section-head">
+                <span>公开资料</span>
+                <span>用于作者页</span>
+              </div>
+              <div className="ps-submit__creator-fields">
+                <div className="ps-submit__field">
+                  <label className="ps-submit__label" htmlFor="ps-submit-bio">
+                    作者简介（可选）
+                  </label>
+                  <input
+                    id="ps-submit-bio"
+                    className="ps-submit__input"
+                    value={creatorBio}
+                    onChange={(e) => setCreatorBio(e.target.value)}
+                    placeholder="一句话介绍你或你的开荒定位"
+                    maxLength={120}
+                  />
+                </div>
+                <div className="ps-submit__field">
+                  <label className="ps-submit__label" htmlFor="ps-submit-guild">
+                    公会名（可选）
+                  </label>
+                  <input
+                    id="ps-submit-guild"
+                    className="ps-submit__input"
+                    value={creatorGuildName}
+                    onChange={(e) => setCreatorGuildName(e.target.value)}
+                    maxLength={40}
+                  />
+                </div>
+                <div className="ps-submit__field">
+                  <label className="ps-submit__label" htmlFor="ps-submit-guild-contact">
+                    公会联系方式（可选）
+                  </label>
+                  <input
+                    id="ps-submit-guild-contact"
+                    className="ps-submit__input"
+                    value={creatorGuildContact}
+                    onChange={(e) => setCreatorGuildContact(e.target.value)}
+                    maxLength={60}
+                  />
+                </div>
+                <div className="ps-submit__field ps-submit__field--wide">
+                  <label className="ps-submit__label" htmlFor="ps-submit-recruit">
+                    招募说明（可选）
+                  </label>
+                  <input
+                    id="ps-submit-recruit"
+                    className="ps-submit__input"
+                    value={creatorGuildRecruit}
+                    onChange={(e) => setCreatorGuildRecruit(e.target.value)}
+                    maxLength={120}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        <motion.div className="ps-submit__grid" variants={reduce ? undefined : staggerItem}>
           <div className="ps-submit__field">
             <label className="ps-submit__label" htmlFor="ps-submit-desc">
               说明（可选）
@@ -255,106 +367,6 @@ export default function Submit() {
             rows={16}
             spellCheck={false}
           />
-        </motion.div>
-
-        <motion.div className="ps-submit__creator glass-strong" variants={reduce ? undefined : staggerItem}>
-          <div className="ps-submit__creator-head">
-            <label className="ps-submit__check">
-              <input
-                type="checkbox"
-                checked={wantsCreatorProfile}
-                onChange={(e) => setWantsCreatorProfile(e.target.checked)}
-              />
-              <span>申请成为创作者</span>
-            </label>
-            <div className="ps-submit__creator-tags" aria-label="创作者展示内容">
-              <span>作者主页</span>
-              <span>作品归档</span>
-              <span>公会招募</span>
-            </div>
-          </div>
-
-          {wantsCreatorProfile && (
-            <div className="ps-submit__creator-panel">
-              <div className="ps-submit__creator-section">
-                <div className="ps-submit__creator-section-head">
-                  <span>审核联系</span>
-                  <span>仅管理员可见</span>
-                </div>
-                <div className="ps-submit__field">
-                  <label className="ps-submit__label" htmlFor="ps-submit-contact">
-                    联系方式
-                  </label>
-                  <input
-                    id="ps-submit-contact"
-                    className="ps-submit__input"
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    placeholder="微信 / QQ / BattleTag / 邮箱，任选一种"
-                    maxLength={80}
-                  />
-                </div>
-              </div>
-
-              <div className="ps-submit__creator-section">
-                <div className="ps-submit__creator-section-head">
-                  <span>公开资料</span>
-                  <span>用于作者页</span>
-                </div>
-                <div className="ps-submit__creator-fields">
-                  <div className="ps-submit__field">
-                    <label className="ps-submit__label" htmlFor="ps-submit-bio">
-                      作者简介（可选）
-                    </label>
-                    <input
-                      id="ps-submit-bio"
-                      className="ps-submit__input"
-                      value={creatorBio}
-                      onChange={(e) => setCreatorBio(e.target.value)}
-                      placeholder="一句话介绍你或你的开荒定位"
-                      maxLength={120}
-                    />
-                  </div>
-                  <div className="ps-submit__field">
-                    <label className="ps-submit__label" htmlFor="ps-submit-guild">
-                      公会名（可选）
-                    </label>
-                    <input
-                      id="ps-submit-guild"
-                      className="ps-submit__input"
-                      value={creatorGuildName}
-                      onChange={(e) => setCreatorGuildName(e.target.value)}
-                      maxLength={40}
-                    />
-                  </div>
-                  <div className="ps-submit__field">
-                    <label className="ps-submit__label" htmlFor="ps-submit-guild-contact">
-                      公会联系方式（可选）
-                    </label>
-                    <input
-                      id="ps-submit-guild-contact"
-                      className="ps-submit__input"
-                      value={creatorGuildContact}
-                      onChange={(e) => setCreatorGuildContact(e.target.value)}
-                      maxLength={60}
-                    />
-                  </div>
-                  <div className="ps-submit__field ps-submit__field--wide">
-                    <label className="ps-submit__label" htmlFor="ps-submit-recruit">
-                      招募说明（可选）
-                    </label>
-                    <input
-                      id="ps-submit-recruit"
-                      className="ps-submit__input"
-                      value={creatorGuildRecruit}
-                      onChange={(e) => setCreatorGuildRecruit(e.target.value)}
-                      maxLength={120}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </motion.div>
 
         {(localError || createSubmission.error) && (
