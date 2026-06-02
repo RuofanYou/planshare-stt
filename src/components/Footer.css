@@ -1,0 +1,47 @@
+/* 极简页脚：低调暗玻璃，顶部一道极简暗金分隔线（hairline），弱文字。
+   免责声明保留，作为硬性要求展示。不抢主体、不发光。 */
+.ps-footer {
+  position: relative;
+  margin-top: auto;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+}
+
+/* 顶部极简暗金分隔线：左右淡出的金 hairline，中段最亮（点到为止，不繁复） */
+.ps-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-gold-glow) 50%,
+    transparent 100%
+  );
+}
+
+.ps-footer__inner {
+  padding-block: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ps-footer__brand {
+  font-size: var(--text-meta);
+  color: var(--color-ink-soft);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.01em;
+}
+
+.ps-footer__disclaimer {
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  color: var(--color-ink-faint);
+  max-width: 60ch;
+}

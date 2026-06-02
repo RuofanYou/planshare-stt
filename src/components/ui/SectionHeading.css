@@ -1,0 +1,60 @@
+/* ============================================================
+   SectionHeading —— 区块标题。
+   eyebrow（暖金 hairline + 奶金小标，全大写字距放开）+ 大标题。
+   display = 精选区大标题（epic）；h2 = 区块标题（epic 略小）。
+   ============================================================ */
+.ps-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ps-heading__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-gold-cream);
+}
+
+/* eyebrow 前一段极短暖金 hairline，点到为止的古金装饰 */
+.ps-heading__eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold));
+}
+
+.ps-heading__row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.ps-heading__title {
+  font-family: var(--font-epic);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.01em;
+  color: var(--color-ink);
+}
+
+.ps-heading__title--display {
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+}
+
+.ps-heading__title--h2 {
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+}
+
+/* 标题右侧计数：奶金小字，基线对齐标题 */
+.ps-heading__trailing {
+  font-size: var(--text-meta);
+  color: var(--color-gold-cream);
+}

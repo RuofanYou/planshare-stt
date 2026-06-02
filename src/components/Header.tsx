@@ -42,6 +42,14 @@ export default function Header() {
           >
             按团本浏览
           </Link>
+          <NavLink
+            to="/submit"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            投稿
+          </NavLink>
         </nav>
       </div>
     </header>

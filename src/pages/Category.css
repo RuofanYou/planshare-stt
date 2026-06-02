@@ -17,7 +17,7 @@
   margin-bottom: var(--space-6);
 }
 
-/* ---------- 团本头：史诗金渐变标题 + 补丁徽标（ui Tag gold） ---------- */
+/* ---------- 团本头：史诗金渐变标题 + 版本徽标（ui Tag gold） ---------- */
 .ps-cat-head {
   position: relative;
   display: block;

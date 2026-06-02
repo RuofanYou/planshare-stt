@@ -1,0 +1,628 @@
+/* ============================================================
+   后台管理台 —— /admin
+   2026 Dark Liquid Glass · 魔兽金 · 现代无衬线。
+   登录门（玻璃登录卡）+ 已登录管理台（分区切换 / 战术板列表 / 作者列表 /
+   新增·编辑表单复用）。
+
+   玻璃 chrome（卡片 / 弹层 / 引流）一律走 ui/ 原语（GlassCard / Button / Tag /
+   EmptyState / SectionHeading / Skeleton / Avatar / Stat / Icon）；
+   本文件只留页面级布局、表单控件样式与行内确认条排版。
+   令牌全部取自 tokens.css，不写裸 hex / 裸字号 / 裸 blur / 游离间距。
+   ============================================================ */
+
+/* 页面纵向节奏 */
+.ps-admin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-block: var(--space-12) var(--space-16);
+  max-width: var(--container-max);
+}
+
+/* 登录态：窄读宽 + 垂直居中留白 */
+.ps-admin--login {
+  max-width: var(--container-read);
+  min-height: 60vh;
+  justify-content: center;
+}
+
+.ps-admin__lead {
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink-soft);
+}
+
+/* ============================================================
+   1. 登录门（玻璃登录卡）
+   ============================================================ */
+.ps-admin__login-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.ps-admin__login-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  width: 100%;
+  max-width: 440px;
+}
+
+.ps-admin__login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* 登录主按钮铺满卡宽 */
+.ps-admin__login-form .ps-btn {
+  width: 100%;
+}
+
+/* ============================================================
+   2. 页头（标题 + 退出登录）
+   ============================================================ */
+.ps-admin__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   3. 分区切换（玻璃 segmented tabs）
+   ============================================================ */
+.ps-admin__tabs {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  width: fit-content;
+}
+
+.ps-admin__tab {
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ps-admin__tab:hover {
+  color: var(--color-ink);
+}
+
+.ps-admin__tab.is-active {
+  color: var(--color-gold);
+  background: var(--glass-strong);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    inset 0 -1px 0 0 var(--color-gold-glow);
+}
+
+/* ============================================================
+   4. 分区主体（表单块 + 列表块）
+   ============================================================ */
+.ps-admin__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.ps-admin__list-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* 列表：纵向卡片堆叠 */
+.ps-admin__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ============================================================
+   5. 列表行卡（GlassCard 提供玻璃 chrome，本文件只排版）
+   ============================================================ */
+.ps-admin__row-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+
+/* 已下架：整卡降透明，明确弱化 */
+.ps-admin__row-card.is-hidden {
+  opacity: 0.62;
+}
+
+.ps-admin__row-card--handled {
+  opacity: 0.72;
+}
+
+.ps-admin__row-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* 标记行（精选 / 已下架 Tag） */
+.ps-admin__row-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ps-admin__row-flags:empty {
+  display: none;
+}
+
+.ps-admin__row-title {
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+}
+
+.ps-admin__row-path {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+}
+
+.ps-admin__row-bio {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+}
+
+/* 作者 + 统计行 */
+.ps-admin__row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-1);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-admin__row-author {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+}
+
+/* 作者行头部：头像 + 名字/计数 */
+.ps-admin__row-author-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ---------- 操作区 ---------- */
+.ps-admin__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.ps-admin__submission-detail {
+  flex: 1 0 100%;
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.ps-admin__submission-code {
+  max-height: 420px;
+  overflow: auto;
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  line-height: var(--lh-code);
+  white-space: pre-wrap;
+}
+
+.ps-admin__submission-profile {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-admin__submission-profile p {
+  margin: 0;
+}
+
+.ps-admin__submission-review {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ps-admin__submission-review .ps-admin__select-wrap {
+  min-width: min(260px, 100%);
+}
+
+/* ---------- 行内二次确认条（玻璃 alertdialog） ---------- */
+.ps-admin__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  max-width: 320px;
+}
+
+.ps-admin__confirm-text {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink);
+}
+
+.ps-admin__confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* ============================================================
+   6. 新增 / 编辑表单（玻璃卡，战术板与作者共用）
+   ============================================================ */
+.ps-admin__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+}
+
+/* 表单头：标题 + 取消编辑按钮 */
+.ps-admin__form-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* 单字段：标签在上、控件在下 */
+.ps-admin__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* 双列行 */
+.ps-admin__row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+
+.ps-admin__label {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+}
+
+/* ---------- 文本输入 ---------- */
+.ps-admin__input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ps-admin__input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.ps-admin__input:hover {
+  border-color: var(--color-gold-glow);
+}
+
+.ps-admin__input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 0 0 3px var(--color-gold-glow);
+}
+
+/* ---------- 下拉 select（玻璃 + 自绘箭头） ---------- */
+.ps-admin__select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ps-admin__select {
+  width: 100%;
+  padding: var(--space-3) var(--space-8) var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ps-admin__select:hover {
+  border-color: var(--color-gold-glow);
+}
+
+.ps-admin__select:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 0 0 3px var(--color-gold-glow);
+}
+
+.ps-admin__select:disabled {
+  color: var(--color-ink-faint);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.ps-admin__select option {
+  background: var(--color-bg-raise);
+  color: var(--color-ink);
+}
+
+.ps-admin__chevron {
+  position: absolute;
+  right: var(--space-3);
+  pointer-events: none;
+  color: var(--color-ink-soft);
+}
+
+/* ---------- 难度分段控件 ---------- */
+.ps-admin__seg {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  width: fit-content;
+}
+
+.ps-admin__seg-btn {
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ps-admin__seg-btn:hover {
+  color: var(--color-ink);
+}
+
+.ps-admin__seg-btn.is-active {
+  color: var(--color-gold);
+  background: var(--glass-strong);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    inset 0 -1px 0 0 var(--color-gold-glow);
+}
+
+/* ---------- 精选开关 ---------- */
+.ps-admin__field--switch {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.ps-admin__switch-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.ps-admin__switch-hint {
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  color: var(--color-ink-soft);
+}
+
+.ps-admin__switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 30px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+  cursor: pointer;
+  display: flex;
+  justify-content: flex-start;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ps-admin__switch.is-on {
+  justify-content: flex-end;
+  border-color: var(--color-gold);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 0 0 1px var(--color-gold-glow);
+}
+
+.ps-admin__switch-knob {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--color-ink-soft);
+  box-shadow: var(--shadow-glass);
+}
+
+.ps-admin__switch.is-on .ps-admin__switch-knob {
+  background: var(--color-gold);
+}
+
+/* ---------- 战术正文 textarea（mono + 强玻璃底） ---------- */
+.ps-admin__textarea {
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  line-height: var(--lh-code);
+  resize: vertical;
+  min-height: 280px;
+  white-space: pre;
+  overflow: auto;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ps-admin__textarea::placeholder {
+  color: var(--color-ink-faint);
+  font-family: var(--font-sans);
+  white-space: normal;
+}
+
+.ps-admin__textarea:hover {
+  border-color: var(--color-gold-glow);
+}
+
+.ps-admin__textarea:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px var(--color-gold-glow);
+}
+
+/* ---------- 错误条 ---------- */
+.ps-admin__error {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ember-bright);
+}
+
+/* ---------- 操作区：靠右主按钮 ---------- */
+.ps-admin__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ============================================================
+   7. 骨架屏字段（Skeleton 原语提供材质，本文件只排版尺寸）
+   ============================================================ */
+.ps-admin__sk-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ps-admin__sk-btn {
+  align-self: flex-end;
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 767px) {
+  .ps-admin {
+    gap: var(--space-6);
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .ps-admin__section {
+    gap: var(--space-8);
+  }
+
+  .ps-admin__row-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-admin__form {
+    padding: var(--space-6);
+  }
+
+  .ps-admin__seg {
+    width: 100%;
+  }
+
+  /* 列表行塌成单列：信息在上、操作在下 */
+  .ps-admin__row-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ps-admin__row-actions {
+    justify-content: flex-start;
+  }
+
+  .ps-admin__confirm {
+    max-width: none;
+  }
+}

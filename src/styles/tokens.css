@@ -1,0 +1,132 @@
+/* ============================================================
+   PlanShare 设计令牌（单一真相来源 · CSS 变量层）
+   风格 = 2026 Dark Liquid Glass · 魔兽金 · 现代魔兽史诗奇幻。
+   所有颜色 / 字体 / 间距 / 圆角 / 阴影 / 缓动值只在此定义一次。
+   组件与页面禁止写裸 hex / 裸 rgba / 裸 blur / 裸字号 / 游离间距，一律 var(--...)。
+   与 tailwind.css 的 @theme 同名令牌保持一致；严格对齐 DESIGN.md，不得改色。
+   ============================================================ */
+:root {
+  /* ---------- 颜色：暖黑基底 ---------- */
+  --color-bg-base: #0C0B0A;        /* 暖近黑，最底层 */
+  --color-bg-raise: #14110C;       /* 抬升面（区块底、表层容器） */
+  --color-bg-deep: #16120B;        /* 深空径向外圈（暖棕红向） */
+
+  /* ---------- 颜色：暖白文字 ---------- */
+  --color-ink: #F6F1E8;            /* 暖白主文字：标题、正文 */
+  --color-ink-soft: #B6AD9D;       /* 次文字：元信息、作者名、说明 */
+  --color-ink-faint: #6F675B;      /* 极弱文字：占位、禁用、分隔点 */
+
+  /* ---------- 颜色：双金分工 ---------- */
+  --color-gold: #E8B765;           /* 魔兽金：链接 / 激活 / 强调 / hairline */
+  --color-gold-bright: #F2CE86;    /* hover 提亮 */
+  --color-gold-deep: #C8923A;      /* active / 描边暗部 */
+  --color-gold-cream: #EBDEC2;     /* 奶金羊皮：eyebrow / 正文级强调 */
+  --color-gold-glow: rgba(232, 183, 101, 0.30); /* 金辉：hover 外发光、focus 内衬 */
+
+  /* ---------- 颜色：砖红 CTA ---------- */
+  --color-ember: #B23A2E;          /* 主实心按钮底（核心操作） */
+  --color-ember-bright: #C8493B;   /* 主按钮 hover */
+  /* 主按钮材质渐变端点：default 顶/底 与 hover 顶/底（渐变 + 顶高光 + 暖辉 depth） */
+  --ember-grad-top: #C8493B;       /* default 渐变顶（提亮砖红） */
+  --ember-grad-bottom: #8E2C22;    /* default 渐变底（加深砖红） */
+  --ember-grad-top-hover: #D2503F; /* hover 渐变顶 */
+  --ember-grad-bottom-hover: #9A3327; /* hover 渐变底 */
+  --ember-text: #FFF3EC;           /* 主按钮文字（暖白偏暖，压在砖红上对比足够） */
+  --ember-border: rgba(255, 200, 180, 0.18);     /* 主按钮 1px 暖边 */
+  --ember-highlight: rgba(255, 255, 255, 0.22);  /* 主按钮顶部内高光（玻璃感） */
+  --ember-glow: rgba(178, 58, 46, 0.40);         /* 主按钮暖辉 depth 外发光 */
+  --ember-sheen: rgba(255, 255, 255, 0.16);      /* 主按钮 ::before 顶部柔光起点 */
+  --ember-depth: rgba(0, 0, 0, 0.4);             /* 主按钮贴地暗影（depth 兜底层） */
+  --ember-press: rgba(0, 0, 0, 0.35);            /* 主按钮 active 压暗内阴影 */
+
+  /* ---------- 玻璃光扫高光（卡片 hover 斜向 sweep 的暖白光带） ---------- */
+  --glass-sweep: rgba(255, 246, 230, 0.16);      /* 斜向光扫高光峰值（暖白） */
+
+  /* ---------- 颜色：功能态 ---------- */
+  --color-success: #65C68A;        /* 复制成功 */
+
+  /* ---------- 颜色：焦点环（亮金，非蓝色） ---------- */
+  --color-focus-ring: #E8B765;
+
+  /* ---------- 玻璃材质 ---------- */
+  --glass: rgba(26, 22, 16, 0.55);            /* 普通玻璃填充（暖黑棕） */
+  --glass-strong: rgba(22, 18, 13, 0.72);     /* 强版玻璃（导航/弹层/引流卡） */
+  --glass-border: rgba(255, 246, 230, 0.10);  /* 玻璃 1px 描边 */
+  --glass-highlight: rgba(255, 255, 255, 0.14); /* 顶部高光 */
+  --blur-card: blur(24px) saturate(155%);     /* 卡片模糊 */
+  --blur-nav: blur(40px) saturate(180%);      /* 导航/弹层 visionOS 强版 */
+
+  /* ---------- 渐变 ---------- */
+  --grad-gold: linear-gradient(135deg, #F4D596, #E0A94B);                       /* 大标题金色文字 */
+  --grad-page: radial-gradient(120% 120% at 50% 0%, #16120B 0%, #0C0B0A 60%);   /* 深空径向暖黑 */
+  --grad-scrim: linear-gradient(180deg, rgba(8, 7, 6, 0) 0%, rgba(8, 7, 6, 0.55) 60%, rgba(8, 7, 6, 0.88) 100%); /* hero 暗角 scrim */
+
+  /* ---------- 字体栈（系统栈完整兜底，断网也好看） ---------- */
+  /* 史诗大标题：现代无衬线，靠字重 + 金渐变体现高级，不用尖锐衬线（对标苹果现代标题） */
+  --font-epic: "Inter", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, "PingFang SC", monospace;
+
+  /* ---------- 字重 ---------- */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;  /* 史诗标题主力（呼应官网 SemiBold） */
+  --weight-bold: 700;      /* 仅极少数大数字 */
+
+  /* ---------- 字阶（rem，根 16px；含字号·行高） ---------- */
+  --text-hero: 3.5rem;      /* 56px / 1.1 / 600 / epic */
+  --lh-hero: 1.1;
+  --text-display: 2.5rem;   /* 40px / 1.15 / 600 / epic */
+  --lh-display: 1.15;
+  --text-h1: 1.875rem;      /* 30px / 1.2 / 600 */
+  --lh-h1: 1.2;
+  --text-h2: 1.375rem;      /* 22px / 1.3 / 600 */
+  --lh-h2: 1.3;
+  --text-h3: 1.125rem;      /* 18px / 1.4 / 500 */
+  --lh-h3: 1.4;
+  --text-body: 0.9375rem;   /* 15px / 1.6 / 400 */
+  --lh-body: 1.6;
+  --text-meta: 0.8125rem;   /* 13px / 1.5 / 400 */
+  --lh-meta: 1.5;
+  --text-caption: 0.75rem;  /* 12px / 1.4 / 500 */
+  --lh-caption: 1.4;
+  --text-code: 0.875rem;    /* 14px / 1.7 / 400 / mono */
+  --lh-code: 1.7;
+
+  /* ---------- 间距：8px 基准阶（只允许从这一阶取值） ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* ---------- 容器与栅格 ---------- */
+  --container-max: 1180px;  /* 内容最大宽度 */
+  --container-read: 860px;  /* 详情正文阅读宽度 */
+
+  /* ---------- 圆角 ---------- */
+  --radius-sm: 10px;    /* 标签、徽标、小图标按钮 */
+  --radius-md: 14px;    /* 输入、常规按钮、小卡 */
+  --radius-lg: 18px;    /* 玻璃卡片、弹层 */
+  --radius-xl: 20px;    /* 大容器、hero 卡、bento 大格 */
+  --radius-full: 999px; /* 头像、药丸按钮、圆形图标按钮 */
+
+  /* ---------- 阴影 ---------- */
+  --shadow-glass: 0 16px 50px rgba(0, 0, 0, 0.45);
+  --shadow-glass-hover: 0 0 0 1px var(--color-gold-glow), 0 14px 50px var(--color-gold-glow);
+  --shadow-pop: 0 20px 60px rgba(0, 0, 0, 0.55);
+
+  /* ---------- 缓动与时长（全站主缓动 ease-epic） ---------- */
+  --ease-epic: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 0.18s;
+  --dur-base: 0.32s;
+  --dur-slow: 0.6s;
+
+  /* ---------- 过渡（只对 color/bg/border/opacity/transform/box-shadow 生效） ---------- */
+  --transition-fast: var(--dur-fast) var(--ease-epic);
+  --transition-base: var(--dur-base) var(--ease-epic);
+}

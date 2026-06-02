@@ -1,0 +1,42 @@
+/* ============================================================
+   Breadcrumb —— 面包屑。
+   玻璃药丸外壳 + chevron 分隔；链接 ink-soft→hover 金，末项当前页金色不可点。
+   ============================================================ */
+.ps-crumb {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+}
+
+.ps-crumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ps-crumb__sep {
+  display: inline-flex;
+  color: var(--color-ink-faint);
+}
+
+.ps-crumb__link {
+  color: var(--color-ink-soft);
+  transition: color var(--transition-fast);
+}
+
+.ps-crumb__link:hover {
+  color: var(--color-gold-bright);
+  text-decoration: none;
+}
+
+/* 当前项：亮金、非链接 */
+.ps-crumb__current {
+  color: var(--color-gold);
+  font-weight: var(--weight-medium);
+}

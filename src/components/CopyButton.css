@@ -1,0 +1,74 @@
+/* 复制按钮（整站第一优先级交互）：
+   primary 砖红材质复用 Button 原语（.ps-btn--primary），本文件不再自写一套 ember 渐变；
+   icon = 文本块右上角玻璃小图标按钮；
+   copied 成功态 = 对勾 + success 色（primary 转玻璃底 + 金边可读，icon 转 success 描边）。 */
+.ps-copy {
+  position: relative;
+}
+
+.ps-copy__icon {
+  display: inline-flex;
+}
+
+/* 读屏专用文本：视觉隐藏 */
+.ps-copy__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- primary 成功态：盖掉 Button 砖红材质，转玻璃底 + success 文字/对勾 + 金边可读 ---------- */
+.ps-copy--primary.is-copied {
+  background-image: none;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+  color: var(--color-success);
+  border-color: var(--color-gold-glow);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+}
+
+/* 成功态盖掉 Button primary 的 ::before 顶部柔光（避免砖红柔光残留） */
+.ps-copy--primary.is-copied::before {
+  display: none;
+}
+
+/* ---------- icon：文本块右上角玻璃小图标按钮 ---------- */
+.ps-copy--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+  color: var(--color-ink-soft);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+/* icon hover：玻璃提亮 + 金边 + 字转亮金 */
+.ps-copy--icon:hover {
+  color: var(--color-gold);
+  border-color: var(--color-gold-glow);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight), 0 0 0 1px var(--color-gold-glow);
+}
+
+.ps-copy--icon:active {
+  transform: scale(0.96);
+}
+
+.ps-copy--icon.is-copied {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}

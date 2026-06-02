@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+server/planshare.db
+server/planshare.db-wal
+server/planshare.db-shm
+.workflow/
+*.log
+backups/
+*.tsbuildinfo

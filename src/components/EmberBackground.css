@@ -1,0 +1,56 @@
+/* ============================================================
+   EmberBackground —— 余烬奥术暗场背景（three.js + 降级）
+   固定全屏、铺在所有内容之下、不可交互。
+   令牌来自 tokens.css，本文件不写裸色（仅布局/层级数值）。
+   ============================================================ */
+
+/* 固定全屏容器：z-index -1 沉到内容与页面 chrome 之下；纯氛围不可点。 */
+.ember-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* 深空径向暖黑作底色，three 场景透明只画粒子与雾气 */
+  background: var(--grad-page);
+  overflow: hidden;
+}
+
+/* three Canvas 充满容器 */
+.ember-bg__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 画布之上叠一圈径向暗角 vignette，四周压暗保中心可读 */
+.ember-bg__vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 100% at 50% 30%,
+    transparent 0%,
+    transparent 58%,
+    rgba(6, 5, 4, 0.55) 100%
+  );
+}
+
+/* ---------- 降级：无 WebGL / 低端 / reduced-motion 时的纯 CSS 暗场 ----------
+   深空径向暖黑（容器已带 --grad-page）+ 静态金色尘埃光斑 + 暗角，
+   无 three.js 也完整好看；静态、不跑 RAF。 */
+.ember-bg__fallback {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    /* 中上部一处暖金奥术光晕（唯一发光焦点） */
+    radial-gradient(40% 30% at 50% 22%, var(--color-gold-glow) 0%, transparent 70%),
+    /* 几点稀疏金色尘埃 */
+    radial-gradient(2px 2px at 22% 30%, var(--color-gold-cream) 0%, transparent 60%),
+    radial-gradient(2px 2px at 70% 24%, var(--color-gold) 0%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 58% 42%, var(--color-gold-cream) 0%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 35% 52%, var(--color-gold) 0%, transparent 60%),
+    radial-gradient(2px 2px at 82% 58%, var(--color-gold-cream) 0%, transparent 60%);
+  opacity: 0.5;
+}

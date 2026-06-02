@@ -1,0 +1,261 @@
+/**
+ * PlanShare API 客户端：对后端 /api/* 端点的 fetch 封装。
+ * 单一权威：所有网络请求只经此层；返回值用 data/types.ts 的契约类型。
+ * 默认走相对路径（dev 由 Vite proxy 反代到 3001，CloudBase 生产同源）。
+ * 静态托管到第三方域名时，可用 VITE_API_BASE 指向 CloudBase API 源站。
+ */
+import type {
+  Raid,
+  Author,
+  Board,
+  RaidDetail,
+  BoardDetail,
+  AuthorDetail,
+  LikeResult,
+  CreateBoardInput,
+  AdminBoard,
+  AdminAuthor,
+  UpdateBoardInput,
+  AuthorInput,
+  UpdateAuthorInput,
+  AdminLoginResult,
+  CreateSubmissionInput,
+  AdminSubmission,
+  ApproveSubmissionInput,
+  ApproveSubmissionResult,
+} from '../data/types'
+import { getToken, clearToken, UnauthorizedError } from './adminAuth'
+
+const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
+
+function apiUrl(path: string): string {
+  return `${API_BASE}${path}`
+}
+
+/** 统一 JSON 请求：非 2xx 抛错，带上后端的错误文案（若有）。 */
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(apiUrl(path), {
+    ...init,
+    headers: init?.body
+      ? { 'Content-Type': 'application/json', ...init?.headers }
+      : init?.headers,
+  })
+  if (!res.ok) {
+    let detail = ''
+    try {
+      const body = (await res.json()) as { error?: string }
+      detail = body?.error ?? ''
+    } catch {
+      // 响应体非 JSON 时忽略，仅用状态码
+    }
+    throw new Error(detail || `请求失败（${res.status}）：${path}`)
+  }
+  return res.json() as Promise<T>
+}
+
+/**
+ * 带管理员鉴权的请求：自动附 Authorization: Bearer <token>，
+ * 收到 401 时清 token 并抛 UnauthorizedError（调用方据此回到登录态）。
+ */
+async function adminRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getToken()
+  const res = await fetch(apiUrl(path), {
+    ...init,
+    headers: {
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
+  })
+  if (res.status === 401) {
+    clearToken()
+    let detail = ''
+    try {
+      const body = (await res.json()) as { error?: string }
+      detail = body?.error ?? ''
+    } catch {
+      // 忽略
+    }
+    throw new UnauthorizedError(detail || '登录已失效，请重新登录')
+  }
+  if (!res.ok) {
+    let detail = ''
+    try {
+      const body = (await res.json()) as { error?: string }
+      detail = body?.error ?? ''
+    } catch {
+      // 忽略
+    }
+    throw new Error(detail || `请求失败（${res.status}）：${path}`)
+  }
+  return res.json() as Promise<T>
+}
+
+/** 拼查询串：跳过 undefined / null / 空串；featured 用 1 表达。 */
+function buildQuery(params: Record<string, string | number | boolean | undefined | null>): string {
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue
+    search.set(key, value === true ? '1' : String(value))
+  }
+  const qs = search.toString()
+  return qs ? `?${qs}` : ''
+}
+
+/** 板列表筛选参数（全部可选）。 */
+export interface BoardsParams {
+  raidId?: string
+  bossId?: string
+  authorId?: string
+  featured?: boolean
+}
+
+/* ============================ 读取 ============================ */
+
+/** GET /api/raids -> Raid[] */
+export function getRaids(): Promise<Raid[]> {
+  return request<Raid[]>('/api/raids')
+}
+
+/** GET /api/raids/:id -> { raid, bosses } */
+export function getRaid(raidId: string): Promise<RaidDetail> {
+  return request<RaidDetail>(`/api/raids/${encodeURIComponent(raidId)}`)
+}
+
+/** GET /api/boards?raidId=&bossId=&authorId=&featured=1 -> Board[]（后端已排序、已排除隐藏） */
+export function getBoards(params: BoardsParams = {}): Promise<Board[]> {
+  return request<Board[]>(`/api/boards${buildQuery({ ...params })}`)
+}
+
+/** GET /api/boards/:id -> { board, raid, boss, author }（副作用：viewCount += 1） */
+export function getBoard(boardId: string): Promise<BoardDetail> {
+  return request<BoardDetail>(`/api/boards/${encodeURIComponent(boardId)}`)
+}
+
+/** GET /api/authors -> Author[] */
+export function getAuthors(): Promise<Author[]> {
+  return request<Author[]>('/api/authors')
+}
+
+/** GET /api/authors/:id -> { author, boards } */
+export function getAuthor(authorId: string): Promise<AuthorDetail> {
+  return request<AuthorDetail>(`/api/authors/${encodeURIComponent(authorId)}`)
+}
+
+/* ============================ 写入 ============================ */
+
+/** POST /api/boards/:id/like -> { id, likeCount }（持久化 +1） */
+export function likeBoard(boardId: string): Promise<LikeResult> {
+  return request<LikeResult>(`/api/boards/${encodeURIComponent(boardId)}/like`, {
+    method: 'POST',
+  })
+}
+
+/** POST /api/submissions -> 游客投稿，进入审核队列，不直接公开。 */
+export function createSubmission(input: CreateSubmissionInput): Promise<AdminSubmission> {
+  return request<AdminSubmission>('/api/submissions', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+/** POST /api/boards -> 新建 Board（受保护：需管理员 token；后端生成 id / 时间戳 / 计数） */
+export function createBoard(input: CreateBoardInput): Promise<Board> {
+  return adminRequest<Board>('/api/boards', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+/* ============================ 管理员（受保护） ============================ */
+
+/** POST /api/admin/login -> { token }（密码错 -> 401）。不带 token。 */
+export function adminLogin(password: string): Promise<AdminLoginResult> {
+  return request<AdminLoginResult>('/api/admin/login', {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  })
+}
+
+/** GET /api/admin/boards -> AdminBoard[]（全部，含隐藏；按 updatedAt 倒序） */
+export function getAdminBoards(): Promise<AdminBoard[]> {
+  return adminRequest<AdminBoard[]>('/api/admin/boards')
+}
+
+/** GET /api/admin/authors -> AdminAuthor[]（全部，每个带 boardCount） */
+export function getAdminAuthors(): Promise<AdminAuthor[]> {
+  return adminRequest<AdminAuthor[]>('/api/admin/authors')
+}
+
+/** GET /api/admin/submissions -> 投稿审核队列。 */
+export function getAdminSubmissions(): Promise<AdminSubmission[]> {
+  return adminRequest<AdminSubmission[]>('/api/admin/submissions')
+}
+
+/** POST /api/admin/submissions/:id/approve -> 通过投稿并发布正式板。 */
+export function approveSubmission(
+  id: string,
+  body: ApproveSubmissionInput,
+): Promise<ApproveSubmissionResult> {
+  return adminRequest<ApproveSubmissionResult>(
+    `/api/admin/submissions/${encodeURIComponent(id)}/approve`,
+    {
+      method: 'POST',
+      body: JSON.stringify(body),
+    },
+  )
+}
+
+/** POST /api/admin/submissions/:id/reject -> 驳回投稿。 */
+export function rejectSubmission(id: string, note?: string): Promise<AdminSubmission> {
+  return adminRequest<AdminSubmission>(`/api/admin/submissions/${encodeURIComponent(id)}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
+}
+
+/** POST /api/admin/submissions/:id/spam -> 标记垃圾。 */
+export function markSubmissionSpam(id: string, note?: string): Promise<AdminSubmission> {
+  return adminRequest<AdminSubmission>(`/api/admin/submissions/${encodeURIComponent(id)}/spam`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
+}
+
+/** PUT /api/boards/:id -> 更新后的最新 Board（patch 为任意子集） */
+export function updateBoard(id: string, patch: UpdateBoardInput): Promise<Board> {
+  return adminRequest<Board>(`/api/boards/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+/** DELETE /api/boards/:id -> { ok: true } */
+export function deleteBoard(id: string): Promise<{ ok: true }> {
+  return adminRequest<{ ok: true }>(`/api/boards/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+}
+
+/** POST /api/authors -> 新建 Author（后端生成 id=a-xxx） */
+export function createAuthor(body: AuthorInput): Promise<Author> {
+  return adminRequest<Author>('/api/authors', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+/** PUT /api/authors/:id -> 更新后的 Author（patch 为 AuthorInput 子集） */
+export function updateAuthor(id: string, patch: UpdateAuthorInput): Promise<Author> {
+  return adminRequest<Author>(`/api/authors/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+/** DELETE /api/authors/:id -> { ok: true }（名下仍有板 -> 409 抛错） */
+export function deleteAuthor(id: string): Promise<{ ok: true }> {
+  return adminRequest<{ ok: true }>(`/api/authors/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+}

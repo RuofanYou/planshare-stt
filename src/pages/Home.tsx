@@ -1,5 +1,5 @@
-import { type FormEvent, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   useFeaturedBoards,
@@ -39,6 +39,7 @@ const RAID_SKELETON_COUNT = 3
 export default function Home() {
   const reduce = useReducedMotion()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const featuredQuery = useFeaturedBoards()
   const raidsQuery = useRaids()
@@ -83,6 +84,19 @@ export default function Home() {
 
     setSearchHint('暂时没搜到匹配的板子，可以先按团本浏览。')
   }
+
+  function scrollToSection(id: string, updateHash = true) {
+    if (updateHash) window.history.replaceState(null, '', `#${id}`)
+    document.getElementById(id)?.scrollIntoView({
+      behavior: reduce ? 'auto' : 'smooth',
+      block: 'start',
+    })
+  }
+
+  useEffect(() => {
+    if (location.hash !== '#home-latest') return
+    requestAnimationFrame(() => scrollToSection('home-latest', false))
+  }, [location.hash, reduce])
 
   return (
     <div className="home">
@@ -170,9 +184,16 @@ export default function Home() {
                 本周热门
               </Button>
             )}
-            <Button to="#home-latest" variant="ghost" size="sm" pill>
-              最新上传
-            </Button>
+            <a
+              href="#home-latest"
+              className="ps-btn ps-btn--ghost ps-btn--sm ps-btn--pill"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('home-latest')
+              }}
+            >
+              <span className="ps-btn__label">最新上传</span>
+            </a>
           </motion.div>
         </motion.div>
       </section>

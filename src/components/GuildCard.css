@@ -1,0 +1,113 @@
+/* 公会引流卡：玻璃 chrome（glass-strong：背景/blur/描边/顶高光/depth 阴影）由 GlassCard 提供，
+   本文件只补公会专有的点缀：左侧金描边竖条 + 暖金淡辉淡底 + 极简古金边角 + 内容排版。
+   克制不抢战术主体。 */
+.ps-guild {
+  position: relative;
+  overflow: hidden;
+  /* 左侧 4px 暖金描边竖条：身份标识，点到为止 */
+  border-left: 4px solid var(--color-gold);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  gap: var(--space-3);
+}
+
+/* 装饰层：撑满卡片、压在内容之下（玻璃原语的 ::before 顶高光不受影响） */
+.ps-guild__deco {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* 暖金淡辉淡底：左上角一团极淡暖金径向辉光（透出温度，不抢主体） */
+.ps-guild__deco::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    80% 90% at 0% 0%,
+    var(--color-gold-glow) 0%,
+    transparent 55%
+  );
+  opacity: 0.6;
+}
+
+/* 极简古金边角：右上角一处细金 hairline 折角，现代克制，非繁复鎏金 */
+.ps-guild__deco::after {
+  content: '';
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 18px;
+  height: 18px;
+  border-top: 1px solid var(--color-gold-glow);
+  border-right: 1px solid var(--color-gold-glow);
+  border-top-right-radius: 4px;
+}
+
+/* 内容层抬到装饰之上 */
+.ps-guild > :not(.ps-guild__deco) {
+  position: relative;
+  z-index: 1;
+}
+
+/* 「用于公会招募」eyebrow（Tag gold）：靠左对齐，不撑满 */
+.ps-guild__tag {
+  align-self: flex-start;
+  letter-spacing: 0.06em;
+}
+
+.ps-guild__name {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+}
+
+.ps-guild__recruit {
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink-soft);
+}
+
+.ps-guild__contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+  /* 顶部一道极淡金 hairline 分隔 */
+  border-top: 1px solid var(--glass-border);
+}
+
+.ps-guild__contact-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.ps-guild__contact-label {
+  font-size: var(--text-caption);
+  color: var(--color-ink-faint);
+}
+
+.ps-guild__contact-value {
+  font-size: var(--text-meta);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+@media (max-width: 480px) {
+  .ps-guild {
+    padding: var(--space-4);
+  }
+
+  .ps-guild__contact :where(.ps-copy) {
+    width: 100%;
+  }
+}

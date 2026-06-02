@@ -1,0 +1,16 @@
+{
+  "version": "2.0",
+  "envId": "planshare-d4gi9p3web9f2c235",
+  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "cloudrun": {
+    "name": "planshare"
+  },
+  "app": {
+    "serviceName": "planshare-static",
+    "framework": "static",
+    "installCommand": "",
+    "buildCommand": "",
+    "outputDir": "./dist",
+    "deployPath": "/"
+  }
+}

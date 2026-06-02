@@ -1,0 +1,50 @@
+/* ============================================================
+   Tag —— 小标签 / 徽标原语。
+   neutral = 中性玻璃 chip（难度 / 赛季）；gold = 奶金药丸（eyebrow / 精选角标）。
+   两者共用玻璃底 + 顶高光 + 暖金描边骨架，仅文字色与描边深浅不同。
+   ============================================================ */
+.ps-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+  border: 1px solid var(--glass-border);
+}
+
+/* 顶部高光：玻璃片质感 */
+.ps-tag::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+}
+
+.ps-tag__icon {
+  display: inline-flex;
+  /* 精选 star 用亮金，与奶金文字拉一点层次 */
+  color: var(--color-gold);
+}
+
+/* ---------- neutral：中性玻璃 chip（难度 / 赛季），靠文字区分不上色 ---------- */
+.ps-tag--neutral {
+  color: var(--color-ink-soft);
+}
+
+/* ---------- gold：奶金 eyebrow / 精选角标 ---------- */
+.ps-tag--gold {
+  color: var(--color-gold-cream);
+  border-color: var(--color-gold-glow);
+  letter-spacing: 0.04em;
+}

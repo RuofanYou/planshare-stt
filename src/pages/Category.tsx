@@ -137,7 +137,7 @@ export default function Category() {
         animate="show"
       >
         <div className="ps-cat-head__copy">
-          <Tag variant="gold">补丁 {raid.patch}</Tag>
+          <Tag variant="gold">{raid.patch} 版本</Tag>
           <h1 className="ps-cat-head__title text-gold-grad">{raid.name}</h1>
           <p className="ps-cat-head__desc">
             选择 BOSS 后浏览可复制的战术板，按推荐、最新、点赞或浏览量快速比较。
