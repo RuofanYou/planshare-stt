@@ -1,0 +1,79 @@
+/* ============================================================
+   Skeleton —— 加载占位块原语。
+   玻璃低对比块，仅极缓 opacity 呼吸（无 shimmer / 无炫光 / 无斜向光扫）。
+   reduce 时呼吸停止（媒体查询关 animation）。
+   ============================================================ */
+.ps-skeleton {
+  display: block;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  /* 极缓 opacity 呼吸：周期 1.8s，幅度极小，不抢可读性 */
+  animation: ps-skeleton-breathe 1.8s var(--ease-epic) infinite;
+}
+
+/* 文字行块：默认满宽、行高级别高度，圆角更小 */
+.ps-skeleton--line {
+  width: 100%;
+  height: 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+/* 大块面：撑满给定高度（详情正文 / 复制条占位） */
+.ps-skeleton--block {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+}
+
+/* 圆形：头像位占位 */
+.ps-skeleton--circle {
+  border-radius: var(--radius-full);
+}
+
+@keyframes ps-skeleton-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* reduce：停呼吸，静态低对比块 */
+@media (prefers-reduced-motion: reduce) {
+  .ps-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* ---------- SkeletonText：多行文字骨架 ---------- */
+.ps-skeleton-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ---------- SkeletonCard：与板卡同形的玻璃占位 ---------- */
+.ps-skeleton-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-skeleton-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.ps-skeleton-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--glass-border);
+}

@@ -1,0 +1,65 @@
+/* 点赞按钮：玻璃幽灵按钮。idle = ink-soft 描边心；hover = gold；已赞 = 实心 gold + 金辉微光。
+   药丸形玻璃底，可点态 cursor-pointer（继承 reset）。 */
+.ps-like {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-ink-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  padding: 3px var(--space-2);
+  transition: color var(--transition-fast), background-color var(--transition-fast),
+    border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.ps-like__icon {
+  display: inline-flex;
+}
+
+/* hover：玻璃底浮现 + 名/数字转金 */
+.ps-like:hover {
+  color: var(--color-gold);
+  background: var(--glass);
+  border-color: var(--glass-border);
+}
+
+/* 已赞：实心金心 + 数字金 + 极淡金辉外发光（克制，不炫光） */
+.ps-like.is-liked {
+  color: var(--color-gold);
+}
+
+.ps-like.is-liked .ps-like__icon {
+  filter: drop-shadow(0 0 5px var(--color-gold-glow));
+}
+
+.ps-like:active {
+  transform: scale(0.96);
+}
+
+/* 数字容器：相对定位承载 count-up 进出场（避免布局抖动） */
+.ps-like__count {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 2ch;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ps-like__count-val {
+  display: inline-block;
+}
+
+/* 默认尺寸（图标尺寸由 Icon 的 size prop 控制） */
+.ps-like--default .ps-like__count {
+  font-size: var(--text-meta);
+}
+
+/* compact：卡片底栏 */
+.ps-like--compact {
+  padding: 2px var(--space-1);
+}
+
+.ps-like--compact .ps-like__count {
+  font-size: var(--text-meta);
+}

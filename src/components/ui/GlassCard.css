@@ -1,0 +1,53 @@
+/* ============================================================
+   GlassCard —— 玻璃面板原语。
+   玻璃 chrome（背景/blur/描边/顶高光/depth 阴影）全由 .glass / .glass-strong 提供，
+   本文件只补「交互态」：裁切光扫溢出、hover 金辉描边、内层点击区。
+   位移由 Framer cardHover 的 transform 负责，CSS 不过渡位移，避免 layout-shift。
+   ============================================================ */
+.ps-glasscard {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 交互卡：裁掉斜向光扫溢出，保持圆角玻璃片轮廓；只过渡描边与阴影 */
+.ps-glasscard--interactive {
+  overflow: hidden;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+/* hover 金辉描边（位移由 cardHover 的 y 负责） */
+.ps-glasscard--interactive:hover {
+  border-color: var(--color-gold-glow);
+  box-shadow: var(--shadow-glass-hover);
+}
+
+/* 斜向光扫层：45° 高光带，rest 在左外、hover 扫过（由内联 variants 驱动 x + opacity） */
+.ps-glasscard__sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 60%;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    var(--glass-sweep) 50%,
+    transparent 100%
+  );
+  transform: skewX(-12deg);
+}
+
+/* 整卡点击区：抬到光扫之上，撑满卡片 */
+.ps-glasscard__link {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+}
+
+.ps-glasscard__link:hover {
+  text-decoration: none;
+}

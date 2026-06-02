@@ -1,0 +1,189 @@
+/* ============================================================
+   PlanShare · Tailwind v4 入口
+   单一真相来源对齐 DESIGN.md：全部令牌写进 @theme，组件用工具类。
+   令牌命名与 tokens.css 的 CSS 变量保持一致（Tailwind 会生成 --color-* 等同名变量）。
+   组件直接用 .glass / .glass-strong 组件类或 Tailwind 工具类，禁止裸值。
+   ============================================================ */
+@import "tailwindcss";
+
+/* 暗色单模式：让 Tailwind 的 dark: 变体与系统色板对齐暗场 */
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ---------- 颜色：暖黑基底 ---------- */
+  --color-bg-base: #0C0B0A;        /* 暖近黑，最底层 */
+  --color-bg-raise: #14110C;       /* 抬升面（区块底、表层容器） */
+  --color-bg-deep: #16120B;        /* 深空径向外圈（暖棕红向） */
+
+  /* ---------- 颜色：暖白文字 ---------- */
+  --color-ink: #F6F1E8;            /* 暖白主文字 */
+  --color-ink-soft: #B6AD9D;       /* 次文字、作者名、说明 */
+  --color-ink-faint: #6F675B;      /* 占位、禁用、分隔点 */
+
+  /* ---------- 颜色：双金 ---------- */
+  --color-gold: #E8B765;           /* 魔兽金：链接 / 激活 / 强调 / hairline */
+  --color-gold-bright: #F2CE86;    /* hover 提亮 */
+  --color-gold-deep: #C8923A;      /* active / 描边暗部 */
+  --color-gold-cream: #EBDEC2;     /* 奶金羊皮：eyebrow / 正文级强调 */
+  --color-gold-glow: rgba(232, 183, 101, 0.30); /* 金辉 */
+
+  /* ---------- 颜色：砖红 CTA ---------- */
+  --color-ember: #B23A2E;          /* 主实心按钮底 */
+  --color-ember-bright: #C8493B;   /* 主按钮 hover */
+  /* 主按钮材质渐变端点 + 暖边/高光/暖辉（Button primary 质感专用） */
+  --color-ember-grad-top: #C8493B;
+  --color-ember-grad-bottom: #8E2C22;
+  --color-ember-grad-top-hover: #D2503F;
+  --color-ember-grad-bottom-hover: #9A3327;
+  --color-ember-text: #FFF3EC;
+  --color-ember-border: rgba(255, 200, 180, 0.18);
+  --color-ember-highlight: rgba(255, 255, 255, 0.22);
+  --color-ember-glow: rgba(178, 58, 46, 0.40);
+  --color-ember-sheen: rgba(255, 255, 255, 0.16);
+  --color-ember-depth: rgba(0, 0, 0, 0.4);
+  --color-ember-press: rgba(0, 0, 0, 0.35);
+  --color-glass-sweep: rgba(255, 246, 230, 0.16);
+
+  /* ---------- 颜色：功能态 ---------- */
+  --color-success: #65C68A;        /* 复制成功 */
+
+  /* ---------- 玻璃材质 ---------- */
+  --color-glass: rgba(26, 22, 16, 0.55);
+  --color-glass-strong: rgba(22, 18, 13, 0.72);
+  --color-glass-border: rgba(255, 246, 230, 0.10);
+  --color-glass-highlight: rgba(255, 255, 255, 0.14);
+
+  /* ---------- 字体栈（系统栈完整兜底，断网也好看） ---------- */
+  /* 史诗大标题：现代无衬线，靠字重 + 金渐变体现高级，不用尖锐衬线（对标苹果现代标题） */
+  --font-epic: "Inter", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, "PingFang SC", monospace;
+
+  /* ---------- 字阶（rem，根 16px） ---------- */
+  --text-hero: 3.5rem;       /* 56px / 1.1 / epic */
+  --text-hero--line-height: 1.1;
+  --text-display: 2.5rem;    /* 40px / 1.15 / epic */
+  --text-display--line-height: 1.15;
+  --text-h1: 1.875rem;       /* 30px / 1.2 */
+  --text-h1--line-height: 1.2;
+  --text-h2: 1.375rem;       /* 22px / 1.3 */
+  --text-h2--line-height: 1.3;
+  --text-h3: 1.125rem;       /* 18px / 1.4 */
+  --text-h3--line-height: 1.4;
+  --text-body: 0.9375rem;    /* 15px / 1.6 */
+  --text-body--line-height: 1.6;
+  --text-meta: 0.8125rem;    /* 13px / 1.5 */
+  --text-meta--line-height: 1.5;
+  --text-caption: 0.75rem;   /* 12px / 1.4 */
+  --text-caption--line-height: 1.4;
+  --text-code: 0.875rem;     /* 14px / 1.7 / mono */
+  --text-code--line-height: 1.7;
+
+  /* ---------- 字重 ---------- */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;  /* 史诗标题主力 */
+  --font-weight-bold: 700;
+
+  /* ---------- 间距：8px 基准阶 ---------- */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-24: 96px;
+
+  /* ---------- 容器最大宽度 ---------- */
+  --container-max: 1180px;
+  --container-read: 860px;
+
+  /* ---------- 圆角 ---------- */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* ---------- 阴影 ---------- */
+  --shadow-glass: 0 16px 50px rgba(0, 0, 0, 0.45);
+  --shadow-glass-hover: 0 0 0 1px var(--color-gold-glow), 0 14px 50px var(--color-gold-glow);
+  --shadow-pop: 0 20px 60px rgba(0, 0, 0, 0.55);
+
+  /* ---------- 缓动（全站主缓动 ease-epic） ---------- */
+  --ease-epic: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---------- 动效时长 ---------- */
+  --animate-duration-fast: 0.18s;
+  --animate-duration-base: 0.32s;
+  --animate-duration-slow: 0.6s;
+}
+
+/* ============================================================
+   玻璃组件类（visionOS / Glassmorphism 双范式）
+   组件直接 className="glass" / "glass-strong"。
+   ============================================================ */
+@layer components {
+  /* 普通玻璃卡片：blur(24px) saturate(155%) + 1px 暖金描边 + depth 阴影 */
+  .glass {
+    position: relative;
+    background: var(--color-glass);
+    -webkit-backdrop-filter: blur(24px) saturate(155%);
+    backdrop-filter: blur(24px) saturate(155%);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-glass);
+  }
+
+  /* 顶部高光：visionOS 玻璃片质感的关键 */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 1px 0 0 var(--color-glass-highlight);
+  }
+
+  /* 强版玻璃（导航 / 弹层 / 引流卡）：blur(40px) saturate(180%) */
+  .glass-strong {
+    position: relative;
+    background: var(--color-glass-strong);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-strong::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 1px 0 0 var(--color-glass-highlight);
+  }
+
+  /* hover 金辉：卡片上浮 + 金辉描边（配合 Framer Motion 的 y 位移使用） */
+  .glass-hover {
+    transition: box-shadow var(--animate-duration-base) var(--ease-epic),
+      border-color var(--animate-duration-base) var(--ease-epic);
+  }
+
+  .glass-hover:hover {
+    border-color: var(--color-gold-glow);
+    box-shadow: var(--shadow-glass-hover);
+  }
+
+  /* 史诗标题金色渐变文字：仅一层极淡投影，禁外发光/粗描边 */
+  .text-gold-grad {
+    background: linear-gradient(135deg, #F4D596, #E0A94B);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.15);
+  }
+}

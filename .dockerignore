@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.git
+.DS_Store
+.workflow
+*.log
+server/planshare.db
+server/planshare.db-wal
+server/planshare.db-shm
+tsconfig.tsbuildinfo

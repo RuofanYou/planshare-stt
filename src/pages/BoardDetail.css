@@ -1,0 +1,496 @@
+/* ============================================================
+   BoardDetail（板子详情）页样式 —— /board/:boardId
+   风格 = 2026 Dark Liquid Glass · 魔兽金 · 现代魔兽史诗奇幻。
+   令牌全部来自 tokens.css，本文件不写裸 hex / 裸 rgba / 裸 blur / 裸字号 / 游离间距。
+   玻璃材质类（.glass / .glass-strong / .text-gold-grad）权威在 tailwind.css，本页只描布局与皮。
+   核心交互 = 一键复制；任何视觉都不得干扰复制路径。本页绝不放公会引流卡。
+   ============================================================ */
+
+.ps-detail {
+  padding-block: var(--space-8) var(--space-24);
+}
+
+/* ---------- 板不存在的玻璃空态（ui EmptyState 提供线框图标 + 重试按钮） ---------- */
+.ps-detail__notfound-wrap {
+  margin-block: var(--space-12);
+}
+
+/* ---------- 玻璃面包屑（ui Breadcrumb）：仅留外间距，玻璃 / 链接态由原语承担 ---------- */
+.ps-detail__crumbs-wrap {
+  margin-bottom: var(--space-8);
+}
+
+/* ---------- 两栏栅格：默认单列，≥1024 主体 + 元信息玻璃侧栏 ---------- */
+.ps-detail__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .ps-detail__grid {
+    grid-template-columns: minmax(0, 1fr) 264px;
+    gap: var(--space-8);
+  }
+}
+
+/* 主体限制阅读宽度（长文本可读性），两栏下交给网格列控制 */
+.ps-detail__main {
+  min-width: 0;
+  max-width: var(--container-read);
+}
+
+@media (min-width: 1024px) {
+  .ps-detail__main {
+    max-width: none;
+  }
+}
+
+/* ---------- 头部：史诗标题 / 范围 / 徽章 / 作者 / 说明 ---------- */
+.ps-detail__head {
+  margin-bottom: var(--space-8);
+}
+
+/* 史诗金渐变板名：epic 字体 + 金色文字 + 极淡投影（.text-gold-grad 提供） */
+.ps-detail__title {
+  font-family: var(--font-epic);
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-4);
+}
+
+@media (max-width: 767px) {
+  .ps-detail__title {
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+  }
+}
+
+/* 适用范围：团本名 · BOSS名 */
+.ps-detail__scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+  margin-bottom: var(--space-3);
+}
+
+.ps-detail__scope-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ps-detail__scope-dot {
+  color: var(--color-ink-faint);
+}
+
+/* 难度标签 + 赛季标签（ui Tag neutral）+ 更新日期 */
+.ps-detail__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.ps-detail__updated {
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  color: var(--color-ink-faint);
+}
+
+/* 作者署名：行内链接，hover 名变亮金 */
+.ps-detail__author {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  margin-bottom: var(--space-6);
+}
+
+.ps-detail__author:hover {
+  text-decoration: none;
+}
+
+.ps-detail__author:hover .ps-detail__author-name {
+  color: var(--color-gold);
+}
+
+.ps-detail__author-name {
+  font-size: var(--text-meta);
+  color: var(--color-ink-soft);
+  transition: color var(--transition-fast);
+}
+
+/* 说明 */
+.ps-detail__desc {
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink-soft);
+}
+
+/* ---------- 主复制按钮条 ---------- */
+.ps-detail__copybar {
+  margin-bottom: var(--space-4);
+}
+
+/* ---------- 战术正文玻璃块 ---------- */
+.ps-detail__plan {
+  position: relative;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+}
+
+/* 右上角 icon 复制按钮 */
+.ps-detail__plan-tools {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+}
+
+/* 战术正文：mono、逐字呈现、保留换行、深玻璃底上 ink 单色保证对比度 ≥ 4.5:1 */
+.ps-detail__plan-text {
+  position: relative;
+  margin: 0;
+  /* 给右上角复制按钮让位，避免首行被压住 */
+  padding-right: var(--space-12);
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  line-height: var(--lh-code);
+  color: var(--color-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  /* 极长正文可纵向滚动 */
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* 折叠态：限制高度、底部柔化遮罩，提示「下面还有」（仅透明度蒙版，不着色不改写文本） */
+.ps-detail__plan-text.is-collapsed {
+  max-height: calc(var(--lh-code) * var(--text-code) * 12);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+}
+
+/* 展开/收起按钮：纯文字 ghost，亮金文字 */
+.ps-detail__toggle {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-4);
+  color: var(--color-gold);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.ps-detail__toggle:hover {
+  color: var(--color-gold-bright);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- 导入码块（可选） ---------- */
+.ps-detail__import {
+  margin-top: var(--space-8);
+}
+
+.ps-detail__import-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.ps-detail__import-label {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-gold-cream);
+  font-weight: var(--weight-medium);
+}
+
+/* 导入码：单行、可横向滚动、深玻璃底 */
+.ps-detail__import-text {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  line-height: var(--lh-code);
+  color: var(--color-ink);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ---------- 元信息玻璃侧栏 ---------- */
+.ps-detail__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+}
+
+@media (min-width: 1024px) {
+  /* 侧栏跟随滚动，停在导航下方一段距离 */
+  .ps-detail__meta {
+    position: sticky;
+    top: var(--space-8);
+  }
+}
+
+.ps-detail__meta-block {
+  display: flex;
+  align-items: center;
+}
+
+.ps-detail__meta-block--like {
+  justify-content: flex-start;
+}
+
+/* 侧栏内一根暖金 hairline 分隔（金辉极淡，点到为止） */
+.ps-detail__meta-rule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-gold-glow),
+    transparent
+  );
+}
+
+/* 浏览量大数字：epic 字体 + 亮金 + count-up，始终带眼睛图标 + 文本 */
+.ps-detail__view {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.ps-detail__view-icon {
+  display: inline-flex;
+  align-self: center;
+  color: var(--color-gold);
+}
+
+.ps-detail__view-num {
+  font-family: var(--font-epic);
+  font-size: var(--text-h1);
+  line-height: 1;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.01em;
+  color: var(--color-gold);
+  /* 数字滚动时宽度抖动会跳，等宽数字稳住版面 */
+  font-variant-numeric: tabular-nums;
+}
+
+.ps-detail__view-label {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+}
+
+/* 侧栏作者小署名 */
+.ps-detail__meta-author {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink-soft);
+  text-decoration: none;
+}
+
+.ps-detail__meta-author:hover {
+  text-decoration: none;
+}
+
+.ps-detail__meta-author:hover .ps-detail__meta-author-name {
+  color: var(--color-gold);
+}
+
+.ps-detail__meta-author-name {
+  font-size: var(--text-meta);
+  color: var(--color-ink-soft);
+  transition: color var(--transition-fast);
+}
+
+/* ---------- 同一 BOSS 的其它战术板 ---------- */
+.ps-detail__siblings {
+  margin-top: var(--space-24);
+}
+
+/* 区块标题（ui SectionHeading）：仅留下方间距，标题样式由原语承担 */
+.ps-detail__siblings-head {
+  margin-bottom: var(--space-6);
+}
+
+.ps-detail__siblings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+
+/* ---------- 复制成功玻璃 Toast（站点级浮层） ----------
+   外层 anchor 负责 fixed + 水平居中（不被 Framer transform 覆盖），
+   内层 .ps-detail__toast 由 Framer 控制 opacity + translateY 滑入。 */
+.ps-detail__toast-anchor {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--space-12);
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ps-detail__toast {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-pop);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink);
+}
+
+.ps-detail__toast-icon {
+  display: inline-flex;
+  color: var(--color-success);
+}
+
+.ps-detail__toast-text {
+  font-weight: var(--weight-medium);
+}
+
+/* ---------- 侧栏点赞（服务端持久化版，造型沿用全站点赞语言） ----------
+   共享 LikeButton 是 mock 本地态、其样式随组件文件加载；本页改用页面级
+   持久化点赞，故在此自带等价造型，保证不依赖未加载的 LikeButton.css。 */
+.ps-like {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-ink-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  padding: 3px var(--space-2);
+  transition: color var(--transition-fast), background-color var(--transition-fast),
+    border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.ps-like__icon {
+  display: inline-flex;
+}
+
+/* hover：玻璃底浮现 + 图标/数字转金 */
+.ps-like:hover {
+  color: var(--color-gold);
+  background: var(--glass);
+  border-color: var(--glass-border);
+}
+
+/* 已赞：实心金心 + 数字金 + 极淡金辉外发光（克制，不炫光） */
+.ps-like.is-liked {
+  color: var(--color-gold);
+}
+
+.ps-like.is-liked .ps-like__icon {
+  filter: drop-shadow(0 0 5px var(--color-gold-glow));
+}
+
+.ps-like:active {
+  transform: scale(0.96);
+}
+
+/* 请求进行中（未点亮态）禁用，避免重复提交 */
+.ps-like:disabled {
+  cursor: not-allowed;
+}
+
+/* 数字容器：相对定位承载 count-up 进出场（避免布局抖动） */
+.ps-like__count {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 2ch;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ps-like__count-val {
+  display: inline-block;
+}
+
+.ps-like--default .ps-like__count {
+  font-size: var(--text-meta);
+}
+
+/* ---------- 加载骨架屏（占位块 / 呼吸由 ui Skeleton 提供，此处只描页面布局节奏） ---------- */
+/* 读屏用：可见区域之外宣告加载状态 */
+.ps-skeleton-srtext {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 面包屑骨架：沿用面包屑药丸外形（玻璃 chrome 由 GlassCard glass-strong 提供） */
+.ps-detail__crumbs--skel {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  pointer-events: none;
+}
+
+/* 头部骨架：三行占位的纵向节奏，呼应真实头部 */
+.ps-detail__head--skel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* 复制条骨架：下方间距对齐真实复制条 */
+.ps-detail__skel-copybar {
+  max-width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+/* 正文块骨架：圆角对齐真实正文玻璃块 */
+.ps-detail__skel-plan {
+  border-radius: var(--radius-lg);
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 767px) {
+  .ps-detail {
+    padding-block: var(--space-6) var(--space-16);
+  }
+
+  .ps-detail__siblings {
+    margin-top: var(--space-16);
+  }
+
+  .ps-detail__siblings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-detail__plan {
+    padding: var(--space-4);
+  }
+}
