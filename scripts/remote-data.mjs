@@ -1,30 +1,7 @@
 #!/usr/bin/env node
-import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-
-const ENV_ID = 'planshare-d4gi9p3web9f2c235'
-const SERVICE_NAME = 'planshare'
-const API_BASE = 'https://planshare-264988-8-1387201447.sh.run.tcloudbase.com'
-
-function getAdminPassword() {
-  const raw = execFileSync('tcb', [
-    'api',
-    'tcbr',
-    'DescribeCloudRunServerDetail',
-    '--api-version',
-    '2022-02-17',
-    '--body',
-    JSON.stringify({ EnvId: ENV_ID, ServerName: SERVICE_NAME }),
-    '--json',
-  ], { encoding: 'utf8' })
-  const detail = JSON.parse(raw.slice(raw.indexOf('{')))
-  const envParams = JSON.parse(detail.data.ServerConfig.EnvParams || '{}')
-  if (!envParams.ADMIN_PASSWORD) {
-    throw new Error('远端未配置 ADMIN_PASSWORD，无法自动导出/导入')
-  }
-  return envParams.ADMIN_PASSWORD
-}
+import { API_BASE, getAdminPassword } from './cloudbase-runtime.mjs'
 
 async function jsonFetch(path, init) {
   const res = await fetch(`${API_BASE}${path}`, init)

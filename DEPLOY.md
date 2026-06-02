@@ -43,12 +43,26 @@ cloudflared tunnel --url http://localhost:8080
 后端跑在腾讯 CloudBase，不等于容器内文件天然永久保存。SQLite 是一个文件，必须写到持久卷目录里。
 
 推荐配置：
+- CloudBase Run 使用低成本模式：`0.25C/0.5GB`、`minNum=0`、`maxNum=1`。
 - CloudRun 挂 CFS 持久卷到容器目录 `/data`。
 - CloudRun 环境变量增加 `DATABASE_PATH=/data/planshare.db`。
-- 部署前执行 `npm run remote:export` 备份线上数据。
-- 部署后执行 `npm run remote:import` 把备份数据回灌到新数据库路径。
+- `cloudbaserc.json` 已声明挂载：`/data -> planshare-data`。
+- `ADMIN_PASSWORD` 不写入仓库；远端数据导出/导入脚本会从现有 CloudRun 服务读取后用于管理员登录。
+- 本地 CloudBase CLI 暂不支持创建 `framework.requirement.addons`；CFS addon `planshare-data` 需要在 CloudBase 控制台创建一次，之后 CLI 只负责部署绑定。
 
 当前代码默认仍写 `server/planshare.db`，这样本地开发不受影响；只有设置了 `DATABASE_PATH` 才切到持久卷。
+
+首次切换持久化时：
+```bash
+npm run cloudrun:persistent:preflight
+npm run remote:export
+# 在 CloudBase 控制台创建 CFS addon：planshare-data，并挂载到 /data
+# 在 CloudBase Run 环境变量设置 DATABASE_PATH=/data/planshare.db
+# CloudBase Run 规格调整为 0.25C/0.5GB、minNum=0、maxNum=1
+npm run remote:import
+```
+
+确认持久化生效后，后续后端部署只需要发代码，不再每次导出/导入数据库；`remote:export` 保留为人工备份。
 
 ## 已内置的基础安全措施
 - CORS 白名单：默认只允许 `https://zhaobanzi.pages.dev`、`http://localhost:5173`、`http://127.0.0.1:5173` 调用 API；需要新增域名时用 `CORS_ORIGINS`。
