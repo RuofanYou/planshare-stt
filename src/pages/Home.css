@@ -1,0 +1,529 @@
+/* ============================================================
+   首页（/）样式 —— 2026 Dark Liquid Glass · 魔兽金 · 现代魔兽史诗奇幻。
+   搜索首屏 → 团本入口 → 横向推荐 → 资源卡网格。
+   按钮 / 玻璃 chrome / 标签 / 头像 / 统计 / 骨架 / 空态 / 区块标题 全部由 ui/ 原语承担，
+   本文件只负责 Home 专属布局（Hero 排版、浮卡 3D 深度、团本卡装饰、栅格与响应式）。
+   令牌全部取自 tokens.css；少量 rgba 高光为局部玻璃质感专用。仅作用于 .home 作用域。
+   ============================================================ */
+
+/* 页面竖向节奏：段与段之间大留白呼吸 */
+.home {
+  position: relative;
+  padding-block: var(--space-12) var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* =========================================================
+   1. Hero —— Figma Community 式搜索入口
+   ========================================================= */
+.home-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding-block: var(--space-16) var(--space-12);
+  min-height: min(560px, calc(100vh - 120px));
+}
+
+/* Hero 局部发光焦点：标题区上方一团暖金奥术光晕（呼应全站余烬背景，
+   但只在 Hero 集中，形成「一处发光焦点」）。纯氛围，不挡交互。 */
+.home-hero::before {
+  content: "";
+  position: absolute;
+  top: -8%;
+  left: 50%;
+  width: min(720px, 92vw);
+  aspect-ratio: 1.4 / 1;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    closest-side,
+    var(--color-gold-glow) 0%,
+    rgba(232, 183, 101, 0.10) 42%,
+    transparent 72%
+  );
+  filter: blur(6px);
+  transform: translateX(-50%);
+  /* 极缓慢的奥术呼吸（唯一发光焦点） */
+  animation: home-hero-breathe 7s var(--ease-epic) infinite;
+}
+
+@keyframes home-hero-breathe {
+  0%, 100% { opacity: 0.65; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+
+/* 文案列 */
+.home-hero__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  width: min(820px, 100%);
+  text-align: center;
+}
+
+/* 史诗大标题：epic 字体 + 金色渐变填充 + 一层极淡投影（.text-gold-grad 提供） */
+.home-hero__title {
+  font-family: var(--font-epic);
+  font-size: var(--text-hero);
+  line-height: var(--lh-hero);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.01em;
+  max-width: 18ch;
+}
+
+.home-hero__subtitle {
+  max-width: 58ch;
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink-soft);
+}
+
+/* 搜索框：强版玻璃药丸，主操作在输入框内，首屏任务明确。 */
+.home-search {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: min(680px, 100%);
+  box-sizing: border-box;
+  min-height: 58px;
+  padding: var(--space-2);
+  border-radius: var(--radius-full);
+}
+
+.home-search__icon {
+  flex: 0 0 auto;
+  margin-left: var(--space-3);
+  color: var(--color-ink-faint);
+}
+
+.home-search__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.home-search__input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.home-search__hint {
+  margin-top: calc(var(--space-4) * -1);
+  color: var(--color-gold-cream);
+  font-size: var(--text-meta);
+}
+
+.home-quick {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* ---------- Hero 浮起玻璃精选卡（带深度 / 视差倾斜） ---------- */
+.home-hero__showcase {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 透视：让悬浮玻璃片有真实空间深度 */
+  perspective: 1200px;
+}
+
+/* 3D 倾斜 + 深度残影载体：包在 GlassCard 外，让卡内光扫裁切不影响背后残影。
+   略微 3D 倾斜，叠两层背后的影子片制造 Z 轴分层。 */
+.home-hero__card-stack {
+  position: relative;
+  width: min(420px, 100%);
+  transform: rotateY(-9deg) rotateX(4deg);
+  transform-style: preserve-3d;
+}
+
+/* 背后两片更暗的玻璃残影：Z 轴分层的「悬浮的玻璃片，不是贴墙的纸」 */
+.home-hero__card-stack::before,
+.home-hero__card-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  z-index: -1;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+}
+
+.home-hero__card-stack::before {
+  transform: translate3d(18px, 16px, -40px) scale(0.97);
+  opacity: 0.55;
+}
+
+.home-hero__card-stack::after {
+  transform: translate3d(34px, 30px, -80px) scale(0.94);
+  opacity: 0.3;
+}
+
+/* 浮卡本体（GlassCard 提供玻璃 chrome / 光扫 / hover 上浮 / 整卡链接）。
+   本文件只补内边距与内部排版节奏。 */
+.home-hero__card {
+  width: 100%;
+}
+
+.home-hero__card.glass {
+  padding: var(--space-6);
+}
+
+/* 卡内链接（GlassCard 的 .ps-glasscard__link）撑满 + 内边距 + 子项竖向节奏 */
+.home-hero__card .ps-glasscard__link {
+  padding: var(--space-6);
+  gap: var(--space-2);
+}
+
+/* eyebrow 行：精选 Tag 靠左收紧，不随 flex 列拉伸 */
+.home-hero__card-eyebrow {
+  display: inline-flex;
+  align-self: flex-start;
+}
+
+.home-hero__card-title {
+  font-family: var(--font-epic);
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  transition: color var(--transition-fast);
+}
+
+/* hover 浮卡：板名转亮金（呼应卡片可点） */
+.home-hero__card:hover .home-hero__card-title {
+  color: var(--color-gold);
+}
+
+.home-hero__card-scope {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-gold-cream);
+}
+
+.home-hero__card-desc {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 精选卡底栏：作者 + 浏览/点赞，顶部一道极淡金 hairline */
+.home-hero__card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--glass-border);
+  font-size: var(--text-meta);
+  color: var(--color-ink-soft);
+}
+
+.home-hero__card-author {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.home-hero__card-author-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-hero__card-metrics {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   区块标题由 ui SectionHeading 承担（eyebrow + epic 标题 + 暖金 hairline）。
+   ========================================================= */
+.home-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  /* 锚点滚动落点避开吸顶导航遮挡 */
+  scroll-margin-top: var(--space-16);
+}
+
+/* 横向推荐位：类似主流模板社区的宽 banner，作为资源推荐而不是首屏主路径。 */
+.home-spotlight .ps-glasscard__link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 220px;
+  padding: var(--space-8);
+  background:
+    radial-gradient(72% 120% at 78% 50%, var(--color-gold-glow), transparent 62%),
+    linear-gradient(135deg, transparent, var(--glass-border));
+}
+
+.home-spotlight__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.home-spotlight__title {
+  font-family: var(--font-epic);
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  transition: color var(--transition-fast);
+}
+
+.home-spotlight:hover .home-spotlight__title {
+  color: var(--color-gold);
+}
+
+.home-spotlight__desc {
+  max-width: 58ch;
+  color: var(--color-ink-soft);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.home-spotlight__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-gold);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+/* =========================================================
+   2. 精选区 —— 均匀等宽玻璃卡网格
+   ========================================================= */
+/* auto-fill 等宽列：每卡 minmax(300px,1fr)，所有精选卡同宽同高节奏，无英雄大格。
+   BoardCard 自身已是玻璃卡，撑满单元格。 */
+.home-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: var(--space-6);
+}
+
+/* 每个单元让内部 BoardCard 撑满整格高度，保证等高 */
+.home-card-grid__cell {
+  min-width: 0;
+  display: flex;
+}
+
+.home-card-grid__cell > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =========================================================
+   3. 团本入口区 —— 玻璃入口卡网格
+   ========================================================= */
+.home-raid-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-6);
+}
+
+/* 团本入口卡（GlassCard interactive 提供玻璃底 / 光扫 / hover 上浮 + 金辉描边）。
+   本文件只补卡内布局与团本专属装饰（左上角金 hairline、团本名、补丁、板数、箭头）。 */
+.home-raid-card .ps-glasscard__link {
+  gap: var(--space-2);
+  min-height: 168px;
+  padding: var(--space-6);
+}
+
+/* 左上角极简暗金装饰 hairline（点到为止，神似金边框，非繁复鎏花） */
+.home-raid-card__corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  pointer-events: none;
+  border-top: 1px solid var(--color-gold-deep);
+  border-left: 1px solid var(--color-gold-deep);
+  border-top-left-radius: var(--radius-lg);
+  opacity: 0.55;
+  transition: opacity var(--transition-base);
+}
+
+.home-raid-card:hover .home-raid-card__corner {
+  opacity: 1;
+  border-color: var(--color-gold);
+}
+
+/* 团本名：epic 字号，hover 染亮金 */
+.home-raid-card__name {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-epic);
+  font-size: var(--text-h1);
+  line-height: var(--lh-h1);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  transition: color var(--transition-fast);
+}
+
+.home-raid-card:hover .home-raid-card__name {
+  color: var(--color-gold);
+}
+
+/* 补丁号：奶金小标签 */
+.home-raid-card__patch {
+  position: relative;
+  z-index: 2;
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  color: var(--color-gold-cream);
+}
+
+/* 板数量：次文字，推到卡片底部 */
+.home-raid-card__count {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+}
+
+.home-raid-card__count strong {
+  color: var(--color-gold);
+  font-weight: var(--weight-semibold);
+}
+
+/* 骨架态：板数占位条同样推到底部，保持与真实卡同节奏 */
+.home-raid-card__count-skel {
+  margin-top: auto;
+}
+
+/* 右下箭头：装饰，hover 时随金辉右移 */
+.home-raid-card__arrow {
+  position: absolute;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 2;
+  display: inline-flex;
+  color: var(--color-ink-faint);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.home-raid-card:hover .home-raid-card__arrow {
+  color: var(--color-gold);
+  transform: translateX(var(--space-1));
+}
+
+/* =========================================================
+   响应式
+   ========================================================= */
+/* 平板：Hero 改竖排、精选卡居中 */
+@media (max-width: 1023px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    padding-block: var(--space-12) var(--space-8);
+  }
+
+  .home-hero__showcase {
+    perspective: none;
+  }
+
+  .home-hero__card-stack {
+    transform: none;
+    width: min(460px, 100%);
+  }
+
+  .home-hero__card-stack::before,
+  .home-hero__card-stack::after {
+    display: none;
+  }
+}
+
+/* 移动端：全单列 + 收紧竖向留白 + 大标题降一档 */
+@media (max-width: 767px) {
+  .home {
+    padding-block: var(--space-8) var(--space-16);
+    gap: var(--space-16);
+  }
+
+  .home-hero {
+    padding-block: var(--space-8) var(--space-4);
+  }
+
+  .home-hero__title {
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+    max-width: none;
+  }
+
+  .home-search {
+    width: 100%;
+  }
+
+  .home-search {
+    border-radius: var(--radius-lg);
+    gap: var(--space-2);
+  }
+
+  .home-search .ps-btn {
+    min-width: 76px;
+    padding-inline: var(--space-3);
+  }
+
+  .home-search__input {
+    font-size: var(--text-meta);
+  }
+
+  .home-card-grid,
+  .home-raid-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 尊重降低动效：停掉 Hero 光晕呼吸、浮卡 3D 倾斜与残影 */
+@media (prefers-reduced-motion: reduce) {
+  .home-hero::before {
+    animation: none;
+  }
+
+  .home-hero__card-stack {
+    transform: none;
+  }
+
+  .home-hero__card-stack::before,
+  .home-hero__card-stack::after {
+    display: none;
+  }
+}

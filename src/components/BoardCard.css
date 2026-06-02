@@ -1,0 +1,215 @@
+/* 板子卡片：玻璃 chrome / hover 上浮 / 金辉描边 / 斜向光扫全部由 GlassCard interactive 提供，
+   本文件只补板卡专有的内容排版（标题/范围/标签/描述/底栏/作者/精选角标定位）。 */
+
+/* 精选角标定位：金色玻璃徽标（Tag gold）绝对定位到右上角，标题为其预留空间 */
+.ps-card__featured {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 3;
+  display: inline-flex;
+}
+
+/* 主点击区：覆盖标题/描述等，整块可点（抬到光扫之上） */
+.ps-card__link {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  padding-bottom: var(--space-3);
+  color: inherit;
+}
+
+.ps-card__link:hover {
+  text-decoration: none;
+}
+
+/* market 变体顶部预览：把纯文字板卡变成模板市场卡，扫视时先看到一块资源预览。 */
+.ps-card__preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-height: 150px;
+  margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-2);
+  padding: var(--space-6);
+  overflow: hidden;
+  border-bottom: 1px solid var(--glass-border);
+  background:
+    radial-gradient(70% 80% at 18% 20%, var(--color-gold-glow), transparent 62%),
+    linear-gradient(135deg, var(--glass-strong), var(--glass));
+}
+
+.ps-card__preview::before {
+  content: "";
+  position: absolute;
+  inset: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+}
+
+.ps-card__preview-line {
+  position: relative;
+  z-index: 1;
+  width: 64%;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--glass-border);
+  box-shadow: 0 0 12px var(--color-gold-glow);
+}
+
+.ps-card__preview-line--wide {
+  width: 78%;
+  background: var(--color-gold-glow);
+}
+
+.ps-card__preview-line--short {
+  width: 46%;
+}
+
+.ps-card__preview-mark {
+  position: absolute;
+  right: var(--space-6);
+  top: var(--space-6);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--glass-strong);
+  border: 1px solid var(--color-gold-glow);
+  color: var(--color-gold);
+  font-family: var(--font-epic);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+}
+
+/* 板名变亮金仅在 hover 卡片时 */
+.ps-card:hover .ps-card__title {
+  color: var(--color-gold);
+}
+
+.ps-card__title {
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+  transition: color var(--transition-fast);
+}
+
+/* 精选板：标题为右上角绝对定位的「精选」角标预留空间，避免被压住 */
+.ps-card__featured ~ .ps-card__link .ps-card__title {
+  padding-right: 64px;
+}
+
+.ps-card__scope {
+  font-size: var(--text-meta);
+  color: var(--color-ink-soft);
+}
+
+.ps-card__tags {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.ps-card__season {
+  font-size: var(--text-caption);
+  color: var(--color-gold-cream);
+}
+
+/* 描述：截断 2 行 */
+.ps-card__desc {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 底部元信息行：顶部一道极淡金 hairline 分隔 */
+.ps-card__foot {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--glass-border);
+}
+
+.ps-card__author {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink-soft);
+  min-width: 0;
+}
+
+.ps-card__author:hover {
+  text-decoration: none;
+}
+
+.ps-card__author:hover .ps-card__author-name {
+  color: var(--color-gold);
+}
+
+.ps-card__author-name {
+  font-size: var(--text-meta);
+  color: var(--color-ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.ps-card__metrics {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* ---------- compact：作者主页内更紧凑 ---------- */
+.ps-card--compact .ps-card__link {
+  padding: var(--space-3);
+  gap: var(--space-1);
+}
+
+.ps-card--compact .ps-card__desc {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.ps-card--compact .ps-card__foot {
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ---------- market：浏览页模板市场卡 ---------- */
+.ps-card--market {
+  overflow: hidden;
+}
+
+.ps-card--market .ps-card__link {
+  padding-top: var(--space-4);
+}
+
+.ps-card--market .ps-card__title {
+  font-size: var(--text-h3);
+}
+
+.ps-card--market .ps-card__desc {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
