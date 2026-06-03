@@ -159,6 +159,7 @@ test('creator application immediately creates pending email account and logs act
   const body = await submitCreatorApplication(server, 'creator@example.com')
 
   assert.equal(body.contact, 'creator@example.com')
+  assert.match(body.creatorActivationUrl, /^https:\/\/front\.example\/creator\/activate\?token=/)
   assert.ok(server.output().includes('/creator/activate?token='))
 })
 

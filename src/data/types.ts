@@ -145,6 +145,7 @@ export interface AdminSubmission extends CreateSubmissionInput {
   reviewNote?: string
   boardId?: string
   authorId?: string
+  creatorActivationUrl?: string
   createdAt: string
   reviewedAt?: string
 }

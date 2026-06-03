@@ -32,6 +32,7 @@ export default function Submit() {
   const [localError, setLocalError] = useState('')
   const [submittedId, setSubmittedId] = useState('')
   const [submittedKind, setSubmittedKind] = useState<'regular' | 'creator' | ''>('')
+  const [creatorActivationUrl, setCreatorActivationUrl] = useState('')
 
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
@@ -71,6 +72,7 @@ export default function Submit() {
     setLocalError('')
     setSubmittedId('')
     setSubmittedKind('')
+    setCreatorActivationUrl('')
     if (!canSubmit) {
       setLocalError(wantsCreatorProfile && !contact.trim() ? '申请创作者需要填写登录邮箱。' : '请补全必填项。')
       return
@@ -99,6 +101,7 @@ export default function Submit() {
         onSuccess: (submission) => {
           setSubmittedId(submission.id)
           setSubmittedKind(requestedCreator ? 'creator' : 'regular')
+          setCreatorActivationUrl(submission.creatorActivationUrl ?? '')
           resetForm()
         },
       },
@@ -381,11 +384,21 @@ export default function Submit() {
         )}
 
         {submittedId && (
-          <motion.p className="ps-submit__success" role="status" variants={reduce ? undefined : staggerItem}>
-            {submittedKind === 'creator'
-              ? `投稿已进入审核：${submittedId}。创作者激活邮件已发送到你的邮箱。`
-              : `投稿已进入审核，不会立刻公开：${submittedId}`}
-          </motion.p>
+          <motion.div className="ps-submit__success" role="status" variants={reduce ? undefined : staggerItem}>
+            <p>
+              {submittedKind === 'creator'
+                ? `投稿已进入审核：${submittedId}。`
+                : `投稿已进入审核，不会立刻公开：${submittedId}`}
+            </p>
+            {submittedKind === 'creator' && creatorActivationUrl && (
+              <a href={creatorActivationUrl} className="ps-submit__activation-link">
+                打开创作者激活链接
+              </a>
+            )}
+            {submittedKind === 'creator' && !creatorActivationUrl && (
+              <p>创作者激活邮件已发送到你的邮箱。</p>
+            )}
+          </motion.div>
         )}
 
         <motion.div className="ps-submit__actions" variants={reduce ? undefined : staggerItem}>

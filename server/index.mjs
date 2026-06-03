@@ -729,9 +729,10 @@ function sendActivationEmail(email, token) {
   const url = `${FRONTEND_BASE_URL}/creator/activate?token=${token}`
   if (MAIL_PROVIDER === 'log') {
     console.log(`[creator-email] activation ${email} ${url}`)
-    return
+    return url
   }
   console.log(`[creator-email] activation ${email} ${url}`)
+  return null
 }
 
 function sendPasswordResetEmail(email, token) {
@@ -785,8 +786,8 @@ function createOrUpdateCreatorApplication(input, now) {
   }
 
   const token = createEmailToken(accountId, 'activate')
-  sendActivationEmail(email, token)
-  return { account: stmt.creatorAccountById.get(accountId), author }
+  const activationUrl = sendActivationEmail(email, token)
+  return { account: stmt.creatorAccountById.get(accountId), author, activationUrl }
 }
 
 function readSubmissionInput(body) {
@@ -1311,7 +1312,11 @@ app.post('/api/submissions', { bodyLimit: 1024 * 1024 }, (req, reply) => {
     authorId: creatorAccount?.author_id ?? application?.author?.id ?? null,
     createdAt: now,
   })
-  return reply.code(201).send(rowToSubmission(stmt.submissionById.get(id)))
+  const submission = rowToSubmission(stmt.submissionById.get(id))
+  if (application?.activationUrl) {
+    submission.creatorActivationUrl = application.activationUrl
+  }
+  return reply.code(201).send(submission)
 })
 
 // POST /api/boards -> 新建 Board（受保护；后端生成 id；viewCount=0, likeCount=0, isHidden=false）
