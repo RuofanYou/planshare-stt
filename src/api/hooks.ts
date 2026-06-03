@@ -17,6 +17,12 @@ import {
 import * as api from './client'
 import type { BoardsParams } from './client'
 import { getToken, setToken, clearToken, UnauthorizedError } from './adminAuth'
+import {
+  getCreatorToken,
+  setCreatorToken,
+  clearCreatorToken,
+  CreatorUnauthorizedError,
+} from './creatorAuth'
 import type {
   Raid,
   Boss,
@@ -171,6 +177,45 @@ export function useAdminSession() {
 export function useAdminLogin() {
   return useMutation({
     mutationFn: (password: string) => api.adminLogin(password),
+  })
+}
+
+/* ============================ 创作者会话 ============================ */
+
+export function useCreatorSession() {
+  const qc = useQueryClient()
+  const [token, setTokenState] = useState<string | null>(() => getCreatorToken())
+
+  const login = useCallback((newToken: string) => {
+    setCreatorToken(newToken)
+    setTokenState(newToken)
+  }, [])
+
+  const logout = useCallback(() => {
+    clearCreatorToken()
+    setTokenState(null)
+    qc.removeQueries({ queryKey: ['creator'] })
+  }, [qc])
+
+  const isUnauthorized = useCallback(
+    (error: unknown) => error instanceof CreatorUnauthorizedError,
+    [],
+  )
+
+  return {
+    isAuthed: !!token,
+    token,
+    login,
+    logout,
+    isUnauthorized,
+  }
+}
+
+export function useCreatorMe(enabled: boolean) {
+  return useQuery({
+    queryKey: ['creator', 'me'],
+    queryFn: api.getCreatorMe,
+    enabled,
   })
 }
 

@@ -1,0 +1,129 @@
+/* 创作者后台 MVP —— 微信登录入口 + 当前身份 + 作者绑定状态。
+   令牌全部取自 tokens.css，不写裸 hex / rgba / blur / 字号。 */
+
+.ps-creator {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-block: var(--space-12) var(--space-16);
+}
+
+.ps-creator--login {
+  min-height: min(680px, calc(100vh - 160px));
+  justify-content: center;
+}
+
+.ps-creator__login-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.ps-creator__login-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+  width: min(100%, 560px);
+  padding: var(--space-8);
+}
+
+.ps-creator__lead {
+  max-width: var(--container-read);
+  color: var(--color-ink-soft);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.ps-creator__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.ps-creator__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--space-6);
+}
+
+.ps-creator__profile,
+.ps-creator__panel {
+  min-height: 100%;
+  padding: var(--space-7);
+}
+
+.ps-creator__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.ps-creator__profile-main,
+.ps-creator__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.ps-creator__eyebrow {
+  color: var(--color-gold-cream);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ps-creator__name,
+.ps-creator__panel-title {
+  color: var(--color-ink);
+  font-family: var(--font-epic);
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0;
+}
+
+.ps-creator__meta,
+.ps-creator__panel-copy {
+  color: var(--color-ink-soft);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.ps-creator__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 760px) {
+  .ps-creator__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ps-creator__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .ps-creator {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .ps-creator__login-card,
+  .ps-creator__profile,
+  .ps-creator__panel {
+    padding: var(--space-5);
+  }
+
+  .ps-creator__profile {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

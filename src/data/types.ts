@@ -142,6 +142,7 @@ export interface AdminSubmission extends CreateSubmissionInput {
   reviewNote?: string
   boardId?: string
   authorId?: string
+  creatorUserId?: string
   createdAt: string
   reviewedAt?: string
 }
@@ -219,4 +220,24 @@ export type UpdateAuthorInput = Partial<AuthorInput>
 /** POST /api/admin/login 响应 */
 export interface AdminLoginResult {
   token: string
+}
+
+/** 微信登录后的创作者用户。 */
+export interface CreatorUser {
+  id: string
+  provider: 'wechat'
+  openid: string
+  unionid?: string
+  nickname?: string
+  avatarUrl?: string
+  authorId?: string
+  createdAt: string
+  updatedAt: string
+  lastLoginAt: string
+}
+
+/** GET /api/creator/me 响应。 */
+export interface CreatorMeResult {
+  user: CreatorUser
+  author: Author | null
 }

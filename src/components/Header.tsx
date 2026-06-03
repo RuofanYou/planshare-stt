@@ -50,6 +50,14 @@ export default function Header() {
           >
             投稿
           </NavLink>
+          <NavLink
+            to="/creator"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            创作者
+          </NavLink>
         </nav>
       </div>
     </header>

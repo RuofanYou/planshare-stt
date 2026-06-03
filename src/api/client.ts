@@ -23,8 +23,14 @@ import type {
   AdminSubmission,
   ApproveSubmissionInput,
   ApproveSubmissionResult,
+  CreatorMeResult,
 } from '../data/types'
 import { getToken, clearToken, UnauthorizedError } from './adminAuth'
+import {
+  getCreatorToken,
+  clearCreatorToken,
+  CreatorUnauthorizedError,
+} from './creatorAuth'
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
@@ -77,6 +83,41 @@ async function adminRequest<T>(path: string, init?: RequestInit): Promise<T> {
       // 忽略
     }
     throw new UnauthorizedError(detail || '登录已失效，请重新登录')
+  }
+  if (!res.ok) {
+    let detail = ''
+    try {
+      const body = (await res.json()) as { error?: string }
+      detail = body?.error ?? ''
+    } catch {
+      // 忽略
+    }
+    throw new Error(detail || `请求失败（${res.status}）：${path}`)
+  }
+  return res.json() as Promise<T>
+}
+
+/** 创作者鉴权请求：自动附 Creator token，401 时清登录态。 */
+async function creatorRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getCreatorToken()
+  const res = await fetch(apiUrl(path), {
+    ...init,
+    headers: {
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
+  })
+  if (res.status === 401) {
+    clearCreatorToken()
+    let detail = ''
+    try {
+      const body = (await res.json()) as { error?: string }
+      detail = body?.error ?? ''
+    } catch {
+      // 忽略
+    }
+    throw new CreatorUnauthorizedError(detail || '创作者登录已失效，请重新登录')
   }
   if (!res.ok) {
     let detail = ''
@@ -153,8 +194,10 @@ export function likeBoard(boardId: string): Promise<LikeResult> {
 
 /** POST /api/submissions -> 游客投稿，进入审核队列，不直接公开。 */
 export function createSubmission(input: CreateSubmissionInput): Promise<AdminSubmission> {
+  const creatorToken = getCreatorToken()
   return request<AdminSubmission>('/api/submissions', {
     method: 'POST',
+    headers: creatorToken ? { Authorization: `Bearer ${creatorToken}` } : undefined,
     body: JSON.stringify(input),
   })
 }
@@ -175,6 +218,18 @@ export function adminLogin(password: string): Promise<AdminLoginResult> {
     method: 'POST',
     body: JSON.stringify({ password }),
   })
+}
+
+/* ============================ 创作者登录 ============================ */
+
+/** 微信扫码登录起跳地址。 */
+export function getWechatLoginUrl(returnTo = '/creator'): string {
+  return apiUrl(`/api/auth/wechat/start${buildQuery({ returnTo })}`)
+}
+
+/** GET /api/creator/me -> 当前创作者身份与绑定作者。 */
+export function getCreatorMe(): Promise<CreatorMeResult> {
+  return creatorRequest<CreatorMeResult>('/api/creator/me')
 }
 
 /** GET /api/admin/boards -> AdminBoard[]（全部，含隐藏；按 updatedAt 倒序） */

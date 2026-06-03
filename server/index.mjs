@@ -14,7 +14,7 @@
 
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { randomBytes } from 'node:crypto'
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import Database from 'better-sqlite3'
 import Fastify from 'fastify'
@@ -36,6 +36,14 @@ const DB_PATH = ensureDatabasePath({ envPath: process.env.DATABASE_PATH, serverD
 // 生产可经环境变量配置端口/绑定地址（容器/托管常用 0.0.0.0 + 平台注入 PORT）。
 const PORT = Number(process.env.PORT) || 3001
 const HOST = process.env.HOST || '127.0.0.1'
+const PUBLIC_API_BASE = (process.env.PUBLIC_API_BASE || `http://${HOST}:${PORT}`).replace(/\/$/, '')
+const FRONTEND_BASE_URL = (process.env.FRONTEND_BASE_URL || 'https://zhaobanzi.pages.dev').replace(/\/$/, '')
+const WECHAT_APP_ID = process.env.WECHAT_APP_ID?.trim() || ''
+const WECHAT_APP_SECRET = process.env.WECHAT_APP_SECRET?.trim() || ''
+const WECHAT_API_BASE = (process.env.WECHAT_API_BASE || 'https://api.weixin.qq.com').replace(/\/$/, '')
+const WECHAT_AUTH_URL = process.env.WECHAT_AUTH_URL || 'https://open.weixin.qq.com/connect/qrconnect'
+const WECHAT_REDIRECT_URI =
+  process.env.WECHAT_REDIRECT_URI?.trim() || `${PUBLIC_API_BASE}/api/auth/wechat/callback`
 
 // 管理员鉴权：单密码 + 内存有效 token 集合（重启即失效）。
 const ADMIN_PASSWORD = assertSafeAdminPassword({
@@ -44,6 +52,9 @@ const ADMIN_PASSWORD = assertSafeAdminPassword({
   nodeEnv: process.env.NODE_ENV,
 })
 const validTokens = new Set()
+const validCreatorTokens = new Map()
+const AUTH_STATE_SECRET = process.env.AUTH_STATE_SECRET || ADMIN_PASSWORD
+const AUTH_STATE_TTL_MS = 10 * 60 * 1000
 
 // 安全边界：跨域只放行正式前端和本地开发；公开写接口与登录都做内存限流。
 const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.CORS_ORIGINS)
@@ -134,10 +145,36 @@ db.exec(`
     review_note           TEXT,
     board_id              TEXT,
     author_id             TEXT,
+    creator_user_id       TEXT,
     created_at            TEXT NOT NULL,
     reviewed_at           TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS creator_users (
+    id            TEXT PRIMARY KEY,
+    provider      TEXT NOT NULL,
+    open_id       TEXT NOT NULL,
+    union_id      TEXT,
+    nickname      TEXT,
+    avatar_url    TEXT,
+    author_id     TEXT,
+    created_at    TEXT NOT NULL,
+    updated_at    TEXT NOT NULL,
+    last_login_at TEXT NOT NULL,
+    UNIQUE(provider, open_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_creator_users_union_id
+    ON creator_users (provider, union_id);
 `)
+
+function ensureColumn(table, column, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all()
+  if (columns.some((item) => item.name === column)) return
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${definition}`)
+}
+
+ensureColumn('submissions', 'creator_user_id', 'creator_user_id TEXT')
 
 function seedIfEmpty() {
   const count = db.prepare('SELECT COUNT(*) AS n FROM boards').get().n
@@ -272,8 +309,24 @@ function rowToSubmission(row) {
     reviewNote: row.review_note ?? undefined,
     boardId: row.board_id ?? undefined,
     authorId: row.author_id ?? undefined,
+    creatorUserId: row.creator_user_id ?? undefined,
     createdAt: row.created_at,
     reviewedAt: row.reviewed_at ?? undefined,
+  }
+}
+
+function rowToCreatorUser(row) {
+  return {
+    id: row.id,
+    provider: row.provider,
+    openid: row.open_id,
+    unionid: row.union_id ?? undefined,
+    nickname: row.nickname ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
+    authorId: row.author_id ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    lastLoginAt: row.last_login_at,
   }
 }
 
@@ -296,6 +349,33 @@ const stmt = {
   allAuthors: db.prepare('SELECT * FROM authors'),
   authorById: db.prepare('SELECT * FROM authors WHERE id = ?'),
   boardById: db.prepare('SELECT * FROM boards WHERE id = ?'),
+  creatorUserById: db.prepare('SELECT * FROM creator_users WHERE id = ?'),
+  allCreatorUsers: db.prepare('SELECT * FROM creator_users ORDER BY updated_at DESC'),
+  creatorUserByProviderOpenId: db.prepare(
+    'SELECT * FROM creator_users WHERE provider = ? AND open_id = ?'
+  ),
+  upsertCreatorUser: db.prepare(`
+    INSERT INTO creator_users (
+      id, provider, open_id, union_id, nickname, avatar_url, author_id,
+      created_at, updated_at, last_login_at
+    ) VALUES (
+      @id, @provider, @openId, @unionId, @nickname, @avatarUrl, @authorId,
+      @createdAt, @updatedAt, @lastLoginAt
+    )
+    ON CONFLICT(provider, open_id) DO UPDATE SET
+      union_id = COALESCE(excluded.union_id, creator_users.union_id),
+      nickname = COALESCE(excluded.nickname, creator_users.nickname),
+      avatar_url = COALESCE(excluded.avatar_url, creator_users.avatar_url),
+      author_id = COALESCE(excluded.author_id, creator_users.author_id),
+      updated_at = excluded.updated_at,
+      last_login_at = excluded.last_login_at
+  `),
+  updateCreatorUserAuthor: db.prepare(`
+    UPDATE creator_users
+    SET author_id = @authorId,
+        updated_at = @updatedAt
+    WHERE id = @id
+  `),
   bumpView: db.prepare('UPDATE boards SET view_count = view_count + 1 WHERE id = ?'),
   bumpLike: db.prepare('UPDATE boards SET like_count = like_count + 1 WHERE id = ?'),
   submissionById: db.prepare('SELECT * FROM submissions WHERE id = ?'),
@@ -315,12 +395,12 @@ const stmt = {
       id, title, raid_id, boss_id, difficulty, season_version, description,
       content_text, submitter_name, contact, wants_creator_profile,
       creator_avatar_url, creator_bio, creator_guild_name, creator_guild_recruit,
-      creator_guild_contact, status, source_key, created_at
+      creator_guild_contact, status, source_key, creator_user_id, created_at
     ) VALUES (
       @id, @title, @raidId, @bossId, @difficulty, @seasonVersion, @description,
       @contentText, @submitterName, @contact, @wantsCreatorProfile,
       @creatorAvatarUrl, @creatorBio, @creatorGuildName, @creatorGuildRecruit,
-      @creatorGuildContact, 'pending', @sourceKey, @createdAt
+      @creatorGuildContact, 'pending', @sourceKey, @creatorUserId, @createdAt
     )
   `),
   markSubmissionReviewed: db.prepare(`
@@ -338,13 +418,13 @@ const stmt = {
       content_text, submitter_name, contact, wants_creator_profile,
       creator_avatar_url, creator_bio, creator_guild_name, creator_guild_recruit,
       creator_guild_contact, status, source_key, review_note, board_id, author_id,
-      created_at, reviewed_at
+      creator_user_id, created_at, reviewed_at
     ) VALUES (
       @id, @title, @raidId, @bossId, @difficulty, @seasonVersion, @description,
       @contentText, @submitterName, @contact, @wantsCreatorProfile,
       @creatorAvatarUrl, @creatorBio, @creatorGuildName, @creatorGuildRecruit,
       @creatorGuildContact, @status, @sourceKey, @reviewNote, @boardId, @authorId,
-      @createdAt, @reviewedAt
+      @creatorUserId, @createdAt, @reviewedAt
     )
     ON CONFLICT(id) DO UPDATE SET
       title = excluded.title,
@@ -367,6 +447,7 @@ const stmt = {
       review_note = excluded.review_note,
       board_id = excluded.board_id,
       author_id = excluded.author_id,
+      creator_user_id = excluded.creator_user_id,
       created_at = excluded.created_at,
       reviewed_at = excluded.reviewed_at
   `),
@@ -476,6 +557,141 @@ function cleanText(value) {
 function optionalText(value) {
   const text = cleanText(value)
   return text || null
+}
+
+function jsonBase64Url(value) {
+  return Buffer.from(JSON.stringify(value)).toString('base64url')
+}
+
+function signStatePayload(encodedPayload) {
+  return createHmac('sha256', AUTH_STATE_SECRET).update(encodedPayload).digest('base64url')
+}
+
+function timingSafeStringEqual(a, b) {
+  const aBuf = Buffer.from(a)
+  const bBuf = Buffer.from(b)
+  return aBuf.length === bBuf.length && timingSafeEqual(aBuf, bBuf)
+}
+
+function sanitizeReturnTo(value) {
+  const target = cleanText(value) || '/creator'
+  if (!target.startsWith('/') || target.startsWith('//')) return '/creator'
+  if (!target.startsWith('/creator')) return '/creator'
+  return target
+}
+
+function createAuthState(returnTo) {
+  const payload = jsonBase64Url({
+    nonce: randomBytes(12).toString('hex'),
+    returnTo: sanitizeReturnTo(returnTo),
+    iat: Date.now(),
+  })
+  return `${payload}.${signStatePayload(payload)}`
+}
+
+function verifyAuthState(state) {
+  const raw = cleanText(state)
+  const [payload, signature, extra] = raw.split('.')
+  if (!payload || !signature || extra) return null
+  if (!timingSafeStringEqual(signature, signStatePayload(payload))) return null
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+    if (!parsed || typeof parsed.iat !== 'number') return null
+    if (Date.now() - parsed.iat > AUTH_STATE_TTL_MS) return null
+    return { returnTo: sanitizeReturnTo(parsed.returnTo) }
+  } catch {
+    return null
+  }
+}
+
+function requireWechatConfig(reply) {
+  if (WECHAT_APP_ID && WECHAT_APP_SECRET) return true
+  reply.code(501).send({ error: '微信登录未配置：请设置 WECHAT_APP_ID 与 WECHAT_APP_SECRET' })
+  return false
+}
+
+function wechatApiUrl(path, params) {
+  const url = new URL(path, `${WECHAT_API_BASE}/`)
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value)
+  }
+  return url
+}
+
+async function fetchWechatJson(url) {
+  const res = await fetch(url)
+  let body
+  try {
+    body = await res.json()
+  } catch {
+    throw new Error(`微信接口响应不是 JSON（${res.status}）`)
+  }
+  if (!res.ok || body?.errcode) {
+    throw new Error(body?.errmsg || `微信接口请求失败（${res.status}）`)
+  }
+  return body
+}
+
+async function exchangeWechatCode(code) {
+  const token = await fetchWechatJson(
+    wechatApiUrl('/sns/oauth2/access_token', {
+      appid: WECHAT_APP_ID,
+      secret: WECHAT_APP_SECRET,
+      code,
+      grant_type: 'authorization_code',
+    })
+  )
+  if (!token.openid || !token.access_token) {
+    throw new Error('微信登录响应缺少 openid/access_token')
+  }
+
+  try {
+    const profile = await fetchWechatJson(
+      wechatApiUrl('/sns/userinfo', {
+        access_token: token.access_token,
+        openid: token.openid,
+        lang: 'zh_CN',
+      })
+    )
+    return {
+      openid: token.openid,
+      unionid: profile.unionid || token.unionid || null,
+      nickname: profile.nickname || null,
+      avatarUrl: profile.headimgurl || null,
+    }
+  } catch {
+    return {
+      openid: token.openid,
+      unionid: token.unionid || null,
+      nickname: null,
+      avatarUrl: null,
+    }
+  }
+}
+
+function upsertWechatUser(identity) {
+  const now = new Date().toISOString()
+  const existing = stmt.creatorUserByProviderOpenId.get('wechat', identity.openid)
+  const id = existing?.id || `u-${randomBytes(8).toString('hex')}`
+  stmt.upsertCreatorUser.run({
+    id,
+    provider: 'wechat',
+    openId: identity.openid,
+    unionId: identity.unionid,
+    nickname: identity.nickname,
+    avatarUrl: identity.avatarUrl,
+    authorId: existing?.author_id ?? null,
+    createdAt: existing?.created_at || now,
+    updatedAt: now,
+    lastLoginAt: now,
+  })
+  return stmt.creatorUserByProviderOpenId.get('wechat', identity.openid)
+}
+
+function createCreatorToken(userId) {
+  const token = randomBytes(24).toString('hex')
+  validCreatorTokens.set(token, userId)
+  return token
 }
 
 function readSubmissionInput(body) {
@@ -600,6 +816,23 @@ function requireAuth(req, reply, done) {
   done()
 }
 
+function requireCreatorAuth(req, reply, done) {
+  const user = getCreatorUserFromRequest(req)
+  if (!user) {
+    reply.code(401).send({ error: '未授权' })
+    return
+  }
+  req.creatorUser = user
+  done()
+}
+
+function getCreatorUserFromRequest(req) {
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+  const userId = token ? validCreatorTokens.get(token) : null
+  return userId ? stmt.creatorUserById.get(userId) : null
+}
+
 // POST /api/admin/login -> { token }；密码错 401。
 app.post('/api/admin/login', (req, reply) => {
   const clientKey = getClientKey(req)
@@ -617,6 +850,53 @@ app.post('/api/admin/login', (req, reply) => {
   const token = randomBytes(24).toString('hex')
   validTokens.add(token)
   return { token }
+})
+
+// GET /api/auth/wechat/start -> 跳转微信开放平台扫码登录。
+app.get('/api/auth/wechat/start', (req, reply) => {
+  if (!requireWechatConfig(reply)) return
+
+  const url = new URL(WECHAT_AUTH_URL)
+  url.searchParams.set('appid', WECHAT_APP_ID)
+  url.searchParams.set('redirect_uri', WECHAT_REDIRECT_URI)
+  url.searchParams.set('response_type', 'code')
+  url.searchParams.set('scope', 'snsapi_login')
+  url.searchParams.set('state', createAuthState(req.query?.returnTo))
+  url.hash = 'wechat_redirect'
+  return reply.redirect(url.toString())
+})
+
+// GET /api/auth/wechat/callback -> code 换微信身份，创建创作者会话后回前端。
+app.get('/api/auth/wechat/callback', async (req, reply) => {
+  if (!requireWechatConfig(reply)) return
+
+  const state = verifyAuthState(req.query?.state)
+  if (!state) return reply.code(400).send({ error: '微信登录 state 无效或已过期' })
+
+  const code = cleanText(req.query?.code)
+  if (!code) return reply.code(400).send({ error: '微信登录缺少 code' })
+
+  try {
+    const identity = await exchangeWechatCode(code)
+    const user = upsertWechatUser(identity)
+    const token = createCreatorToken(user.id)
+    const target = new URL(state.returnTo, `${FRONTEND_BASE_URL}/`)
+    target.hash = new URLSearchParams({ creator_token: token }).toString()
+    return reply.redirect(target.toString())
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '微信登录失败'
+    return reply.code(502).send({ error: message })
+  }
+})
+
+// GET /api/creator/me -> 当前创作者登录态。
+app.get('/api/creator/me', { preHandler: requireCreatorAuth }, (req) => {
+  const user = rowToCreatorUser(req.creatorUser)
+  const authorRow = req.creatorUser.author_id ? stmt.authorById.get(req.creatorUser.author_id) : null
+  return {
+    user,
+    author: authorRow ? rowToAuthor(authorRow) : null,
+  }
 })
 
 // GET /api/raids -> Raid[]（boardCount = 该团本未隐藏板数）
@@ -724,6 +1004,7 @@ app.post('/api/submissions', { bodyLimit: 1024 * 1024 }, (req, reply) => {
   const errorReply = validateSubmissionInput(input, reply)
   if (errorReply) return errorReply
 
+  const creatorUser = getCreatorUserFromRequest(req)
   const id = `s-${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`
   const now = new Date().toISOString()
   stmt.insertSubmission.run({
@@ -733,6 +1014,7 @@ app.post('/api/submissions', { bodyLimit: 1024 * 1024 }, (req, reply) => {
     contact: input.contact ?? null,
     wantsCreatorProfile: input.wantsCreatorProfile ? 1 : 0,
     sourceKey: clientKey,
+    creatorUserId: creatorUser?.id ?? null,
     createdAt: now,
   })
   return reply.code(201).send(rowToSubmission(stmt.submissionById.get(id)))
@@ -824,6 +1106,13 @@ app.post('/api/admin/submissions/:id/approve', { preHandler: requireAuth }, (req
         authorId: authorRow.id,
         reviewedAt,
       })
+      if (submission.creator_user_id) {
+        stmt.updateCreatorUserAuthor.run({
+          id: submission.creator_user_id,
+          authorId: authorRow.id,
+          updatedAt: reviewedAt,
+        })
+      }
       return {
         submission: rowToSubmission(stmt.submissionById.get(submission.id)),
         board: rowToBoard(boardRow),
@@ -880,6 +1169,7 @@ app.get('/api/admin/export', { preHandler: requireAuth }, () => {
     authors: stmt.allAuthors.all().map(rowToAuthor),
     boards: stmt.allBoardsAdmin.all().map(rowToAdminBoard),
     submissions: stmt.allSubmissionsAdmin.all().map(rowToSubmission),
+    creatorUsers: stmt.allCreatorUsers.all().map(rowToCreatorUser),
   }
 })
 
@@ -897,7 +1187,8 @@ app.post('/api/admin/import', { preHandler: requireAuth, bodyLimit: 10 * 1024 * 
   const authorRows = requireArray(body.authors, 'authors', reply)
   const boardRows = requireArray(body.boards, 'boards', reply)
   const submissionRows = body.submissions == null ? [] : requireArray(body.submissions, 'submissions', reply)
-  if (!raidRows || !bossRows || !authorRows || !boardRows || !submissionRows) return reply
+  const creatorUserRows = body.creatorUsers == null ? [] : requireArray(body.creatorUsers, 'creatorUsers', reply)
+  if (!raidRows || !bossRows || !authorRows || !boardRows || !submissionRows || !creatorUserRows) return reply
 
   const importAll = db.transaction(() => {
     for (const r of raidRows) {
@@ -960,8 +1251,23 @@ app.post('/api/admin/import', { preHandler: requireAuth, bodyLimit: 10 * 1024 * 
         reviewNote: s.reviewNote ?? null,
         boardId: s.boardId ?? null,
         authorId: s.authorId ?? null,
+        creatorUserId: s.creatorUserId ?? null,
         createdAt: s.createdAt,
         reviewedAt: s.reviewedAt ?? null,
+      })
+    }
+    for (const u of creatorUserRows) {
+      stmt.upsertCreatorUser.run({
+        id: u.id,
+        provider: u.provider,
+        openId: u.openid,
+        unionId: u.unionid ?? null,
+        nickname: u.nickname ?? null,
+        avatarUrl: u.avatarUrl ?? null,
+        authorId: u.authorId ?? null,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt,
+        lastLoginAt: u.lastLoginAt,
       })
     }
   })
@@ -975,6 +1281,7 @@ app.post('/api/admin/import', { preHandler: requireAuth, bodyLimit: 10 * 1024 * 
       authors: authorRows.length,
       boards: boardRows.length,
       submissions: submissionRows.length,
+      creatorUsers: creatorUserRows.length,
     },
   }
 })
