@@ -215,6 +215,13 @@
   line-height: var(--lh-caption);
 }
 
+.ps-submit__hint {
+  margin: 0;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
 .ps-submit__error,
 .ps-submit__success {
   margin: 0;

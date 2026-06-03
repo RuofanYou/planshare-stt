@@ -1,4 +1,4 @@
-/* 创作者后台 MVP —— 微信登录入口 + 当前身份 + 作者绑定状态。
+/* 创作者后台 —— 邮箱登录 + 当前身份 + 作者资料编辑。
    令牌全部取自 tokens.css，不写裸 hex / rgba / blur / 字号。 */
 
 .ps-creator {
@@ -98,6 +98,53 @@
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+.ps-creator__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.ps-creator__label {
+  color: var(--color-gold-cream);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+}
+
+.ps-creator__input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink);
+  padding: 0 var(--space-4);
+  font: inherit;
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease-epic), box-shadow var(--dur-fast) var(--ease-epic);
+}
+
+.ps-creator__input:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px var(--color-gold-glow);
+}
+
+.ps-creator__error,
+.ps-creator__notice {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-creator__error {
+  color: var(--color-ember-bright);
+}
+
+.ps-creator__notice {
+  color: var(--color-success);
 }
 
 @media (max-width: 760px) {

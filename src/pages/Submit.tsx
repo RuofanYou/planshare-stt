@@ -72,7 +72,7 @@ export default function Submit() {
     setSubmittedId('')
     setSubmittedKind('')
     if (!canSubmit) {
-      setLocalError(wantsCreatorProfile && !contact.trim() ? '申请创作者需要填写联系方式。' : '请补全必填项。')
+      setLocalError(wantsCreatorProfile && !contact.trim() ? '申请创作者需要填写登录邮箱。' : '请补全必填项。')
       return
     }
 
@@ -265,16 +265,21 @@ export default function Submit() {
               </div>
               <div className="ps-submit__field">
                 <label className="ps-submit__label" htmlFor="ps-submit-contact">
-                  联系方式
+                  登录邮箱
                 </label>
                 <input
                   id="ps-submit-contact"
                   className="ps-submit__input"
+                  type="email"
+                  autoComplete="email"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  placeholder="微信 / QQ / BattleTag / 邮箱，任选一种"
+                  placeholder="用于接收激活邮件和登录创作者后台"
                   maxLength={80}
                 />
+                <p className="ps-submit__hint">
+                  提交后会立即发送激活邮件；战术板公开仍需管理员审核。
+                </p>
               </div>
             </div>
 
@@ -378,7 +383,7 @@ export default function Submit() {
         {submittedId && (
           <motion.p className="ps-submit__success" role="status" variants={reduce ? undefined : staggerItem}>
             {submittedKind === 'creator'
-              ? `投稿和创作者申请已进入审核：${submittedId}`
+              ? `投稿已进入审核：${submittedId}。创作者激活邮件已发送到你的邮箱。`
               : `投稿已进入审核，不会立刻公开：${submittedId}`}
           </motion.p>
         )}

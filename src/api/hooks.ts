@@ -32,6 +32,7 @@ import type {
   UpdateAuthorInput,
   CreateSubmissionInput,
   ApproveSubmissionInput,
+  CreatorProfileInput,
 } from '../data/types'
 
 /* ============================ 团本 ============================ */
@@ -216,6 +217,53 @@ export function useCreatorMe(enabled: boolean) {
     queryKey: ['creator', 'me'],
     queryFn: api.getCreatorMe,
     enabled,
+  })
+}
+
+export function useCreatorLogin() {
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      api.creatorLogin(email, password),
+  })
+}
+
+export function useCreatorActivate() {
+  return useMutation({
+    mutationFn: ({ token, password }: { token: string; password: string }) =>
+      api.creatorActivate(token, password),
+  })
+}
+
+export function useCreatorResendActivation() {
+  return useMutation({
+    mutationFn: (email: string) => api.creatorResendActivation(email),
+  })
+}
+
+export function useCreatorForgotPassword() {
+  return useMutation({
+    mutationFn: (email: string) => api.creatorForgotPassword(email),
+  })
+}
+
+export function useCreatorResetPassword() {
+  return useMutation({
+    mutationFn: ({ token, password }: { token: string; password: string }) =>
+      api.creatorResetPassword(token, password),
+  })
+}
+
+export function useUpdateCreatorProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreatorProfileInput) => api.updateCreatorProfile(input),
+    onSuccess: (result) => {
+      qc.setQueryData(['creator', 'me'], result)
+      if (result.author) {
+        qc.invalidateQueries({ queryKey: ['author', result.author.id] })
+        qc.invalidateQueries({ queryKey: ['authors'] })
+      }
+    },
   })
 }
 

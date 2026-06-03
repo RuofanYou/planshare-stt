@@ -35,6 +35,9 @@ export interface Author {
   guildRecruit?: string
   /** 联系方式（仅展示 / 可复制） */
   guildContact?: string
+  creatorAccountId?: string
+  visibility?: 'draft' | 'semi_public' | 'approved' | 'hidden'
+  moderationStatus?: string
 }
 
 /** 难度：英雄 / 史诗（标签靠文字区分，不靠颜色） */
@@ -222,11 +225,14 @@ export interface AdminLoginResult {
   token: string
 }
 
-/** 微信登录后的创作者用户。 */
+/** 邮箱/第三方登录后的创作者用户。 */
 export interface CreatorUser {
   id: string
-  provider: 'wechat'
-  openid: string
+  email?: string
+  status?: 'pending_email' | 'active' | 'suspended'
+  emailVerifiedAt?: string
+  provider?: 'wechat'
+  openid?: string
   unionid?: string
   nickname?: string
   avatarUrl?: string
@@ -234,6 +240,22 @@ export interface CreatorUser {
   createdAt: string
   updatedAt: string
   lastLoginAt: string
+}
+
+/** 创作者登录 / 激活响应。 */
+export interface CreatorAuthResult {
+  token: string
+  user: CreatorUser
+  author: Author | null
+}
+
+export interface CreatorProfileInput {
+  name?: string
+  avatarUrl?: string
+  bio?: string
+  guildName?: string
+  guildRecruit?: string
+  guildContact?: string
 }
 
 /** GET /api/creator/me 响应。 */

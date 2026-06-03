@@ -202,7 +202,7 @@ test('admin approval can create an author and publish a board', async (t) => {
     body: JSON.stringify(
       validSubmission({
         wantsCreatorProfile: true,
-        contact: 'BattleTag#1234',
+        contact: 'creator@example.com',
         creatorBio: '专注史诗团本',
         guildName: '测试公会',
       }),

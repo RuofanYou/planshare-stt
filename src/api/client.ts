@@ -24,6 +24,8 @@ import type {
   ApproveSubmissionInput,
   ApproveSubmissionResult,
   CreatorMeResult,
+  CreatorAuthResult,
+  CreatorProfileInput,
 } from '../data/types'
 import { getToken, clearToken, UnauthorizedError } from './adminAuth'
 import {
@@ -227,9 +229,51 @@ export function getWechatLoginUrl(returnTo = '/creator'): string {
   return apiUrl(`/api/auth/wechat/start${buildQuery({ returnTo })}`)
 }
 
+export function creatorLogin(email: string, password: string): Promise<CreatorAuthResult> {
+  return request<CreatorAuthResult>('/api/creator/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+export function creatorActivate(token: string, password: string): Promise<CreatorAuthResult> {
+  return request<CreatorAuthResult>('/api/creator/activate', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}
+
+export function creatorResendActivation(email: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>('/api/creator/resend-activation', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function creatorForgotPassword(email: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>('/api/creator/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function creatorResetPassword(token: string, password: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>('/api/creator/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}
+
 /** GET /api/creator/me -> 当前创作者身份与绑定作者。 */
 export function getCreatorMe(): Promise<CreatorMeResult> {
   return creatorRequest<CreatorMeResult>('/api/creator/me')
+}
+
+export function updateCreatorProfile(input: CreatorProfileInput): Promise<CreatorMeResult> {
+  return creatorRequest<CreatorMeResult>('/api/creator/profile', {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
 }
 
 /** GET /api/admin/boards -> AdminBoard[]（全部，含隐藏；按 updatedAt 倒序） */

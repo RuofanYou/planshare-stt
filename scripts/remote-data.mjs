@@ -36,6 +36,8 @@ async function exportRemote() {
   const submissions = await optionalJsonFetch('/api/admin/submissions', { headers: auth }, [])
   const adminExport = await optionalJsonFetch('/api/admin/export', { headers: auth }, null)
   const creatorUsers = adminExport?.creatorUsers ?? []
+  const creatorAccounts = adminExport?.creatorAccounts ?? []
+  const creatorEmailTokens = adminExport?.creatorEmailTokens ?? []
   const backup = {
     exportedAt: new Date().toISOString(),
     source: API_BASE,
@@ -46,6 +48,8 @@ async function exportRemote() {
       boards: boards.length,
       submissions: submissions.length,
       creatorUsers: creatorUsers.length,
+      creatorAccounts: creatorAccounts.length,
+      creatorEmailTokens: creatorEmailTokens.length,
     },
     raids,
     bosses,
@@ -53,6 +57,8 @@ async function exportRemote() {
     boards,
     submissions,
     creatorUsers,
+    creatorAccounts,
+    creatorEmailTokens,
   }
   mkdirSync('backups', { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -78,6 +84,8 @@ async function importRemote(path) {
       boards: backup.boards,
       submissions: backup.submissions ?? [],
       creatorUsers: backup.creatorUsers ?? [],
+      creatorAccounts: backup.creatorAccounts ?? [],
+      creatorEmailTokens: backup.creatorEmailTokens ?? [],
     }),
   })
   console.log(JSON.stringify({ backupPath, result }))
