@@ -273,3 +273,14 @@ test('admin approval promotes creator author and publishes board', async (t) => 
   assert.equal(approve.body.author.visibility, 'approved')
   assert.equal(approve.body.board.authorId, authorId)
 })
+
+test('legacy wechat login endpoints are not registered', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+
+  const start = await requestJson(server.baseUrl, '/api/auth/wechat/start')
+  const callback = await requestJson(server.baseUrl, '/api/auth/wechat/callback?code=x&state=y')
+
+  assert.equal(start.res.status, 404)
+  assert.equal(callback.res.status, 404)
+})

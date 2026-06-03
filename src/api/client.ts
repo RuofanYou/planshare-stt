@@ -224,11 +224,6 @@ export function adminLogin(password: string): Promise<AdminLoginResult> {
 
 /* ============================ 创作者登录 ============================ */
 
-/** 微信扫码登录起跳地址。 */
-export function getWechatLoginUrl(returnTo = '/creator'): string {
-  return apiUrl(`/api/auth/wechat/start${buildQuery({ returnTo })}`)
-}
-
 export function creatorLogin(email: string, password: string): Promise<CreatorAuthResult> {
   return request<CreatorAuthResult>('/api/creator/login', {
     method: 'POST',

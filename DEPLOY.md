@@ -11,18 +11,12 @@
 | `HOST` | 绑定地址 | `127.0.0.1`（容器/服务器用 `0.0.0.0`） |
 | `CORS_ORIGINS` | 额外允许调用 API 的前端来源，英文逗号分隔 | 默认允许 `https://zhaobanzi.pages.dev` 与本地开发地址 |
 | `DATABASE_PATH` | SQLite 数据库文件路径 | `server/planshare.db`；CloudRun 持久卷建议 `/data/planshare.db` |
-| `FRONTEND_BASE_URL` | 微信登录成功后跳回的前端站点地址 | `https://zhaobanzi.pages.dev` |
-| `PUBLIC_API_BASE` | 微信开放平台回调到的公网 API 源站 | `http://HOST:PORT`（本地开发默认） |
-| `WECHAT_APP_ID` | 微信开放平台网站应用 AppID | 空；为空时微信登录接口返回未配置 |
-| `WECHAT_APP_SECRET` | 微信开放平台网站应用 AppSecret，只能放后端 | 空；为空时微信登录接口返回未配置 |
-| `WECHAT_REDIRECT_URI` | 微信开放平台授权回调 URI | `${PUBLIC_API_BASE}/api/auth/wechat/callback` |
-| `AUTH_STATE_SECRET` | 微信登录 state 签名密钥 | `ADMIN_PASSWORD` |
+| `FRONTEND_BASE_URL` | 创作者激活/重置邮件里的前端站点地址 | `https://zhaobanzi.pages.dev` |
+| `TOKEN_HASH_SECRET` | 邮箱激活/重置 token 的 HMAC 密钥 | `ADMIN_PASSWORD` |
 | `MAIL_PROVIDER` | 创作者激活/重置邮件发送方式 | `log`（只在服务日志输出链接） |
 | `MAIL_FROM` | 正式邮件发件人地址 | 空；正式接 SMTP/SES/Resend 时设置 |
 
 本地可不设 `ADMIN_PASSWORD`，默认只用于 `127.0.0.1` 开发。托管平台必须在环境变量里设专用强密码；公网绑定时如果未设置或仍用默认值，服务会拒绝启动。
-
-微信扫码登录走微信开放平台「网站应用微信登录」。微信后台的授权回调域必须覆盖 `WECHAT_REDIRECT_URI` 所在域名；`WECHAT_APP_SECRET` 不得写进前端构建变量或仓库。
 
 创作者邮箱登录默认使用 `MAIL_PROVIDER=log`：后端会把激活链接、重置密码链接写入服务日志，适合 MVP 和未配置发信域名时使用。正式自动发信时再把 `sendActivationEmail` / `sendPasswordResetEmail` 的 provider 接到 SMTP、腾讯云 SES 或 Resend，并配置发信域名 SPF/DKIM/DMARC。
 

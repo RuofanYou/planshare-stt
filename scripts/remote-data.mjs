@@ -35,7 +35,6 @@ async function exportRemote() {
   const boards = await jsonFetch('/api/admin/boards', { headers: auth })
   const submissions = await optionalJsonFetch('/api/admin/submissions', { headers: auth }, [])
   const adminExport = await optionalJsonFetch('/api/admin/export', { headers: auth }, null)
-  const creatorUsers = adminExport?.creatorUsers ?? []
   const creatorAccounts = adminExport?.creatorAccounts ?? []
   const creatorEmailTokens = adminExport?.creatorEmailTokens ?? []
   const backup = {
@@ -47,7 +46,6 @@ async function exportRemote() {
       authors: authors.length,
       boards: boards.length,
       submissions: submissions.length,
-      creatorUsers: creatorUsers.length,
       creatorAccounts: creatorAccounts.length,
       creatorEmailTokens: creatorEmailTokens.length,
     },
@@ -56,7 +54,6 @@ async function exportRemote() {
     authors,
     boards,
     submissions,
-    creatorUsers,
     creatorAccounts,
     creatorEmailTokens,
   }
@@ -83,7 +80,6 @@ async function importRemote(path) {
       authors: backup.authors,
       boards: backup.boards,
       submissions: backup.submissions ?? [],
-      creatorUsers: backup.creatorUsers ?? [],
       creatorAccounts: backup.creatorAccounts ?? [],
       creatorEmailTokens: backup.creatorEmailTokens ?? [],
     }),

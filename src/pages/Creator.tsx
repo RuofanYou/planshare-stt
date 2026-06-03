@@ -160,7 +160,7 @@ function CreatorConsole({
   author: Author | null
   onLogout: () => void
 }) {
-  const displayName = author?.name || user.email || user.nickname || '创作者'
+  const displayName = author?.name || user.email || '创作者'
   return (
     <div className="container ps-creator">
       <motion.header
@@ -188,7 +188,7 @@ function CreatorConsole({
               <p className="ps-creator__eyebrow">邮箱账号</p>
               <h2 className="ps-creator__name">{displayName}</h2>
               <p className="ps-creator__meta">
-                {user.email ? `${user.email} · ${statusLabel(user.status)}` : '第三方创作者身份'}
+                {user.email} · {statusLabel(user.status)}
               </p>
             </div>
           </GlassCard>

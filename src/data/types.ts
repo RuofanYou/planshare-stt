@@ -145,7 +145,6 @@ export interface AdminSubmission extends CreateSubmissionInput {
   reviewNote?: string
   boardId?: string
   authorId?: string
-  creatorUserId?: string
   createdAt: string
   reviewedAt?: string
 }
@@ -225,21 +224,16 @@ export interface AdminLoginResult {
   token: string
 }
 
-/** 邮箱/第三方登录后的创作者用户。 */
+/** 邮箱登录后的创作者账号。 */
 export interface CreatorUser {
   id: string
-  email?: string
-  status?: 'pending_email' | 'active' | 'suspended'
+  email: string
+  status: 'pending_email' | 'active' | 'suspended'
   emailVerifiedAt?: string
-  provider?: 'wechat'
-  openid?: string
-  unionid?: string
-  nickname?: string
-  avatarUrl?: string
   authorId?: string
   createdAt: string
   updatedAt: string
-  lastLoginAt: string
+  lastLoginAt?: string
 }
 
 /** 创作者登录 / 激活响应。 */
