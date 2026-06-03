@@ -163,6 +163,16 @@ test('creator application immediately creates pending email account and logs act
   assert.ok(server.output().includes('/creator/activate?token='))
 })
 
+test('creator auth capabilities expose log-mode activation link behavior', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+
+  const { res, body } = await requestJson(server.baseUrl, '/api/creator/auth-capabilities')
+
+  assert.equal(res.status, 200)
+  assert.equal(body.returnsActivationUrl, true)
+})
+
 test('creator activation consumes token and returns a creator session', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

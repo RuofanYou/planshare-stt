@@ -1006,6 +1006,11 @@ app.post('/api/admin/login', (req, reply) => {
   return { token }
 })
 
+// GET /api/creator/auth-capabilities -> 前端/部署 smoke 用的创作者认证能力。
+app.get('/api/creator/auth-capabilities', () => {
+  return { returnsActivationUrl: MAIL_PROVIDER === 'log' }
+})
+
 // POST /api/creator/activate -> 邮箱激活并设置密码。
 app.post('/api/creator/activate', (req, reply) => {
   const token = cleanText(req.body?.token)
