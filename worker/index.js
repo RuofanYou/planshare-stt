@@ -487,6 +487,16 @@ async function getApprovedCreatorAuthor(env, account) {
   return { author }
 }
 
+async function promoteCreatorAuthor(env, authorRow) {
+  if (!authorRow?.creator_account_id || authorRow.visibility === 'approved') return authorRow
+  await run(env, `
+    UPDATE authors
+    SET visibility = 'approved', moderation_status = ?, updated_at = ?
+    WHERE id = ?
+  `, [authorRow.moderation_status ?? 'clean', nowIso(), authorRow.id])
+  return await first(env, 'SELECT * FROM authors WHERE id = ?', [authorRow.id])
+}
+
 function readCreatorProfilePatch(body = {}, current) {
   const next = {
     name: optionalText(body.name) ?? current.name,
@@ -920,6 +930,7 @@ async function handle(request, env) {
         if (!authorId) throw new Error('字段缺失：authorId')
         authorRow = await first(env, 'SELECT * FROM authors WHERE id = ?', [authorId])
         if (!authorRow) throw new Error('author not found')
+        authorRow = await promoteCreatorAuthor(env, authorRow)
       } else if (mode === 'createAuthor' || mode === 'plainAuthor') {
         authorRow = await createAuthorFromSubmission(env, submission, mode, body)
       } else {
