@@ -5,6 +5,7 @@ server/planshare.db
 server/planshare.db-wal
 server/planshare.db-shm
 .workflow/
+.wrangler/
 *.log
 backups/
 *.tsbuildinfo
