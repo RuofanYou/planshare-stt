@@ -174,7 +174,7 @@ function CreatorConsole({
           initial="hidden"
           animate="show"
         >
-          <CreatorBoardManager />
+          <CreatorBoardManager creatorId={user.id} />
         </motion.div>
       )}
 
@@ -488,16 +488,90 @@ function CreatorProfileEditor({ author }: { author: Author }) {
   )
 }
 
-function CreatorBoardManager() {
+const CREATOR_BOARD_DRAFT_KEY_PREFIX = 'planshare_creator_board_draft_v1'
+
+interface CreatorBoardDraft {
+  title: string
+  raidId: string
+  bossId: string
+  difficulty: Difficulty
+  description: string
+  contentText: string
+}
+
+const EMPTY_CREATOR_BOARD_DRAFT: CreatorBoardDraft = {
+  title: '',
+  raidId: '',
+  bossId: '',
+  difficulty: 'mythic',
+  description: '',
+  contentText: '',
+}
+
+function creatorBoardDraftKey(creatorId: string) {
+  return `${CREATOR_BOARD_DRAFT_KEY_PREFIX}:${creatorId}`
+}
+
+function readCreatorBoardDraft(creatorId: string): CreatorBoardDraft {
+  if (typeof window === 'undefined') return EMPTY_CREATOR_BOARD_DRAFT
+  try {
+    const raw = window.localStorage.getItem(creatorBoardDraftKey(creatorId))
+    if (!raw) return EMPTY_CREATOR_BOARD_DRAFT
+    const parsed = JSON.parse(raw) as Partial<CreatorBoardDraft>
+    return {
+      ...EMPTY_CREATOR_BOARD_DRAFT,
+      ...parsed,
+      difficulty: parsed.difficulty === 'heroic' ? 'heroic' : 'mythic',
+    }
+  } catch {
+    return EMPTY_CREATOR_BOARD_DRAFT
+  }
+}
+
+function hasCreatorBoardDraftContent(draft: CreatorBoardDraft) {
+  return Boolean(
+    draft.title.trim() ||
+      draft.raidId ||
+      draft.bossId ||
+      draft.description.trim() ||
+      draft.contentText.trim(),
+  )
+}
+
+function writeCreatorBoardDraft(creatorId: string, draft: CreatorBoardDraft) {
+  if (typeof window === 'undefined') return
+  try {
+    const key = creatorBoardDraftKey(creatorId)
+    if (hasCreatorBoardDraftContent(draft)) {
+      window.localStorage.setItem(key, JSON.stringify(draft))
+    } else {
+      window.localStorage.removeItem(key)
+    }
+  } catch {
+    // localStorage 不可用时忽略；直接发布本身不依赖草稿。
+  }
+}
+
+function clearCreatorBoardDraft(creatorId: string) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(creatorBoardDraftKey(creatorId))
+  } catch {
+    // 忽略本地存储异常。
+  }
+}
+
+function CreatorBoardManager({ creatorId }: { creatorId: string }) {
   const boardsQuery = useCreatorBoards(true)
   const createBoard = useCreateCreatorBoard()
   const raidsQuery = useRaids()
-  const [title, setTitle] = useState('')
-  const [raidId, setRaidId] = useState('')
-  const [bossId, setBossId] = useState('')
-  const [difficulty, setDifficulty] = useState<Difficulty>('mythic')
-  const [description, setDescription] = useState('')
-  const [contentText, setContentText] = useState('')
+  const [initialDraft] = useState(() => readCreatorBoardDraft(creatorId))
+  const [title, setTitle] = useState(initialDraft.title)
+  const [raidId, setRaidId] = useState(initialDraft.raidId)
+  const [bossId, setBossId] = useState(initialDraft.bossId)
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialDraft.difficulty)
+  const [description, setDescription] = useState(initialDraft.description)
+  const [contentText, setContentText] = useState(initialDraft.contentText)
 
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
@@ -508,12 +582,24 @@ function CreatorBoardManager() {
     contentText.trim() !== '' &&
     !createBoard.isPending
 
+  useEffect(() => {
+    writeCreatorBoardDraft(creatorId, {
+      title,
+      raidId,
+      bossId,
+      difficulty,
+      description,
+      contentText,
+    })
+  }, [bossId, contentText, creatorId, description, difficulty, raidId, title])
+
   function handleRaidChange(nextRaidId: string) {
     setRaidId(nextRaidId)
     setBossId('')
   }
 
   function resetCreateForm() {
+    clearCreatorBoardDraft(creatorId)
     setTitle('')
     setRaidId('')
     setBossId('')
@@ -545,6 +631,7 @@ function CreatorBoardManager() {
         <div>
           <Tag variant="gold">快速发布</Tag>
           <h2 className="ps-creator__panel-title">我的战术板</h2>
+          <p className="ps-creator__panel-copy">直发草稿会自动保存在本机；成功发布后清空。</p>
         </div>
         <Button variant="secondary" to="/submit">
           游客投稿页

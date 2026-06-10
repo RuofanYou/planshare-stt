@@ -148,12 +148,28 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await page.goto('/creator')
   await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+  await expect(page.getByText('直发草稿会自动保存在本机；成功发布后清空。')).toBeVisible()
   await page.getByLabel('标题').fill(directTitle)
   await page.locator('#creator-board-raid').selectOption('r-voidspire')
   await page.locator('#creator-board-boss').selectOption('b-averzian')
+  await page.locator('#creator-board-description').fill(`E2E 直发草稿 ${runId}`)
   await page.getByLabel('战术正文').fill('P1 创作者直发\nP2 结束')
+
+  await page.reload()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+  await expect(page.getByLabel('标题')).toHaveValue(directTitle)
+  await expect(page.locator('#creator-board-raid')).toHaveValue('r-voidspire')
+  await expect(page.locator('#creator-board-boss')).toHaveValue('b-averzian')
+  await expect(page.locator('#creator-board-description')).toHaveValue(`E2E 直发草稿 ${runId}`)
+  await expect(page.getByLabel('战术正文')).toHaveValue('P1 创作者直发\nP2 结束')
+
   await page.getByRole('button', { name: '直接发布' }).click()
   await expect(page.getByText('战术板已发布。')).toBeVisible()
+  await expect(
+    page.evaluate(() =>
+      Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_draft_v1')).length,
+    ),
+  ).resolves.toBe(0)
 })
 
 test('creator application guardrails handle missing fields, invalid usernames, and duplicates', async ({ page }) => {
