@@ -40,6 +40,11 @@ async function approvePending(request: APIRequestContext, token: string, id: str
 }
 
 test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creatorUsername = `e2e_${runId}`
+  const firstTitle = `E2E 游客创作者投稿 ${runId}`
+  const directTitle = `E2E 创作者直发 ${runId}`
+
   await page.goto('/')
   await expect(page.getByRole('heading', { name: '找一块能直接用的战术板' })).toBeVisible()
 
@@ -51,14 +56,14 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await expect(page.getByText('已复制到剪贴板')).toBeVisible()
 
   await page.goto('/submit')
-  await page.getByLabel('标题').fill('E2E 游客创作者投稿')
+  await page.getByLabel('标题').fill(firstTitle)
   await page.locator('#ps-submit-raid').selectOption('r-voidspire')
   await page.locator('#ps-submit-boss').selectOption('b-averzian')
   await page.getByRole('radio', { name: /申请创作者/ }).click()
   await page.getByLabel('作者名 / 投稿署名').fill('E2E 创作者')
-  await page.getByLabel('用户名').fill('e2e_creator')
+  await page.getByLabel('用户名').fill(creatorUsername)
   await page.getByLabel('密码').fill('creator-password-123')
-  await page.getByLabel('战术正文').fill('P1 E2E 分散\nP2 E2E 集合')
+  await page.getByLabel('战术正文').fill(`P1 E2E 分散 ${runId}\nP2 E2E 集合`)
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText(/账号已创建，投稿已进入审核/)).toBeVisible()
 
@@ -69,34 +74,86 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: '登录' }).click()
   await page.getByRole('tab', { name: '投稿审核' }).click()
-  await expect(page.getByText('E2E 游客创作者投稿')).toBeVisible()
-  await page.getByRole('button', { name: '查看' }).first().click()
-  await page.getByRole('button', { name: '创建作者并发布' }).click()
-  await expect(page.getByText('已发布')).toBeVisible()
+  await expect(page.getByText(firstTitle)).toBeVisible()
+  const firstSubmissionRow = page.locator('.ps-admin__row-card', { hasText: firstTitle })
+  await firstSubmissionRow.getByRole('button', { name: '查看' }).click()
+  await firstSubmissionRow.getByRole('button', { name: '创建作者并发布' }).click()
+  await expect(firstSubmissionRow.getByText('已发布')).toBeVisible()
 
   const admin = await adminToken(request)
   const submissions = await request.get('/api/admin/submissions', {
     headers: { Authorization: `Bearer ${admin}` },
   })
   expect(submissions.ok()).toBeTruthy()
-  const published = (await submissions.json()).find((item: { title: string }) => item.title === 'E2E 游客创作者投稿')
+  const published = (await submissions.json()).find((item: { title: string }) => item.title === firstTitle)
   expect(published?.boardId).toBeTruthy()
   expect(published?.authorId).toBeTruthy()
 
   await page.goto(`/board/${published.boardId}`)
-  await expect(page.getByRole('heading', { name: 'E2E 游客创作者投稿' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: firstTitle })).toBeVisible()
 
-  const second = await submitCreatorReview(request, creatorToken!, 'two')
+  await page.goto('/creator')
+  await expect(page.getByRole('heading', { name: '还需 2 次审核通过' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toHaveCount(0)
+
+  const second = await submitCreatorReview(request, creatorToken!, `${runId}-two`)
   await approvePending(request, admin, second.id, published.authorId)
-  const third = await submitCreatorReview(request, creatorToken!, 'three')
+  await page.goto('/creator')
+  await expect(page.getByRole('heading', { name: '还需 1 次审核通过' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toHaveCount(0)
+
+  const third = await submitCreatorReview(request, creatorToken!, `${runId}-three`)
   await approvePending(request, admin, third.id, published.authorId)
 
   await page.goto('/creator')
   await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
-  await page.getByLabel('标题').fill('E2E 创作者直发')
+  await page.getByLabel('标题').fill(directTitle)
   await page.locator('#creator-board-raid').selectOption('r-voidspire')
   await page.locator('#creator-board-boss').selectOption('b-averzian')
   await page.getByLabel('战术正文').fill('P1 创作者直发\nP2 结束')
   await page.getByRole('button', { name: '直接发布' }).click()
   await expect(page.getByText('战术板已发布。')).toBeVisible()
+})
+
+test('creator application guardrails handle missing fields, invalid usernames, and duplicates', async ({ page }) => {
+  const runId = Date.now().toString(36)
+  const creatorUsername = `guard_${runId}`
+
+  async function fillCreatorApplication(title: string, username: string) {
+    await page.getByLabel('标题').fill(title)
+    await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+    await page.locator('#ps-submit-boss').selectOption('b-averzian')
+    await page.getByRole('radio', { name: /申请创作者/ }).click()
+    await page.getByLabel('作者名 / 投稿署名').fill(`防呆创作者 ${runId}`)
+    await page.getByLabel('用户名').fill(username)
+    await page.getByLabel('密码').fill('creator-password-123')
+    await page.getByLabel('战术正文').fill(`P1 防呆验证 ${title}\nP2 集合`)
+  }
+
+  await page.goto('/submit')
+  await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
+
+  await page.getByRole('radio', { name: /申请创作者/ }).click()
+  await page.getByLabel('标题').fill(`缺密码防呆 ${runId}`)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await page.getByLabel('作者名 / 投稿署名').fill(`防呆创作者 ${runId}`)
+  await page.getByLabel('用户名').fill(`short_${runId}`)
+  await page.getByLabel('战术正文').fill('P1 缺密码')
+  await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
+
+  await page.goto('/submit')
+  await fillCreatorApplication(`非法用户名防呆 ${runId}`, 'Bad Name')
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText('用户名只能包含小写英文、数字、下划线或短横线')).toBeVisible()
+
+  await page.getByLabel('用户名').fill(creatorUsername)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/账号已创建，投稿已进入审核/)).toBeVisible()
+
+  await page.evaluate(() => localStorage.removeItem('planshare_creator_token'))
+  await page.goto('/submit')
+  await fillCreatorApplication(`重复用户名防呆 ${runId}`, creatorUsername.toUpperCase())
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText('这个用户名已被占用')).toBeVisible()
 })

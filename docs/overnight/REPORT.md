@@ -10,6 +10,7 @@
 - M4 团本/BOSS 管理：后台新增团本与 BOSS，删除前检查关联板/投稿/BOSS。
 - M5 审核效率与拆分：`Admin.tsx` 从 2242 行降到 1593 行，投稿审核、举报队列、团本/BOSS 管理拆到 `src/pages/admin/*`；审核队列新增待审角标、全选待审、批量驳回、批量标记垃圾。
 - M6 双后端契约对齐：`worker/schema.sql` 同步 `trust_level`、`approved_submission_count`、`rate_limits`、`audit_logs`、`reports`；`worker/index.js` 同步信任等级、举报、审计、团本/BOSS 管理与核心 worker 响应结构；新增 `server/worker-contract.test.mjs` 对 Fastify 与 wrangler dev --local 做核心读接口契约测试。
+- 普通用户防呆补测：修正创作者后台过早开放直发入口的问题；审核期只显示“还需 N 次审核通过”，第三次通过后才显示“我的战术板”和“直接发布”。补测空表单、缺密码、非法用户名、重复用户名、三次审核晋升和直发。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -78,7 +79,7 @@ ok 1 - Fastify and Worker core read APIs keep the same HTTP response structure
 
 vite v5.4.21 building for production...
 ✓ 570 modules transformed.
-✓ built in 2.15s
+✓ built in 5.20s
 
 1..39
 # tests 39
@@ -93,10 +94,49 @@ vite v5.4.21 building for production...
 1 passed (6.3s)
 ```
 
+### 普通用户防呆补测验证
+```text
+> planshare@0.1.0 test:e2e
+> playwright test
+
+Running 2 tests using 1 worker
+··
+  2 passed (9.8s)
+```
+
+```text
+> planshare@0.1.0 verify
+> tsc -b && vite build && node --test --test-concurrency=1 server/*.test.mjs && playwright test
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.15s
+
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (14.1s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:118:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (7.3s)
+2 passed (25.0s)
+```
+
+```text
+in-app browser:
+/creator 显示创作者登录页，无 Application error。
+/submit 显示投稿入口和申请创作者选项，空表单提交按钮禁用，无 Application error。
+```
+
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
 - `playwright.config.ts`：使用 `localhost:5183` 和 `/tmp` 临时 SQLite，避免本机端口与生产数据冲突。
+- `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `worker/index.js`：D1 移植版同步了 Fastify 的 UGC 字段与核心治理端点；当前由契约测试守核心读结构，但生产权威仍是 Fastify。
 
 ## 回滚方式

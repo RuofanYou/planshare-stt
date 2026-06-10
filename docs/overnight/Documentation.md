@@ -19,6 +19,9 @@
 - M5 批量操作只复用既有单条审核 API，不新增后端批量端点；这样保持服务端审核语义单一，前端只负责批量调度。
 - M6 契约测试只比较核心公开读接口的 HTTP JSON 结构，不把 worker 重新升为业务权威；worker 仍是 D1 移植版。
 - M6 wrangler 本地 D1 使用 `--persist-to /tmp/planshare-worker-contract-*` 临时目录，避免污染仓库 `.wrangler` 或远端 D1。
+- 普通用户补测发现创作者后台早放开了直发入口：作者主页通过后，但账号还没累计 3 次通过时，前端曾错误显示“直接发布”。已改为只有 `trust_level=trusted` 才显示直发入口，审核期显示还差几次通过。
+- 投稿页成功态以服务端实际返回 `creatorAuth.token` 为准；如果申请创作者的投稿被判 spam，不再误显示“账号已创建”。
+- Playwright 冒烟用例的标题、用户名和正文都加唯一后缀，避免本地重复回归时被“同 IP 重复正文”防线误判。
 
 ## 验证输出
 
@@ -113,7 +116,7 @@ ok 1 - Fastify and Worker core read APIs keep the same HTTP response structure
 
 vite v5.4.21 building for production...
 ✓ 570 modules transformed.
-✓ built in 2.15s
+✓ built in 5.20s
 
 1..39
 # tests 39
@@ -126,6 +129,45 @@ vite v5.4.21 building for production...
 
 ✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (4.5s)
 1 passed (6.3s)
+```
+
+### 普通用户防呆补测 npm run test:e2e
+```text
+> planshare@0.1.0 test:e2e
+> playwright test
+
+Running 2 tests using 1 worker
+··
+  2 passed (9.8s)
+```
+
+### 普通用户防呆补测 npm run verify
+```text
+> planshare@0.1.0 verify
+> tsc -b && vite build && node --test --test-concurrency=1 server/*.test.mjs && playwright test
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.15s
+
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (14.1s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:118:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (7.3s)
+2 passed (25.0s)
+```
+
+### in-app browser 页面检查
+```text
+/creator: 显示“创作者后台”登录页，包含用户名和密码，无 Application error。
+/submit: 显示“提交你的战术板”，包含“申请创作者”，空表单提交按钮禁用，无 Application error。
 ```
 
 ## 已知问题

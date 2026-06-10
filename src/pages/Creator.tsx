@@ -147,6 +147,11 @@ function CreatorConsole({
   onLogout: () => void
 }) {
   const displayName = author?.name || user.username || '创作者'
+  const trustLevel = user.trustLevel ?? 'trusted'
+  const approvedSubmissionCount = user.approvedSubmissionCount ?? (trustLevel === 'trusted' ? 3 : 0)
+  const canDirectPublish = author?.visibility === 'approved' && trustLevel === 'trusted'
+  const needsReview = author?.visibility === 'approved' && trustLevel !== 'trusted'
+
   return (
     <div className="container ps-creator">
       <motion.header
@@ -161,7 +166,7 @@ function CreatorConsole({
         </Button>
       </motion.header>
 
-      {author?.visibility === 'approved' && (
+      {canDirectPublish && (
         <motion.div
           variants={reduce ? undefined : fadeUp}
           initial="hidden"
@@ -218,8 +223,29 @@ function CreatorConsole({
             <Tag variant="gold">等待审核</Tag>
             <h2 className="ps-creator__panel-title">战术板通过后可自助发布</h2>
             <p className="ps-creator__panel-copy">
-              你的作者主页当前还不是正式状态。管理员通过首个战术板后，这里会开放直发、编辑、下架和恢复发布。
+              你的作者主页当前还不是正式状态。前 3 个战术板通过审核后，这里会开放直发、编辑、下架和恢复发布。
             </p>
+          </GlassCard>
+        </motion.div>
+      )}
+
+      {needsReview && (
+        <motion.div
+          variants={reduce ? undefined : fadeUp}
+          initial="hidden"
+          animate="show"
+        >
+          <GlassCard tone="glass" className="ps-creator__panel">
+            <Tag variant="gold">审核期</Tag>
+            <h2 className="ps-creator__panel-title">还需 {Math.max(0, 3 - approvedSubmissionCount)} 次审核通过</h2>
+            <p className="ps-creator__panel-copy">
+              你已经是正式作者主页，但账号还在新创作者审核期。继续从投稿入口提交战术板，累计 3 次通过后会自动开放直发。
+            </p>
+            <div className="ps-creator__actions">
+              <Button variant="primary" to="/submit">
+                继续投稿
+              </Button>
+            </div>
           </GlassCard>
         </motion.div>
       )}

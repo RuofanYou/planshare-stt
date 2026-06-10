@@ -112,7 +112,7 @@ export default function Submit() {
       {
         onSuccess: (submission) => {
           setSubmittedId(submission.id)
-          setSubmittedKind(requestedCreator ? 'creator' : 'regular')
+          setSubmittedKind(requestedCreator && submission.creatorAuth?.token ? 'creator' : 'regular')
           if (submission.creatorAuth?.token) {
             creatorSession.login(submission.creatorAuth.token)
           }
