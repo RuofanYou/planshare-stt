@@ -3,6 +3,8 @@
 ## 形态
 单进程生产版：Fastify 一个 Node 进程同时托管前端构建产物 `dist/` 与 `/api/*`，数据存 SQLite（`server/planshare.db`）。前后端同源，无需 CORS/代理。
 
+当前业务权威后端是 `server/index.mjs`。`worker/index.js` / `worker/schema.sql` 是 Cloudflare D1 移植版，用 `server/worker-contract.test.mjs` 做核心读接口契约对齐；它不是当前线上生产后端，也不替代 CloudBase Fastify 主线。
+
 ## 环境变量
 | 变量 | 作用 | 缺省 |
 |---|---|---|

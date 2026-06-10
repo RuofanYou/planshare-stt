@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS submissions (
   creator_guild_contact TEXT,
   status TEXT NOT NULL DEFAULT 'pending',
   source_key TEXT,
+  content_hash TEXT,
+  spam_reason TEXT,
   review_note TEXT,
   board_id TEXT,
   author_id TEXT,
@@ -77,6 +79,8 @@ CREATE TABLE IF NOT EXISTS creator_accounts (
   email_verified_at TEXT,
   password_hash TEXT,
   status TEXT NOT NULL,
+  trust_level TEXT NOT NULL DEFAULT 'trusted',
+  approved_submission_count INTEGER NOT NULL DEFAULT 0,
   author_id TEXT,
   contact TEXT,
   created_at TEXT NOT NULL,
@@ -104,5 +108,38 @@ CREATE TABLE IF NOT EXISTS creator_sessions (
   revoked_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key TEXT PRIMARY KEY,
+  count INTEGER NOT NULL,
+  reset_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id TEXT PRIMARY KEY,
+  actor_type TEXT NOT NULL,
+  actor_id TEXT,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  detail TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id TEXT PRIMARY KEY,
+  board_id TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  detail TEXT,
+  source_key TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  resolution_note TEXT,
+  created_at TEXT NOT NULL,
+  reviewed_at TEXT
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_creator_accounts_username_unique ON creator_accounts(username);
 CREATE INDEX IF NOT EXISTS idx_creator_sessions_account_id ON creator_sessions(creator_account_id);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_reset_at ON rate_limits(reset_at);
+CREATE INDEX IF NOT EXISTS idx_submissions_source_content ON submissions(source_key, content_hash);
+CREATE INDEX IF NOT EXISTS idx_reports_status_created ON reports(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at);

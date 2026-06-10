@@ -9,10 +9,11 @@
 - M3 举报通道：详情页举报入口、`reports` 表、后台举报队列、隐藏板/驳回举报、举报限流。
 - M4 团本/BOSS 管理：后台新增团本与 BOSS，删除前检查关联板/投稿/BOSS。
 - M5 审核效率与拆分：`Admin.tsx` 从 2242 行降到 1593 行，投稿审核、举报队列、团本/BOSS 管理拆到 `src/pages/admin/*`；审核队列新增待审角标、全选待审、批量驳回、批量标记垃圾。
+- M6 双后端契约对齐：`worker/schema.sql` 同步 `trust_level`、`approved_submission_count`、`rate_limits`、`audit_logs`、`reports`；`worker/index.js` 同步信任等级、举报、审计、团本/BOSS 管理与核心 worker 响应结构；新增 `server/worker-contract.test.mjs` 对 Fastify 与 wrangler dev --local 做核心读接口契约测试。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
-- M6 worker 契约对齐未完成：`worker/index.js` 与 `worker/schema.sql` 未同步新增字段和端点。原因：当前生产主线是 CloudBase Fastify；D1 worker 已明显落后，需要单独迁移和 wrangler 本地契约测试，半移植风险高。
+- 无。
 
 ## 验证证据
 ```text
@@ -54,10 +55,49 @@ vite v5.4.21 building for production...
 1 passed (35.6s)
 ```
 
+### M6 验证
+```text
+npx wrangler d1 execute planshare --local --persist-to /tmp/planshare-worker-schema-*/ --file worker/schema.sql
+🚣 17 commands executed successfully.
+
+npx wrangler d1 execute planshare --local --persist-to /tmp/planshare-worker-schema-*/ --file worker/seed.sql
+🚣 31 commands executed successfully.
+
+node --test --test-concurrency=1 server/worker-contract.test.mjs
+ok 1 - Fastify and Worker core read APIs keep the same HTTP response structure
+1..1
+# tests 1
+# pass 1
+# fail 0
+```
+
+### 最终验证
+```text
+> planshare@0.1.0 verify
+> tsc -b && vite build && node --test --test-concurrency=1 server/*.test.mjs && playwright test
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.15s
+
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (4.5s)
+1 passed (6.3s)
+```
+
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
 - `playwright.config.ts`：使用 `localhost:5183` 和 `/tmp` 临时 SQLite，避免本机端口与生产数据冲突。
+- `worker/index.js`：D1 移植版同步了 Fastify 的 UGC 字段与核心治理端点；当前由契约测试守核心读结构，但生产权威仍是 Fastify。
 
 ## 回滚方式
 - 不合并 `overnight/ugc-ready-20260610` 分支即可回滚主干。
@@ -66,4 +106,4 @@ vite v5.4.21 building for production...
 
 ## 人工复审建议
 - 决定是否接受新创作者“3 次审核后直发”的产品阈值。
-- 单独排期 M6：worker D1 schema/route 移植和双后端契约测试。
+- worker 若未来承接生产流量，需要单独做 D1 写接口压测、远端迁移演练和回滚预案。

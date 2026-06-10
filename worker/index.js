@@ -1,6 +1,10 @@
 const BOARD_ORDER = 'ORDER BY like_count DESC, view_count DESC, updated_at DESC'
 const CREATOR_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const PBKDF2_ITERATIONS = 100000
+const TRUST_REVIEW = 'review'
+const TRUST_TRUSTED = 'trusted'
+const TRUST_PROMOTION_APPROVALS = 3
+const REPORT_REASONS = new Set(['spam', 'abuse', 'wrong-info', 'copyright', 'other'])
 const RESERVED_CREATOR_USERNAMES = new Set([
   'admin',
   'root',
@@ -179,6 +183,56 @@ async function run(env, sql, params = []) {
   return await env.DB.prepare(sql).bind(...params).run()
 }
 
+async function hitPersistentRateLimit(env, key, { limit, windowMs }) {
+  const now = Date.now()
+  const current = await first(env, 'SELECT * FROM rate_limits WHERE key = ?', [key])
+  if (!current || current.reset_at <= now) {
+    const resetAt = now + windowMs
+    await run(env, `
+      INSERT INTO rate_limits (key, count, reset_at)
+      VALUES (?, 1, ?)
+      ON CONFLICT(key) DO UPDATE SET count = excluded.count, reset_at = excluded.reset_at
+    `, [key, resetAt])
+    return { allowed: true, remaining: Math.max(0, limit - 1), resetAt }
+  }
+  const count = current.count + 1
+  await run(env, `
+    INSERT INTO rate_limits (key, count, reset_at)
+    VALUES (?, ?, ?)
+    ON CONFLICT(key) DO UPDATE SET count = excluded.count, reset_at = excluded.reset_at
+  `, [key, count, current.reset_at])
+  return {
+    allowed: count <= limit,
+    remaining: Math.max(0, limit - count),
+    resetAt: current.reset_at,
+  }
+}
+
+function rateLimitResponse(limit, message = '操作太频繁，请稍后再试') {
+  return json(
+    { error: message },
+    429,
+    { 'Retry-After': String(Math.ceil((limit.resetAt - Date.now()) / 1000)) },
+  )
+}
+
+async function auditLog(env, { actorType, actorId = null, action, entityType, entityId = null, detail = null }) {
+  await run(env, `
+    INSERT INTO audit_logs (
+      id, actor_type, actor_id, action, entity_type, entity_id, detail, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    randomId('al'),
+    actorType,
+    actorId,
+    action,
+    entityType,
+    entityId,
+    detail == null ? null : JSON.stringify(detail),
+    nowIso(),
+  ])
+}
+
 function rowToBoss(row) {
   return { id: row.id, raidId: row.raid_id, name: row.name, order: row.order }
 }
@@ -242,6 +296,7 @@ function rowToSubmission(row) {
     creatorGuildContact: row.creator_guild_contact ?? undefined,
     status: row.status,
     sourceKey: row.source_key ?? undefined,
+    spamReason: row.spam_reason ?? undefined,
     reviewNote: row.review_note ?? undefined,
     boardId: row.board_id ?? undefined,
     authorId: row.author_id ?? undefined,
@@ -255,6 +310,8 @@ function rowToCreatorAccount(row) {
     id: row.id,
     username: row.username,
     status: row.status,
+    trustLevel: row.trust_level ?? TRUST_TRUSTED,
+    approvedSubmissionCount: row.approved_submission_count ?? 0,
     authorId: row.author_id ?? undefined,
     contact: row.contact ?? undefined,
     createdAt: row.created_at,
@@ -269,6 +326,32 @@ function rowToCreatorAccountExport(row) {
     email: row.email ?? undefined,
     emailVerifiedAt: row.email_verified_at ?? undefined,
     passwordHash: row.password_hash ?? undefined,
+  }
+}
+
+function rowToReport(row) {
+  return {
+    id: row.id,
+    boardId: row.board_id,
+    reason: row.reason,
+    detail: row.detail ?? undefined,
+    status: row.status,
+    resolutionNote: row.resolution_note ?? undefined,
+    createdAt: row.created_at,
+    reviewedAt: row.reviewed_at ?? undefined,
+  }
+}
+
+function rowToAuditLog(row) {
+  return {
+    id: row.id,
+    actorType: row.actor_type,
+    actorId: row.actor_id ?? undefined,
+    action: row.action,
+    entityType: row.entity_type,
+    entityId: row.entity_id ?? undefined,
+    detail: row.detail ? JSON.parse(row.detail) : undefined,
+    createdAt: row.created_at,
   }
 }
 
@@ -404,14 +487,16 @@ async function createCreatorApplication(env, input, createdAt) {
   const authorId = randomId('a')
   await run(env, `
     INSERT INTO creator_accounts (
-      id, email, username, email_verified_at, password_hash, status, author_id, contact,
+      id, email, username, email_verified_at, password_hash, status, trust_level,
+      approved_submission_count, author_id, contact,
       created_at, updated_at, last_login_at
-    ) VALUES (?, ?, ?, NULL, ?, 'active', NULL, ?, ?, ?, NULL)
+    ) VALUES (?, ?, ?, NULL, ?, 'active', ?, 0, NULL, ?, ?, ?, NULL)
   `, [
     accountId,
     `${accountId}@creator.local`,
     username,
     await hashPassword(input.creatorPassword),
+    TRUST_REVIEW,
     input.contact,
     createdAt,
     createdAt,
@@ -481,10 +566,41 @@ async function validateBoardDraft(env, input) {
 
 async function getApprovedCreatorAuthor(env, account) {
   if (!account || account.status !== 'active') return { status: 403, error: '账号已被暂停，请联系管理员' }
+  if ((account.trust_level ?? TRUST_TRUSTED) !== TRUST_TRUSTED) {
+    return { status: 403, error: '前 3 个战术板需要先走投稿审核，通过后即可直发' }
+  }
   const author = account.author_id ? await first(env, 'SELECT * FROM authors WHERE id = ?', [account.author_id]) : null
   if (!author || author.visibility === 'hidden') return { status: 404, error: '作者主页不存在' }
   if (author.visibility !== 'approved') return { status: 403, error: '作者主页通过审核后才能直接发布战术板' }
   return { author }
+}
+
+async function recordApprovedSubmission(env, authorRow) {
+  if (!authorRow?.creator_account_id) return null
+  const account = await first(env, 'SELECT * FROM creator_accounts WHERE id = ?', [authorRow.creator_account_id])
+  if (!account) return null
+  if ((account.trust_level ?? TRUST_TRUSTED) === TRUST_TRUSTED) return account
+  const nextCount = (account.approved_submission_count ?? 0) + 1
+  const trustLevel = nextCount >= TRUST_PROMOTION_APPROVALS ? TRUST_TRUSTED : (account.trust_level ?? TRUST_REVIEW)
+  await run(env, `
+    UPDATE creator_accounts
+    SET trust_level = ?, approved_submission_count = ?, updated_at = ?
+    WHERE id = ?
+  `, [trustLevel, nextCount, nowIso(), account.id])
+  return await first(env, 'SELECT * FROM creator_accounts WHERE id = ?', [account.id])
+}
+
+async function resetCreatorReviewProgress(env, authorId) {
+  if (!authorId) return
+  const author = await first(env, 'SELECT * FROM authors WHERE id = ?', [authorId])
+  if (!author?.creator_account_id) return
+  const account = await first(env, 'SELECT * FROM creator_accounts WHERE id = ?', [author.creator_account_id])
+  if (!account || (account.trust_level ?? TRUST_TRUSTED) === TRUST_TRUSTED) return
+  await run(env, `
+    UPDATE creator_accounts
+    SET trust_level = ?, approved_submission_count = 0, updated_at = ?
+    WHERE id = ?
+  `, [TRUST_REVIEW, nowIso(), account.id])
 }
 
 async function promoteCreatorAuthor(env, authorRow) {
@@ -723,6 +839,13 @@ async function handle(request, env) {
         view_count, like_count, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, 0, 0, 0, ?, ?)
     `, [id, input.title, input.raidId, input.bossId, input.difficulty, input.seasonVersion, input.contentText, input.description, approved.author.id, date, date])
+    await auditLog(env, {
+      actorType: 'creator',
+      actorId: auth.account.id,
+      action: 'creator_board_create',
+      entityType: 'board',
+      entityId: id,
+    })
     return json(rowToAdminBoard(await first(env, 'SELECT * FROM boards WHERE id = ?', [id])), 201)
   }
 
@@ -736,6 +859,13 @@ async function handle(request, env) {
     if (!row || row.author_id !== approved.author.id) return json({ error: 'board not found' }, 404)
     if (method === 'DELETE') {
       await run(env, 'UPDATE boards SET is_hidden = 1, updated_at = ? WHERE id = ?', [today(), row.id])
+      await auditLog(env, {
+        actorType: 'creator',
+        actorId: auth.account.id,
+        action: 'creator_board_hide',
+        entityType: 'board',
+        entityId: row.id,
+      })
       return json({ ok: true })
     }
     const body = await readJson(request)
@@ -763,6 +893,13 @@ async function handle(request, env) {
     sets.push('updated_at = ?')
     params.push(today(), row.id)
     await run(env, `UPDATE boards SET ${sets.join(', ')} WHERE id = ?`, params)
+    await auditLog(env, {
+      actorType: 'creator',
+      actorId: auth.account.id,
+      action: 'creator_board_update',
+      entityType: 'board',
+      entityId: row.id,
+    })
     return json(rowToAdminBoard(await first(env, 'SELECT * FROM boards WHERE id = ?', [row.id])))
   }
 
@@ -800,6 +937,36 @@ async function handle(request, env) {
     return json({ id: fresh.id, likeCount: fresh.like_count })
   }
 
+  const boardReportMatch = path.match(/^\/api\/boards\/([^/]+)\/reports$/)
+  if (method === 'POST' && boardReportMatch) {
+    const id = decodeURIComponent(boardReportMatch[1])
+    const row = await first(env, 'SELECT * FROM boards WHERE id = ?', [id])
+    if (!row || row.is_hidden === 1) return json({ error: 'board not found' }, 404)
+    const clientKey = getClientKey(request)
+    const limit = await hitPersistentRateLimit(env, `report:${clientKey}`, {
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    })
+    if (!limit.allowed) return rateLimitResponse(limit, '举报太频繁，请稍后再试')
+    const body = await readJson(request)
+    const reason = cleanText(body.reason)
+    if (!REPORT_REASONS.has(reason)) return json({ error: '字段无效：reason' }, 400)
+    const reportId = randomId('rp')
+    await run(env, `
+      INSERT INTO reports (
+        id, board_id, reason, detail, source_key, status, resolution_note, created_at, reviewed_at
+      ) VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, NULL)
+    `, [
+      reportId,
+      row.id,
+      reason,
+      optionalText(body.detail),
+      clientKey,
+      nowIso(),
+    ])
+    return json(rowToReport(await first(env, 'SELECT * FROM reports WHERE id = ?', [reportId])), 201)
+  }
+
   const boardMatch = path.match(/^\/api\/boards\/([^/]+)$/)
   if (method === 'GET' && boardMatch) {
     const id = decodeURIComponent(boardMatch[1])
@@ -830,6 +997,12 @@ async function handle(request, env) {
   }
 
   if (method === 'POST' && path === '/api/submissions') {
+    const clientKey = getClientKey(request)
+    const limit = await hitPersistentRateLimit(env, `submission:${clientKey}`, {
+      limit: 10,
+      windowMs: 60 * 60 * 1000,
+    })
+    if (!limit.allowed) return rateLimitResponse(limit, '投稿太频繁，请稍后再试')
     const input = readSubmissionInput(await readJson(request))
     const creatorAccount = await getCreatorAccountFromRequest(env, request)
     const error = await validateSubmissionInput(env, input, !!creatorAccount)
@@ -862,7 +1035,7 @@ async function handle(request, env) {
         input.creatorGuildName,
         input.creatorGuildRecruit,
         input.creatorGuildContact,
-        getClientKey(request),
+        clientKey,
         creatorAccount?.author_id ?? application?.author?.id ?? null,
         createdAt,
       ])
@@ -894,6 +1067,12 @@ async function handle(request, env) {
         view_count, like_count, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, ?, 0, 0, ?, ?)
     `, [id, b.title, b.raidId, b.bossId ?? null, b.difficulty, b.seasonVersion, b.contentText, b.description ?? '', b.authorId, b.isFeatured ? 1 : 0, date, date])
+    await auditLog(env, {
+      actorType: 'admin',
+      action: 'board_create',
+      entityType: 'board',
+      entityId: id,
+    })
     return json(rowToBoard(await first(env, 'SELECT * FROM boards WHERE id = ?', [id])), 201)
   }
 
@@ -914,6 +1093,156 @@ async function handle(request, env) {
       SELECT * FROM submissions
       ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'rejected' THEN 2 ELSE 3 END, created_at DESC
     `)).map(rowToSubmission))
+  }
+
+  if (method === 'GET' && path === '/api/admin/reports') {
+    return json((await all(env, `
+      SELECT * FROM reports
+      ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, created_at DESC
+    `)).map(rowToReport))
+  }
+
+  if (method === 'GET' && path === '/api/admin/audit-logs') {
+    return json((await all(env, 'SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 200')).map(rowToAuditLog))
+  }
+
+  if (method === 'POST' && path === '/api/admin/raids') {
+    const body = await readJson(request)
+    const id = cleanText(body.id) || randomId('r')
+    const name = cleanText(body.name)
+    const patch = cleanText(body.patch)
+    if (!name) return json({ error: '字段缺失：name' }, 400)
+    if (!patch) return json({ error: '字段缺失：patch' }, 400)
+    await run(env, `
+      INSERT INTO raids (id, name, patch)
+      VALUES (?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET name = excluded.name, patch = excluded.patch
+    `, [id, name, patch])
+    await auditLog(env, { actorType: 'admin', action: 'raid_upsert', entityType: 'raid', entityId: id })
+    return json(await raidWithCount(env, await first(env, 'SELECT * FROM raids WHERE id = ?', [id])), 201)
+  }
+
+  const adminRaidMatch = path.match(/^\/api\/admin\/raids\/([^/]+)$/)
+  if (adminRaidMatch && method === 'PUT') {
+    const id = decodeURIComponent(adminRaidMatch[1])
+    const row = await first(env, 'SELECT * FROM raids WHERE id = ?', [id])
+    if (!row) return json({ error: 'raid not found' }, 404)
+    const body = await readJson(request)
+    const name = cleanText(body.name) || row.name
+    const patch = cleanText(body.patch) || row.patch
+    await run(env, `
+      INSERT INTO raids (id, name, patch)
+      VALUES (?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET name = excluded.name, patch = excluded.patch
+    `, [row.id, name, patch])
+    await auditLog(env, { actorType: 'admin', action: 'raid_update', entityType: 'raid', entityId: row.id })
+    return json(await raidWithCount(env, await first(env, 'SELECT * FROM raids WHERE id = ?', [row.id])))
+  }
+
+  if (adminRaidMatch && method === 'DELETE') {
+    const id = decodeURIComponent(adminRaidMatch[1])
+    const row = await first(env, 'SELECT * FROM raids WHERE id = ?', [id])
+    if (!row) return json({ error: 'raid not found' }, 404)
+    const linkedBoards = await first(env, 'SELECT COUNT(*) AS n FROM boards WHERE raid_id = ?', [row.id])
+    const linkedSubmissions = await first(env, 'SELECT COUNT(*) AS n FROM submissions WHERE raid_id = ?', [row.id])
+    const linkedBosses = await first(env, 'SELECT COUNT(*) AS n FROM bosses WHERE raid_id = ?', [row.id])
+    if (linkedBoards.n > 0 || linkedSubmissions.n > 0 || linkedBosses.n > 0) {
+      return json({ error: '该团本还有关联 BOSS、战术板或投稿，不能删除' }, 409)
+    }
+    await run(env, 'DELETE FROM raids WHERE id = ?', [row.id])
+    await auditLog(env, { actorType: 'admin', action: 'raid_delete', entityType: 'raid', entityId: row.id })
+    return json({ ok: true })
+  }
+
+  if (method === 'POST' && path === '/api/admin/bosses') {
+    const body = await readJson(request)
+    const id = cleanText(body.id) || randomId('b')
+    const raidId = cleanText(body.raidId)
+    const name = cleanText(body.name)
+    const order = Number(body.order)
+    if (!raidId || !(await first(env, 'SELECT * FROM raids WHERE id = ?', [raidId]))) return json({ error: '字段无效：raidId' }, 400)
+    if (!name) return json({ error: '字段缺失：name' }, 400)
+    if (!Number.isInteger(order) || order < 1) return json({ error: '字段无效：order' }, 400)
+    await run(env, `
+      INSERT INTO bosses (id, raid_id, name, "order")
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET raid_id = excluded.raid_id, name = excluded.name, "order" = excluded."order"
+    `, [id, raidId, name, order])
+    await auditLog(env, { actorType: 'admin', action: 'boss_upsert', entityType: 'boss', entityId: id })
+    return json(rowToBoss(await first(env, 'SELECT * FROM bosses WHERE id = ?', [id])), 201)
+  }
+
+  const adminBossMatch = path.match(/^\/api\/admin\/bosses\/([^/]+)$/)
+  if (adminBossMatch && method === 'PUT') {
+    const id = decodeURIComponent(adminBossMatch[1])
+    const row = await first(env, 'SELECT * FROM bosses WHERE id = ?', [id])
+    if (!row) return json({ error: 'boss not found' }, 404)
+    const body = await readJson(request)
+    const raidId = cleanText(body.raidId) || row.raid_id
+    if (!(await first(env, 'SELECT * FROM raids WHERE id = ?', [raidId]))) return json({ error: '字段无效：raidId' }, 400)
+    const name = cleanText(body.name) || row.name
+    const order = 'order' in body ? Number(body.order) : row.order
+    if (!Number.isInteger(order) || order < 1) return json({ error: '字段无效：order' }, 400)
+    await run(env, `
+      INSERT INTO bosses (id, raid_id, name, "order")
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET raid_id = excluded.raid_id, name = excluded.name, "order" = excluded."order"
+    `, [row.id, raidId, name, order])
+    await auditLog(env, { actorType: 'admin', action: 'boss_update', entityType: 'boss', entityId: row.id })
+    return json(rowToBoss(await first(env, 'SELECT * FROM bosses WHERE id = ?', [row.id])))
+  }
+
+  if (adminBossMatch && method === 'DELETE') {
+    const id = decodeURIComponent(adminBossMatch[1])
+    const row = await first(env, 'SELECT * FROM bosses WHERE id = ?', [id])
+    if (!row) return json({ error: 'boss not found' }, 404)
+    const linkedBoards = await first(env, 'SELECT COUNT(*) AS n FROM boards WHERE boss_id = ?', [row.id])
+    const linkedSubmissions = await first(env, 'SELECT COUNT(*) AS n FROM submissions WHERE boss_id = ?', [row.id])
+    if (linkedBoards.n > 0 || linkedSubmissions.n > 0) {
+      return json({ error: '该 BOSS 还有关联战术板或投稿，不能删除' }, 409)
+    }
+    await run(env, 'DELETE FROM bosses WHERE id = ?', [row.id])
+    await auditLog(env, { actorType: 'admin', action: 'boss_delete', entityType: 'boss', entityId: row.id })
+    return json({ ok: true })
+  }
+
+  const adminReportActionMatch = path.match(/^\/api\/admin\/reports\/([^/]+)\/(hide-board|dismiss)$/)
+  if (method === 'POST' && adminReportActionMatch) {
+    const report = await first(env, 'SELECT * FROM reports WHERE id = ?', [decodeURIComponent(adminReportActionMatch[1])])
+    if (!report) return json({ error: 'report not found' }, 404)
+    if (report.status !== 'pending') return json({ error: '该举报已处理' }, 409)
+    const body = await readJson(request)
+    const reviewedAt = nowIso()
+    if (adminReportActionMatch[2] === 'hide-board') {
+      const board = await first(env, 'SELECT * FROM boards WHERE id = ?', [report.board_id])
+      if (!board) return json({ error: 'board not found' }, 404)
+      await run(env, 'UPDATE boards SET is_hidden = 1, updated_at = ? WHERE id = ?', [today(), board.id])
+      await run(env, `
+        UPDATE reports
+        SET status = 'hidden', resolution_note = ?, reviewed_at = ?
+        WHERE id = ?
+      `, [optionalText(body.note), reviewedAt, report.id])
+      await auditLog(env, {
+        actorType: 'admin',
+        action: 'report_hide_board',
+        entityType: 'report',
+        entityId: report.id,
+        detail: { boardId: board.id },
+      })
+    } else {
+      await run(env, `
+        UPDATE reports
+        SET status = 'dismissed', resolution_note = ?, reviewed_at = ?
+        WHERE id = ?
+      `, [optionalText(body.note), reviewedAt, report.id])
+      await auditLog(env, {
+        actorType: 'admin',
+        action: 'report_dismiss',
+        entityType: 'report',
+        entityId: report.id,
+      })
+    }
+    return json(rowToReport(await first(env, 'SELECT * FROM reports WHERE id = ?', [report.id])))
   }
 
   const approveMatch = path.match(/^\/api\/admin\/submissions\/([^/]+)\/approve$/)
@@ -937,6 +1266,7 @@ async function handle(request, env) {
         throw new Error('字段无效：mode')
       }
       const boardRow = await publishSubmission(env, submission, authorRow.id, body)
+      const creatorAccount = await recordApprovedSubmission(env, authorRow)
       await run(env, `
         UPDATE submissions
         SET status = 'approved', review_note = ?, board_id = ?, author_id = ?, reviewed_at = ?
@@ -946,6 +1276,7 @@ async function handle(request, env) {
         submission: rowToSubmission(await first(env, 'SELECT * FROM submissions WHERE id = ?', [submission.id])),
         board: rowToBoard(boardRow),
         author: rowToAuthor(authorRow),
+        creatorAccount: creatorAccount ? rowToCreatorAccount(creatorAccount) : null,
       })
     } catch (err) {
       const message = err.message || '审核通过失败'
@@ -959,12 +1290,36 @@ async function handle(request, env) {
     if (!submission) return json({ error: 'submission not found' }, 404)
     if (submission.status !== 'pending') return json({ error: '该投稿已处理' }, 409)
     const body = await readJson(request)
+    await resetCreatorReviewProgress(env, submission.author_id)
     await run(env, `
       UPDATE submissions
       SET status = ?, review_note = ?, board_id = NULL, author_id = NULL, reviewed_at = ?
       WHERE id = ?
     `, [markMatch[2] === 'spam' ? 'spam' : 'rejected', optionalText(body.note), nowIso(), submission.id])
     return json(rowToSubmission(await first(env, 'SELECT * FROM submissions WHERE id = ?', [submission.id])))
+  }
+
+  const resetPasswordMatch = path.match(/^\/api\/admin\/creator-accounts\/([^/]+)\/reset-password$/)
+  if (method === 'POST' && resetPasswordMatch) {
+    const row = await first(env, 'SELECT * FROM creator_accounts WHERE id = ?', [decodeURIComponent(resetPasswordMatch[1])])
+    if (!row) return json({ error: 'creator account not found' }, 404)
+    const body = await readJson(request)
+    const password = typeof body.password === 'string' ? body.password : ''
+    if (password.length < 8) return json({ error: '密码至少需要 8 位' }, 400)
+    await run(env, 'UPDATE creator_accounts SET password_hash = ?, updated_at = ? WHERE id = ?', [
+      await hashPassword(password),
+      nowIso(),
+      row.id,
+    ])
+    await run(env, 'UPDATE creator_sessions SET revoked_at = ? WHERE creator_account_id = ? AND revoked_at IS NULL', [nowIso(), row.id])
+    await auditLog(env, {
+      actorType: 'admin',
+      action: 'creator_password_reset',
+      entityType: 'creator_account',
+      entityId: row.id,
+    })
+    const fresh = await first(env, 'SELECT * FROM creator_accounts WHERE id = ?', [row.id])
+    return json({ account: rowToCreatorAccount(fresh) })
   }
 
   const creatorAccountMatch = path.match(/^\/api\/admin\/creator-accounts\/([^/]+)$/)
@@ -975,6 +1330,13 @@ async function handle(request, env) {
     if (!['active', 'suspended'].includes(status)) return json({ error: '字段无效：status' }, 400)
     await run(env, 'UPDATE creator_accounts SET status = ?, updated_at = ? WHERE id = ?', [status, nowIso(), row.id])
     if (status === 'suspended') await run(env, 'UPDATE creator_sessions SET revoked_at = ? WHERE creator_account_id = ? AND revoked_at IS NULL', [nowIso(), row.id])
+    await auditLog(env, {
+      actorType: 'admin',
+      action: 'creator_account_status_update',
+      entityType: 'creator_account',
+      entityId: row.id,
+      detail: { status },
+    })
     return json(rowToCreatorAccount(await first(env, 'SELECT * FROM creator_accounts WHERE id = ?', [row.id])))
   }
 
@@ -1003,15 +1365,33 @@ async function handle(request, env) {
     for (const account of creatorAccounts) {
       await run(env, `
         INSERT INTO creator_accounts (
-          id, email, username, email_verified_at, password_hash, status, author_id, contact,
+          id, email, username, email_verified_at, password_hash, status, trust_level,
+          approved_submission_count, author_id, contact,
           created_at, updated_at, last_login_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           email = excluded.email, username = excluded.username, email_verified_at = excluded.email_verified_at,
-          password_hash = excluded.password_hash, status = excluded.status, author_id = excluded.author_id,
+          password_hash = excluded.password_hash, status = excluded.status,
+          trust_level = excluded.trust_level,
+          approved_submission_count = excluded.approved_submission_count,
+          author_id = excluded.author_id,
           contact = excluded.contact, created_at = excluded.created_at, updated_at = excluded.updated_at,
           last_login_at = excluded.last_login_at
-      `, [account.id, account.email ?? `${account.id}@creator.local`, account.username ?? null, account.emailVerifiedAt ?? null, account.passwordHash ?? null, account.status ?? 'suspended', account.authorId ?? null, account.contact ?? null, account.createdAt, account.updatedAt, account.lastLoginAt ?? null])
+      `, [
+        account.id,
+        account.email ?? `${account.id}@creator.local`,
+        account.username ?? null,
+        account.emailVerifiedAt ?? null,
+        account.passwordHash ?? null,
+        account.status ?? 'suspended',
+        account.trustLevel ?? TRUST_TRUSTED,
+        account.approvedSubmissionCount ?? 0,
+        account.authorId ?? null,
+        account.contact ?? null,
+        account.createdAt,
+        account.updatedAt,
+        account.lastLoginAt ?? null,
+      ])
     }
     for (const r of body.raids) {
       await run(env, 'INSERT INTO raids (id, name, patch) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET name = excluded.name, patch = excluded.patch', [r.id, r.name, r.patch])
@@ -1057,9 +1437,10 @@ async function handle(request, env) {
           id, title, raid_id, boss_id, difficulty, season_version, description,
           content_text, submitter_name, contact, wants_creator_profile,
           creator_avatar_url, creator_bio, creator_guild_name, creator_guild_recruit,
-          creator_guild_contact, status, source_key, review_note, board_id, author_id,
+          creator_guild_contact, status, source_key, content_hash, spam_reason,
+          review_note, board_id, author_id,
           created_at, reviewed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           title = excluded.title, raid_id = excluded.raid_id, boss_id = excluded.boss_id,
           difficulty = excluded.difficulty, season_version = excluded.season_version,
@@ -1069,10 +1450,37 @@ async function handle(request, env) {
           creator_avatar_url = excluded.creator_avatar_url, creator_bio = excluded.creator_bio,
           creator_guild_name = excluded.creator_guild_name, creator_guild_recruit = excluded.creator_guild_recruit,
           creator_guild_contact = excluded.creator_guild_contact, status = excluded.status,
-          source_key = excluded.source_key, review_note = excluded.review_note,
+          source_key = excluded.source_key, content_hash = excluded.content_hash,
+          spam_reason = excluded.spam_reason, review_note = excluded.review_note,
           board_id = excluded.board_id, author_id = excluded.author_id,
           created_at = excluded.created_at, reviewed_at = excluded.reviewed_at
-      `, [s.id, s.title, s.raidId, s.bossId ?? null, s.difficulty, s.seasonVersion, s.description, s.contentText, s.submitterName, s.contact ?? null, s.wantsCreatorProfile ? 1 : 0, s.creatorAvatarUrl ?? null, s.creatorBio ?? null, s.creatorGuildName ?? null, s.creatorGuildRecruit ?? null, s.creatorGuildContact ?? null, s.status ?? 'pending', s.sourceKey ?? null, s.reviewNote ?? null, s.boardId ?? null, s.authorId ?? null, s.createdAt, s.reviewedAt ?? null])
+      `, [
+        s.id,
+        s.title,
+        s.raidId,
+        s.bossId ?? null,
+        s.difficulty,
+        s.seasonVersion,
+        s.description,
+        s.contentText,
+        s.submitterName,
+        s.contact ?? null,
+        s.wantsCreatorProfile ? 1 : 0,
+        s.creatorAvatarUrl ?? null,
+        s.creatorBio ?? null,
+        s.creatorGuildName ?? null,
+        s.creatorGuildRecruit ?? null,
+        s.creatorGuildContact ?? null,
+        s.status ?? 'pending',
+        s.sourceKey ?? null,
+        s.contentHash ?? null,
+        s.spamReason ?? null,
+        s.reviewNote ?? null,
+        s.boardId ?? null,
+        s.authorId ?? null,
+        s.createdAt,
+        s.reviewedAt ?? null,
+      ])
     }
     return json({ ok: true, counts: { raids: body.raids.length, bosses: body.bosses.length, authors: body.authors.length, boards: body.boards.length, submissions: submissions.length, creatorAccounts: creatorAccounts.length } })
   }
@@ -1083,6 +1491,12 @@ async function handle(request, env) {
     if (!row) return json({ error: 'board not found' }, 404)
     if (method === 'DELETE') {
       await run(env, 'DELETE FROM boards WHERE id = ?', [id])
+      await auditLog(env, {
+        actorType: 'admin',
+        action: 'board_delete',
+        entityType: 'board',
+        entityId: id,
+      })
       return json({ ok: true })
     }
     const body = await readJson(request)
@@ -1109,6 +1523,13 @@ async function handle(request, env) {
     sets.push('updated_at = ?')
     params.push(today(), id)
     await run(env, `UPDATE boards SET ${sets.join(', ')} WHERE id = ?`, params)
+    await auditLog(env, {
+      actorType: 'admin',
+      action: 'board_update',
+      entityType: 'board',
+      entityId: id,
+      detail: { fields: fields.filter(([key]) => key in body).map(([key]) => key) },
+    })
     return json(rowToAdminBoard(await first(env, 'SELECT * FROM boards WHERE id = ?', [id])))
   }
 
@@ -1122,6 +1543,12 @@ async function handle(request, env) {
         creator_account_id, visibility, moderation_status, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'approved', 'clean', ?)
     `, [id, body.name, body.avatarUrl ?? null, body.bio ?? null, body.guildName ?? null, body.guildRecruit ?? null, body.guildContact ?? null, nowIso()])
+    await auditLog(env, {
+      actorType: 'admin',
+      action: 'author_create',
+      entityType: 'author',
+      entityId: id,
+    })
     return json(rowToAuthor(await first(env, 'SELECT * FROM authors WHERE id = ?', [id])), 201)
   }
 
@@ -1133,6 +1560,12 @@ async function handle(request, env) {
       const count = await first(env, 'SELECT COUNT(*) AS n FROM boards WHERE author_id = ?', [id])
       if (count.n > 0) return json({ error: '该作者名下还有战术板，不能删除' }, 409)
       await run(env, 'DELETE FROM authors WHERE id = ?', [id])
+      await auditLog(env, {
+        actorType: 'admin',
+        action: 'author_delete',
+        entityType: 'author',
+        entityId: id,
+      })
       return json({ ok: true })
     }
     const body = await readJson(request)
@@ -1158,6 +1591,13 @@ async function handle(request, env) {
     if (sets.length > 0) {
       params.push(id)
       await run(env, `UPDATE authors SET ${sets.join(', ')} WHERE id = ?`, params)
+      await auditLog(env, {
+        actorType: 'admin',
+        action: 'author_update',
+        entityType: 'author',
+        entityId: id,
+        detail: { fields: fields.filter(([key]) => key in body).map(([key]) => key) },
+      })
     }
     return json(rowToAuthor(await first(env, 'SELECT * FROM authors WHERE id = ?', [id])))
   }

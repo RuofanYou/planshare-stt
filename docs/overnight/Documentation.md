@@ -17,6 +17,8 @@
 - e2e 使用 `/tmp/planshare-e2e-*.db` 临时 SQLite；预览使用 `/tmp/planshare-preview.db`。
 - M5 拆分优先按后台职责边界切：投稿审核、举报队列、团本/BOSS 管理先从 `Admin.tsx` 移到 `src/pages/admin/*`，避免一次性重写整个后台。
 - M5 批量操作只复用既有单条审核 API，不新增后端批量端点；这样保持服务端审核语义单一，前端只负责批量调度。
+- M6 契约测试只比较核心公开读接口的 HTTP JSON 结构，不把 worker 重新升为业务权威；worker 仍是 D1 移植版。
+- M6 wrangler 本地 D1 使用 `--persist-to /tmp/planshare-worker-contract-*` 临时目录，避免污染仓库 `.wrangler` 或远端 D1。
 
 ## 验证输出
 
@@ -83,12 +85,55 @@ vite v5.4.21 building for production...
 1 passed (35.6s)
 ```
 
+### M6 worker schema + seed
+```text
+npx wrangler d1 execute planshare --local --persist-to /tmp/planshare-worker-schema-*/ --file worker/schema.sql
+🚣 17 commands executed successfully.
+
+npx wrangler d1 execute planshare --local --persist-to /tmp/planshare-worker-schema-*/ --file worker/seed.sql
+🚣 31 commands executed successfully.
+```
+
+### M6 contract test
+```text
+node --test --test-concurrency=1 server/worker-contract.test.mjs
+
+# Subtest: Fastify and Worker core read APIs keep the same HTTP response structure
+ok 1 - Fastify and Worker core read APIs keep the same HTTP response structure
+1..1
+# tests 1
+# pass 1
+# fail 0
+```
+
+### Final npm run verify
+```text
+> planshare@0.1.0 verify
+> tsc -b && vite build && node --test --test-concurrency=1 server/*.test.mjs && playwright test
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.15s
+
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (4.5s)
+1 passed (6.3s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
-- `worker/index.js` / `worker/schema.sql` 仍未同步本轮 Fastify 新能力，M6 未完成。
+- M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
 - Vite 构建仍有 chunk size warning，属于既有体积问题，本轮未处理。
 - 浏览器控制台有 React Router v7 future warning，非本轮错误。
 
 ## 发现但未处理
 - Admin 页面作者/战术板表单仍可继续拆成 `pages/admin/*` 子组件，但 M5 的审核效率与核心拆分已完成。
-- worker D1 版本需要专门契约测试和迁移实现，不应在未充分验证时半移植。
+- worker D1 版本已补核心契约测试；后续如要让 D1 承担生产流量，还需要单独做写接口压力和迁移演练。
