@@ -405,6 +405,22 @@ function rowToSubmission(row) {
   }
 }
 
+function rowToCreatorSubmission(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    raidId: row.raid_id,
+    bossId: row.boss_id ?? null,
+    difficulty: row.difficulty,
+    status: row.status,
+    reviewNote: row.review_note ?? undefined,
+    spamReason: row.spam_reason ?? undefined,
+    boardId: row.board_id ?? undefined,
+    createdAt: row.created_at,
+    reviewedAt: row.reviewed_at ?? undefined,
+  }
+}
+
 function rowToCreatorAccount(row) {
   return {
     id: row.id,
@@ -593,6 +609,11 @@ const stmt = {
   bumpView: db.prepare('UPDATE boards SET view_count = view_count + 1 WHERE id = ?'),
   bumpLike: db.prepare('UPDATE boards SET like_count = like_count + 1 WHERE id = ?'),
   submissionById: db.prepare('SELECT * FROM submissions WHERE id = ?'),
+  submissionsByAuthor: db.prepare(`
+    SELECT * FROM submissions
+    WHERE author_id = ?
+    ORDER BY created_at DESC, id DESC
+  `),
   allSubmissionsAdmin: db.prepare(`
     SELECT * FROM submissions
     ORDER BY
@@ -1393,6 +1414,13 @@ app.get('/api/creator/me', { preHandler: requireCreatorAuth }, (req) => {
   }
 })
 
+// GET /api/creator/submissions -> 当前创作者自己的投稿审核进度。
+app.get('/api/creator/submissions', { preHandler: requireCreatorAuth }, (req) => {
+  const authorId = req.creatorAccount.author_id
+  if (!authorId) return []
+  return stmt.submissionsByAuthor.all(authorId).map(rowToCreatorSubmission)
+})
+
 // PUT /api/creator/profile -> 创作者编辑自己的半公开作者资料。
 app.put('/api/creator/profile', { preHandler: requireCreatorAuth }, (req, reply) => {
   if (!req.creatorAccount) {
@@ -2041,7 +2069,7 @@ function markSubmissionStatus(id, status, note, reply) {
     status,
     reviewNote: optionalText(note),
     boardId: null,
-    authorId: null,
+    authorId: submission.author_id,
     reviewedAt: new Date().toISOString(),
   })
   if (status === 'rejected' || status === 'spam') {

@@ -25,6 +25,7 @@ import type {
   ApproveSubmissionInput,
   ApproveSubmissionResult,
   CreatorMeResult,
+  CreatorSubmission,
   CreatorAuthResult,
   CreatorProfileInput,
   CreatorBoard,
@@ -254,6 +255,10 @@ export function creatorLogin(username: string, password: string): Promise<Creato
 /** GET /api/creator/me -> 当前创作者身份与绑定作者。 */
 export function getCreatorMe(): Promise<CreatorMeResult> {
   return creatorRequest<CreatorMeResult>('/api/creator/me')
+}
+
+export function getCreatorSubmissions(): Promise<CreatorSubmission[]> {
+  return creatorRequest<CreatorSubmission[]>('/api/creator/submissions')
 }
 
 export function updateCreatorProfile(input: CreatorProfileInput): Promise<CreatorMeResult> {

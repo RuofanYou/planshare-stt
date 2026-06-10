@@ -70,6 +70,11 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   const creatorToken = await page.evaluate(() => localStorage.getItem('planshare_creator_token'))
   expect(creatorToken).toBeTruthy()
 
+  await page.goto('/creator')
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+  await expect(page.getByText(firstTitle)).toBeVisible()
+  await expect(page.getByText('待审核', { exact: true })).toBeVisible()
+
   await page.goto('/admin')
   await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: '登录' }).click()
@@ -95,6 +100,10 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await page.goto('/creator')
   await expect(page.getByRole('heading', { name: '还需 2 次审核通过' })).toBeVisible()
   await expect(page.getByRole('heading', { name: '我的战术板' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+  await expect(page.getByText(firstTitle)).toBeVisible()
+  await expect(page.getByText('已通过')).toBeVisible()
+  await expect(page.getByRole('link', { name: '查看公开板' })).toBeVisible()
 
   const second = await submitCreatorReview(request, creatorToken!, `${runId}-two`)
   await approvePending(request, admin, second.id, published.authorId)

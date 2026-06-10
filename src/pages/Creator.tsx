@@ -6,6 +6,7 @@ import {
   useCreatorLogin,
   useCreatorMe,
   useCreatorSession,
+  useCreatorSubmissions,
   useDeleteCreatorBoard,
   useRaid,
   useRaids,
@@ -14,7 +15,7 @@ import {
 } from '../api/hooks'
 import { fadeUp, staggerContainer, staggerItem } from '../lib/motion'
 import { Avatar, Button, EmptyState, GlassCard, SectionHeading, Skeleton, Tag } from '../components/ui'
-import type { Author, CreatorBoard, CreatorUser, Difficulty } from '../data/types'
+import type { Author, CreatorBoard, CreatorSubmission, CreatorUser, Difficulty } from '../data/types'
 import './Creator.css'
 
 const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
@@ -213,6 +214,16 @@ function CreatorConsole({
         </motion.div>
       </motion.div>
 
+      {author && (
+        <motion.div
+          variants={reduce ? undefined : fadeUp}
+          initial="hidden"
+          animate="show"
+        >
+          <CreatorSubmissionTracker />
+        </motion.div>
+      )}
+
       {author && author.visibility !== 'approved' && (
         <motion.div
           variants={reduce ? undefined : fadeUp}
@@ -250,6 +261,76 @@ function CreatorConsole({
         </motion.div>
       )}
     </div>
+  )
+}
+
+function CreatorSubmissionTracker() {
+  const submissionsQuery = useCreatorSubmissions(true)
+  const submissions = submissionsQuery.data ?? []
+
+  return (
+    <GlassCard tone="glass" className="ps-creator__panel ps-creator__submissions">
+      <div className="ps-creator__section-head">
+        <div>
+          <Tag variant="gold">审核状态</Tag>
+          <h2 className="ps-creator__panel-title">投稿进度</h2>
+        </div>
+        <Button variant="secondary" to="/submit">
+          继续投稿
+        </Button>
+      </div>
+      {submissionsQuery.isPending && <Skeleton shape="line" width="100%" height={56} />}
+      {submissionsQuery.isError && (
+        <p className="ps-creator__error" role="alert">
+          {(submissionsQuery.error as Error).message}
+        </p>
+      )}
+      {!submissionsQuery.isPending && !submissionsQuery.isError && submissions.length === 0 && (
+        <p className="ps-creator__panel-copy">还没有投稿记录。提交后可以在这里看审核结果。</p>
+      )}
+      {submissions.length > 0 && (
+        <div className="ps-creator__submission-list">
+          {submissions.map((submission) => (
+            <CreatorSubmissionItem key={submission.id} submission={submission} />
+          ))}
+        </div>
+      )}
+    </GlassCard>
+  )
+}
+
+function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }) {
+  const status = submissionStatusMeta(submission)
+
+  return (
+    <article className="ps-creator__submission">
+      <div className="ps-creator__submission-top">
+        <div>
+          <h3 className="ps-creator__submission-title">{submission.title}</h3>
+          <p className="ps-creator__meta">
+            {status.copy} · {formatShortDate(submission.reviewedAt ?? submission.createdAt)}
+          </p>
+        </div>
+        <Tag variant={status.tone}>{status.label}</Tag>
+      </div>
+      {(submission.reviewNote || submission.spamReason) && (
+        <p className="ps-creator__submission-note">
+          {submission.reviewNote ? `管理员备注：${submission.reviewNote}` : `系统拦截：${spamReasonLabel(submission.spamReason)}`}
+        </p>
+      )}
+      <div className="ps-creator__actions">
+        {submission.boardId && (
+          <Button variant="secondary" size="sm" to={`/board/${submission.boardId}`}>
+            查看公开板
+          </Button>
+        )}
+        {submission.status === 'rejected' && (
+          <Button variant="secondary" size="sm" to="/submit">
+            修改后重投
+          </Button>
+        )}
+      </div>
+    </article>
   )
 }
 
@@ -633,6 +714,31 @@ function visibilityLabel(visibility?: Author['visibility']) {
   if (visibility === 'hidden') return '已隐藏'
   if (visibility === 'draft') return '草稿'
   return '半公开主页'
+}
+
+function submissionStatusMeta(submission: CreatorSubmission): {
+  label: string
+  copy: string
+  tone: 'gold' | 'neutral'
+} {
+  if (submission.status === 'approved') return { label: '已通过', copy: '已发布到公开站', tone: 'gold' }
+  if (submission.status === 'rejected') return { label: '未通过', copy: '需要修改后重投', tone: 'neutral' }
+  if (submission.status === 'spam') return { label: '被拦截', copy: '没有进入人工审核', tone: 'neutral' }
+  return { label: '待审核', copy: '管理员审核中', tone: 'gold' }
+}
+
+function spamReasonLabel(reason?: string) {
+  if (reason === 'honeypot') return '表单异常'
+  if (reason === 'duplicate_content') return '同一网络下重复正文'
+  if (reason) return reason
+  return '内容风险'
+}
+
+function formatShortDate(value?: string) {
+  if (!value) return '时间未知'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
 }
 
 function CreatorSkeleton() {

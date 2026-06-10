@@ -22,6 +22,9 @@
 - 普通用户补测发现创作者后台早放开了直发入口：作者主页通过后，但账号还没累计 3 次通过时，前端曾错误显示“直接发布”。已改为只有 `trust_level=trusted` 才显示直发入口，审核期显示还差几次通过。
 - 投稿页成功态以服务端实际返回 `creatorAuth.token` 为准；如果申请创作者的投稿被判 spam，不再误显示“账号已创建”。
 - Playwright 冒烟用例的标题、用户名和正文都加唯一后缀，避免本地重复回归时被“同 IP 重复正文”防线误判。
+- UGC 生态补缺口：创作者需要看到自己的投稿进度，否则投稿后只能等管理员，无法知道待审、通过、驳回或被拦截。已新增 `GET /api/creator/submissions` 与创作者后台“投稿进度”。
+- 管理员驳回或标记 spam 时保留投稿的 `author_id`；不发布板子，但让创作者仍能在自己的进度列表看到失败原因和管理员备注。
+- 创作者投稿列表按 `created_at DESC, id DESC` 排序，避免同秒提交时“最新投稿”顺序不稳定。
 
 ## 验证输出
 
@@ -168,6 +171,51 @@ vite v5.4.21 building for production...
 ```text
 /creator: 显示“创作者后台”登录页，包含用户名和密码，无 Application error。
 /submit: 显示“提交你的战术板”，包含“申请创作者”，空表单提交按钮禁用，无 Application error。
+```
+
+### UGC 生态补缺口：创作者投稿进度
+```text
+node --test --test-concurrency=1 server/creator-username-auth.test.mjs
+
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 2 tests using 1 worker
+··
+  2 passed (40.6s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 4.08s
+
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (5.3s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:127:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.8s)
+2 passed (10.2s)
+```
+
+```text
+in-app browser:
+/creator 使用本地预览创作者登录后显示“投稿进度”和待审核投稿“预览投稿进度 ...”，无 Application error。
 ```
 
 ## 已知问题

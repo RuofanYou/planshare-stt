@@ -223,6 +223,47 @@ test('creator application creates active username account, semi-public author, s
   assert.equal(me.body.author.visibility, 'semi_public')
 })
 
+test('creator can see their own submission review progress', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+
+  const application = await submitCreatorApplication(server)
+  const token = application.creatorAuth.token
+
+  const pending = await requestJson(server.baseUrl, '/api/creator/submissions', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  assert.equal(pending.res.status, 200)
+  assert.equal(pending.body.length, 1)
+  assert.equal(pending.body[0].title, '用户名创作者投稿')
+  assert.equal(pending.body[0].status, 'pending')
+  assert.equal(pending.body[0].boardId, undefined)
+
+  const { admin, approval } = await approveCreatorApplication(server, application)
+  const approved = await requestJson(server.baseUrl, '/api/creator/submissions', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  assert.equal(approved.res.status, 200)
+  assert.equal(approved.body[0].status, 'approved')
+  assert.equal(approved.body[0].boardId, approval.board.id)
+
+  const rejectedSubmission = await submitCreatorReview(server, token, 'rejected')
+  const rejected = await requestJson(server.baseUrl, `/api/admin/submissions/${rejectedSubmission.id}/reject`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({ note: '请补充站位说明' }),
+  })
+  assert.equal(rejected.res.status, 200)
+
+  const tracked = await requestJson(server.baseUrl, '/api/creator/submissions', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  assert.equal(tracked.res.status, 200)
+  assert.equal(tracked.body[0].status, 'rejected')
+  assert.equal(tracked.body[0].reviewNote, '请补充站位说明')
+  assert.equal(tracked.body.some((item) => item.id === application.id && item.status === 'approved'), true)
+})
+
 test('duplicate creator username returns 409', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

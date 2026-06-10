@@ -129,6 +129,7 @@ export function useCreateSubmission() {
     mutationFn: (body: CreateSubmissionInput) => api.createSubmission(body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['creator', 'submissions'] })
     },
   })
 }
@@ -235,6 +236,14 @@ export function useCreatorMe(enabled: boolean) {
   })
 }
 
+export function useCreatorSubmissions(enabled: boolean) {
+  return useQuery({
+    queryKey: ['creator', 'submissions'],
+    queryFn: api.getCreatorSubmissions,
+    enabled,
+  })
+}
+
 export function useCreatorLogin() {
   return useMutation({
     mutationFn: ({ username, password }: { username: string; password: string }) =>
@@ -270,6 +279,7 @@ export function useCreateCreatorBoard() {
     mutationFn: (input: CreatorBoardInput) => api.createCreatorBoard(input),
     onSuccess: (board) => {
       qc.invalidateQueries({ queryKey: ['creator', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['creator', 'submissions'] })
       qc.invalidateQueries({ queryKey: ['boards'] })
       qc.invalidateQueries({ queryKey: ['raids'] })
       qc.invalidateQueries({ queryKey: ['authors'] })

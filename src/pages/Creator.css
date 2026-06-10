@@ -159,12 +159,16 @@
 .ps-creator__boards,
 .ps-creator__board-form,
 .ps-creator__board-list,
-.ps-creator__board {
+.ps-creator__board,
+.ps-creator__submissions,
+.ps-creator__submission-list,
+.ps-creator__submission {
   display: flex;
   flex-direction: column;
 }
 
-.ps-creator__boards {
+.ps-creator__boards,
+.ps-creator__submissions {
   gap: var(--space-6);
 }
 
@@ -174,23 +178,40 @@
   gap: var(--space-3);
 }
 
-.ps-creator__board-list {
+.ps-creator__board-list,
+.ps-creator__submission-list {
   gap: var(--space-4);
 }
 
-.ps-creator__board {
+.ps-creator__board,
+.ps-creator__submission {
   gap: var(--space-3);
   border-top: 1px solid var(--glass-border);
   padding-top: var(--space-4);
 }
 
-.ps-creator__board-title {
+.ps-creator__submission-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.ps-creator__board-title,
+.ps-creator__submission-title {
   margin: 0;
   color: var(--color-ink);
   font-size: var(--text-h3);
   line-height: var(--lh-h3);
   font-weight: var(--weight-semibold);
   letter-spacing: 0;
+}
+
+.ps-creator__submission-note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
 }
 
 .ps-creator__error,
@@ -241,7 +262,8 @@
 
   .ps-creator__field-grid,
   .ps-creator__section-head,
-  .ps-creator__board-top {
+  .ps-creator__board-top,
+  .ps-creator__submission-top {
     grid-template-columns: 1fr;
     flex-direction: column;
   }

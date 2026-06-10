@@ -154,6 +154,21 @@ export interface AdminSubmission extends CreateSubmissionInput {
   reviewedAt?: string
 }
 
+/** 创作者后台视角投稿进度：只展示自己的审核状态和处理结果。 */
+export interface CreatorSubmission {
+  id: string
+  title: string
+  raidId: string
+  bossId: string | null
+  difficulty: Difficulty
+  status: SubmissionStatus
+  reviewNote?: string
+  spamReason?: string
+  boardId?: string
+  createdAt: string
+  reviewedAt?: string
+}
+
 /** POST /api/admin/submissions/:id/approve 请求体。 */
 export interface ApproveSubmissionInput {
   mode: 'existingAuthor' | 'createAuthor' | 'plainAuthor'
