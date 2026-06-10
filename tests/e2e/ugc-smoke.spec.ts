@@ -34,6 +34,7 @@ async function createCreatorApplication(request: APIRequestContext, suffix: stri
   const username = `self_${suffix}`
   const password = 'creator-password-123'
   const title = `E2E 自助账号 ${suffix}`
+  const contentText = `P1 自助账号 ${suffix}\nP2 集合`
   const res = await request.post('/api/submissions', {
     data: {
       title,
@@ -42,7 +43,7 @@ async function createCreatorApplication(request: APIRequestContext, suffix: stri
       difficulty: 'mythic',
       seasonVersion: 'S3',
       description: `E2E 自助账号 ${suffix}`,
-      contentText: `P1 自助账号 ${suffix}\nP2 集合`,
+      contentText,
       submitterName: `自助创作者 ${suffix}`,
       wantsCreatorProfile: true,
       creatorUsername: username,
@@ -50,7 +51,7 @@ async function createCreatorApplication(request: APIRequestContext, suffix: stri
     },
   })
   expect(res.status()).toBe(201)
-  return { username, password, title }
+  return { username, password, title, contentText }
 }
 
 async function approvePending(request: APIRequestContext, token: string, id: string, authorId?: string) {
@@ -271,6 +272,13 @@ test('creator can withdraw a pending submission from dashboard', async ({ page, 
   await expect(page.getByText('已撤回', { exact: true })).toBeVisible()
   await expect(page.getByText('创作者已自行撤回')).toBeVisible()
   await expect(page.getByRole('button', { name: '撤回投稿' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: '修改后重投' }).click()
+  await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByLabel('标题')).toHaveValue(creator.title)
+  await expect(page.locator('#ps-submit-raid')).toHaveValue('r-voidspire')
+  await expect(page.locator('#ps-submit-boss')).toHaveValue('b-averzian')
+  await expect(page.getByLabel('战术正文')).toHaveValue(creator.contentText)
 })
 
 test('home search finds boards by boss and author names', async ({ page }) => {

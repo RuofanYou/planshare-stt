@@ -161,6 +161,9 @@ export interface CreatorSubmission {
   raidId: string
   bossId: string | null
   difficulty: Difficulty
+  description: string
+  contentText: string
+  submitterName: string
   status: SubmissionStatus
   reviewNote?: string
   spamReason?: string

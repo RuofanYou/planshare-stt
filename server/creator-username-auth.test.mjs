@@ -238,6 +238,9 @@ test('creator can see their own submission review progress', async (t) => {
   assert.equal(pending.body[0].title, '用户名创作者投稿')
   assert.equal(pending.body[0].status, 'pending')
   assert.equal(pending.body[0].boardId, undefined)
+  assert.equal(pending.body[0].description, '用于用户名创作者申请的投稿')
+  assert.equal(pending.body[0].contentText, 'P1 分散\nP2 集合')
+  assert.equal(pending.body[0].submitterName, '用户名创作者')
 
   const { admin, approval } = await approveCreatorApplication(server, application)
   const approved = await requestJson(server.baseUrl, '/api/creator/submissions', {

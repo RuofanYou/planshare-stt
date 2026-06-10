@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   useCreateCreatorBoard,
@@ -24,6 +25,8 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
   { value: 'heroic', label: '英雄' },
   { value: 'mythic', label: '史诗' },
 ]
+
+const SUBMIT_DRAFT_KEY = 'planshare_submit_draft_v1'
 
 export default function Creator() {
   const reduce = useReducedMotion()
@@ -391,10 +394,37 @@ function CreatorSubmissionTracker() {
 function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }) {
   const status = submissionStatusMeta(submission)
   const withdrawSubmission = useWithdrawCreatorSubmission()
+  const navigate = useNavigate()
 
   function withdraw() {
     if (!window.confirm('确定撤回这条待审投稿？撤回后管理员不会再审核它。')) return
     withdrawSubmission.mutate(submission.id)
+  }
+
+  function retrySubmission() {
+    try {
+      window.localStorage.setItem(
+        SUBMIT_DRAFT_KEY,
+        JSON.stringify({
+          title: submission.title,
+          raidId: submission.raidId,
+          bossId: submission.bossId ?? '',
+          difficulty: submission.difficulty,
+          description: submission.description,
+          contentText: submission.contentText,
+          submitterName: submission.submitterName,
+          wantsCreatorProfile: false,
+          creatorUsername: '',
+          creatorBio: '',
+          creatorGuildName: '',
+          creatorGuildRecruit: '',
+          creatorGuildContact: '',
+        }),
+      )
+    } catch {
+      // localStorage 不可用时仍允许跳转，用户可以手动填写。
+    }
+    navigate('/submit')
   }
 
   return (
@@ -419,8 +449,8 @@ function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }
             查看公开板
           </Button>
         )}
-        {submission.status === 'rejected' && (
-          <Button variant="secondary" size="sm" to="/submit">
+        {(submission.status === 'rejected' || submission.status === 'withdrawn') && (
+          <Button variant="secondary" size="sm" onClick={retrySubmission}>
             修改后重投
           </Button>
         )}

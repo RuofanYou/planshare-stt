@@ -32,6 +32,7 @@
 - 创作者自循环补缺口：创作者登录后可自助修改密码；当前密码错误返回 400 不清登录态，成功后保留当前会话并撤销其他旧会话，同时写 `audit_logs`。
 - 创作者直发补缺口：正式创作者直接发布长战术板时也需要草稿保护；草稿按创作者账号 ID 存 localStorage，刷新后恢复，成功发布后清空。
 - 创作者投稿纠错补缺口：创作者自己的待审投稿可撤回，状态置为 `withdrawn` 并写审计日志；已处理投稿和他人投稿不可撤回。
+- 创作者重投补缺口：被驳回或已撤回投稿点击“修改后重投”会把原标题、团本、BOSS、难度、简介、正文和署名写入投稿页草稿，再跳转 `/submit`，避免长战术板手动复制。
 
 ## 验证输出
 
@@ -553,6 +554,66 @@ vite v5.4.21 building for production...
 in-app browser:
 /creator 页面可见，无 framework overlay，console errors=0。
 真实撤回点击、确认框、状态变“已撤回”由 Playwright 浏览器用例覆盖。
+```
+
+### UGC 生态补缺口：创作者修改后重投
+```text
+node --test --test-concurrency=1 server/creator-username-auth.test.mjs
+
+# Subtest: creator can see their own submission review progress
+ok 2 - creator can see their own submission review progress
+
+1..20
+# tests 20
+# pass 20
+# fail 0
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.12s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 6 tests using 1 worker
+······
+6 passed (17.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.03s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:66:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (6.4s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:177:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:220:1 › creator can change password from dashboard and log in with the new password (1.6s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:258:1 › creator can withdraw a pending submission from dashboard (1.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:284:1 › home search finds boards by boss and author names (2.3s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:303:1 › submit draft survives reload without saving password or contact (1.2s)
+6 passed (17.0s)
+```
+
+```text
+Playwright:
+撤回待审投稿后点击“修改后重投”，跳转 `/submit`。
+投稿页标题、团本、BOSS、战术正文均从原投稿草稿恢复。
+
+in-app browser:
+/creator 页面可见，无 framework overlay，console errors=0。
 ```
 
 ## 已知问题

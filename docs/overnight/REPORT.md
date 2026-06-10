@@ -19,6 +19,7 @@
 - 创作者自循环补缺口：创作者后台新增自助修改密码；旧密码错误、确认密码不一致、成功改密、旧密码失效、新密码登录均已覆盖。
 - 创作者直发补缺口：正式创作者“直接发布”表单新增按账号隔离的本地草稿保护，刷新不丢稿，成功发布后清空。
 - 创作者投稿纠错补缺口：创作者可在后台撤回自己的待审投稿；撤回后不再进入管理员审核，后台显示“已撤回”，并写审计日志。
+- 创作者重投补缺口：被驳回或已撤回投稿可一键带回投稿页草稿，保留原标题、团本、BOSS、难度、简介、正文和署名，方便修改后重投。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -498,6 +499,58 @@ in-app browser:
 真实撤回点击、确认框、状态变“已撤回”由 Playwright 浏览器用例覆盖。
 ```
 
+### 创作者修改后重投验证
+```text
+node --test --test-concurrency=1 server/creator-username-auth.test.mjs
+
+# Subtest: creator can see their own submission review progress
+ok 2 - creator can see their own submission review progress
+
+1..20
+# tests 20
+# pass 20
+# fail 0
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 6 tests using 1 worker
+······
+6 passed (17.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.03s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:66:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (6.4s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:177:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:220:1 › creator can change password from dashboard and log in with the new password (1.6s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:258:1 › creator can withdraw a pending submission from dashboard (1.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:284:1 › home search finds boards by boss and author names (2.3s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:303:1 › submit draft survives reload without saving password or contact (1.2s)
+6 passed (17.0s)
+```
+
+```text
+Playwright:
+撤回待审投稿后点击“修改后重投”，跳转 `/submit`。
+投稿页标题、团本、BOSS、战术正文均从原投稿草稿恢复。
+
+in-app browser:
+/creator 页面可见，无 framework overlay，console errors=0。
+```
+
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
@@ -506,6 +559,7 @@ in-app browser:
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。
 - `server/index.mjs` 与 `src/data/types.ts`：投稿状态新增 `withdrawn`；需人工复核运营报表或外部脚本是否假设投稿状态只有四种。
+- `server/index.mjs` 与 `src/pages/Creator.tsx`：创作者投稿进度现在返回并使用原投稿正文，用于“修改后重投”；需人工复核该数据只暴露给投稿所属创作者。
 - `server/index.mjs`：驳回/spam 投稿现在保留 `author_id`，让创作者可以看到失败状态；需确认这符合运营上“失败记录对创作者可见”的预期。
 - `worker/index.js`：D1 移植版同步了 Fastify 的 UGC 字段与核心治理端点；当前由契约测试守核心读结构，但生产权威仍是 Fastify。
 
