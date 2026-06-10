@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Difficulty } from '../data/types'
-import { useCreateSubmission, useRaid, useRaids } from '../api/hooks'
+import { useCreateSubmission, useCreatorSession, useRaid, useRaids } from '../api/hooks'
 import { Button, SectionHeading, Tag } from '../components/ui'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
 import './Submit.css'
@@ -15,6 +15,7 @@ export default function Submit() {
   const reduce = useReducedMotion()
   const raidsQuery = useRaids()
   const createSubmission = useCreateSubmission()
+  const creatorSession = useCreatorSession()
 
   const [title, setTitle] = useState('')
   const [raidId, setRaidId] = useState('')
@@ -24,6 +25,8 @@ export default function Submit() {
   const [contentText, setContentText] = useState('')
   const [submitterName, setSubmitterName] = useState('')
   const [wantsCreatorProfile, setWantsCreatorProfile] = useState(false)
+  const [creatorUsername, setCreatorUsername] = useState('')
+  const [creatorPassword, setCreatorPassword] = useState('')
   const [contact, setContact] = useState('')
   const [creatorBio, setCreatorBio] = useState('')
   const [creatorGuildName, setCreatorGuildName] = useState('')
@@ -32,7 +35,6 @@ export default function Submit() {
   const [localError, setLocalError] = useState('')
   const [submittedId, setSubmittedId] = useState('')
   const [submittedKind, setSubmittedKind] = useState<'regular' | 'creator' | ''>('')
-  const [creatorActivationUrl, setCreatorActivationUrl] = useState('')
 
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
@@ -43,7 +45,7 @@ export default function Submit() {
     bossId !== '' &&
     contentText.trim() !== '' &&
     submitterName.trim() !== '' &&
-    (!wantsCreatorProfile || contact.trim() !== '') &&
+    (!wantsCreatorProfile || (creatorUsername.trim() !== '' && creatorPassword.length >= 8)) &&
     !pending
 
   function handleRaidChange(next: string) {
@@ -60,6 +62,8 @@ export default function Submit() {
     setContentText('')
     setSubmitterName('')
     setWantsCreatorProfile(false)
+    setCreatorUsername('')
+    setCreatorPassword('')
     setContact('')
     setCreatorBio('')
     setCreatorGuildName('')
@@ -72,9 +76,12 @@ export default function Submit() {
     setLocalError('')
     setSubmittedId('')
     setSubmittedKind('')
-    setCreatorActivationUrl('')
     if (!canSubmit) {
-      setLocalError(wantsCreatorProfile && !contact.trim() ? '申请创作者需要填写登录邮箱。' : '请补全必填项。')
+      setLocalError(
+        wantsCreatorProfile
+          ? '申请创作者需要填写用户名和至少 8 位密码。'
+          : '请补全必填项。',
+      )
       return
     }
 
@@ -91,6 +98,8 @@ export default function Submit() {
         contentText,
         submitterName: submitterName.trim(),
         wantsCreatorProfile,
+        creatorUsername: wantsCreatorProfile ? creatorUsername.trim().toLowerCase() : undefined,
+        creatorPassword: wantsCreatorProfile ? creatorPassword : undefined,
         contact: wantsCreatorProfile ? contact.trim() : undefined,
         creatorBio: creatorBio.trim() || undefined,
         creatorGuildName: creatorGuildName.trim() || undefined,
@@ -101,7 +110,9 @@ export default function Submit() {
         onSuccess: (submission) => {
           setSubmittedId(submission.id)
           setSubmittedKind(requestedCreator ? 'creator' : 'regular')
-          setCreatorActivationUrl(submission.creatorActivationUrl ?? '')
+          if (submission.creatorAuth?.token) {
+            creatorSession.login(submission.creatorAuth.token)
+          }
           resetForm()
         },
       },
@@ -263,26 +274,54 @@ export default function Submit() {
           <motion.div className="ps-submit__creator glass-strong" variants={reduce ? undefined : staggerItem}>
             <div className="ps-submit__creator-section">
               <div className="ps-submit__creator-section-head">
-                <span>审核联系</span>
-                <span>仅管理员可见</span>
+                <span>登录账号</span>
+                <span>立即创建</span>
               </div>
-              <div className="ps-submit__field">
-                <label className="ps-submit__label" htmlFor="ps-submit-contact">
-                  登录邮箱
-                </label>
-                <input
-                  id="ps-submit-contact"
-                  className="ps-submit__input"
-                  type="email"
-                  autoComplete="email"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  placeholder="用于接收激活邮件和登录创作者后台"
-                  maxLength={80}
-                />
-                <p className="ps-submit__hint">
-                  提交后会立即发送激活邮件；战术板公开仍需管理员审核。
-                </p>
+              <div className="ps-submit__creator-fields">
+                <div className="ps-submit__field">
+                  <label className="ps-submit__label" htmlFor="ps-submit-username">
+                    用户名
+                  </label>
+                  <input
+                    id="ps-submit-username"
+                    className="ps-submit__input"
+                    autoComplete="username"
+                    value={creatorUsername}
+                    onChange={(e) => setCreatorUsername(e.target.value.toLowerCase())}
+                    placeholder="3-24 位小写英文、数字、_ 或 -"
+                    maxLength={24}
+                  />
+                </div>
+                <div className="ps-submit__field">
+                  <label className="ps-submit__label" htmlFor="ps-submit-password">
+                    密码
+                  </label>
+                  <input
+                    id="ps-submit-password"
+                    className="ps-submit__input"
+                    type="password"
+                    autoComplete="new-password"
+                    value={creatorPassword}
+                    onChange={(e) => setCreatorPassword(e.target.value)}
+                    placeholder="至少 8 位"
+                  />
+                </div>
+                <div className="ps-submit__field ps-submit__field--wide">
+                  <label className="ps-submit__label" htmlFor="ps-submit-contact">
+                    联系方式（可选）
+                  </label>
+                  <input
+                    id="ps-submit-contact"
+                    className="ps-submit__input"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    placeholder="仅管理员可见，可填 BattleTag / QQ / 微信"
+                    maxLength={80}
+                  />
+                  <p className="ps-submit__hint">
+                    账号提交后立即可用；战术板公开仍需管理员审核。
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -387,16 +426,13 @@ export default function Submit() {
           <motion.div className="ps-submit__success" role="status" variants={reduce ? undefined : staggerItem}>
             <p>
               {submittedKind === 'creator'
-                ? `投稿已进入审核：${submittedId}。`
+                ? `账号已创建，投稿已进入审核：${submittedId}。`
                 : `投稿已进入审核，不会立刻公开：${submittedId}`}
             </p>
-            {submittedKind === 'creator' && creatorActivationUrl && (
-              <a href={creatorActivationUrl} className="ps-submit__activation-link">
-                打开创作者激活链接
-              </a>
-            )}
-            {submittedKind === 'creator' && !creatorActivationUrl && (
-              <p>创作者激活邮件已发送到你的邮箱。</p>
+            {submittedKind === 'creator' && (
+              <Button variant="secondary" to="/creator">
+                进入创作者后台
+              </Button>
             )}
           </motion.div>
         )}

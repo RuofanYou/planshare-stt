@@ -130,6 +130,8 @@ export interface CreateSubmissionInput {
   submitterName: string
   contact?: string
   wantsCreatorProfile: boolean
+  creatorUsername?: string
+  creatorPassword?: string
   creatorAvatarUrl?: string
   creatorBio?: string
   creatorGuildName?: string
@@ -145,7 +147,7 @@ export interface AdminSubmission extends CreateSubmissionInput {
   reviewNote?: string
   boardId?: string
   authorId?: string
-  creatorActivationUrl?: string
+  creatorAuth?: CreatorAuthResult
   createdAt: string
   reviewedAt?: string
 }
@@ -182,12 +184,37 @@ export interface AdminBoard extends Board {
   isHidden: boolean
 }
 
+/** 创作者后台视角的自己的板：与后台板一样需要看到下架状态。 */
+export type CreatorBoard = AdminBoard
+
+/** POST /api/creator/boards 请求体：authorId/isFeatured 由后端强制决定。 */
+export type CreatorBoardInput = Omit<CreateBoardInput, 'authorId' | 'isFeatured'>
+
+/** PUT /api/creator/boards/:id 请求体：创作者不能修改归属和精选。 */
+export type UpdateCreatorBoardInput = Omit<UpdateBoardInput, 'authorId' | 'isFeatured'>
+
 /**
  * 管理员视角的作者：在公开 Author 形状上多带 boardCount（含隐藏板的总数）。
  */
 export interface AdminAuthor extends Author {
   /** 该作者名下板数 */
   boardCount: number
+}
+
+/** 管理员视角创作者账号：不包含密码哈希，只暴露运营所需信息。 */
+export interface AdminCreatorAccount extends CreatorUser {
+  author: AdminAuthor | null
+}
+
+/** POST /api/admin/creator-accounts/:id/reset-password 请求体。 */
+export interface ResetCreatorPasswordInput {
+  password: string
+}
+
+/** 管理员重置创作者密码响应。 */
+export interface ResetCreatorPasswordResult {
+  user: CreatorUser
+  revokedSessions: boolean
 }
 
 /**
@@ -225,19 +252,19 @@ export interface AdminLoginResult {
   token: string
 }
 
-/** 邮箱登录后的创作者账号。 */
+/** 用户名密码登录后的创作者账号。 */
 export interface CreatorUser {
   id: string
-  email: string
-  status: 'pending_email' | 'active' | 'suspended'
-  emailVerifiedAt?: string
+  username: string
+  status: 'active' | 'suspended'
   authorId?: string
+  contact?: string
   createdAt: string
   updatedAt: string
   lastLoginAt?: string
 }
 
-/** 创作者登录 / 激活响应。 */
+/** 创作者登录 / 注册响应。 */
 export interface CreatorAuthResult {
   token: string
   user: CreatorUser

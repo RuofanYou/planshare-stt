@@ -10,7 +10,6 @@ import Author from './pages/Author'
 import Admin from './pages/Admin'
 import Submit from './pages/Submit'
 import Creator from './pages/Creator'
-import CreatorActivate from './pages/CreatorActivate'
 import { pageTransition } from './lib/motion'
 
 /**
@@ -45,8 +44,6 @@ export default function App() {
               <Route path="/author/:authorId" element={<Author />} />
               <Route path="/submit" element={<Submit />} />
               <Route path="/creator" element={<Creator />} />
-              <Route path="/creator/activate" element={<CreatorActivate mode="activate" />} />
-              <Route path="/creator/reset-password" element={<CreatorActivate mode="reset" />} />
               <Route path="/admin" element={<Admin />} />
             </Routes>
           </motion.div>

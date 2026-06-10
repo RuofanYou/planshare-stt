@@ -15,6 +15,7 @@ import type {
   CreateBoardInput,
   AdminBoard,
   AdminAuthor,
+  AdminCreatorAccount,
   UpdateBoardInput,
   AuthorInput,
   UpdateAuthorInput,
@@ -26,6 +27,10 @@ import type {
   CreatorMeResult,
   CreatorAuthResult,
   CreatorProfileInput,
+  CreatorBoard,
+  CreatorBoardInput,
+  UpdateCreatorBoardInput,
+  ResetCreatorPasswordResult,
 } from '../data/types'
 import { getToken, clearToken, UnauthorizedError } from './adminAuth'
 import {
@@ -224,38 +229,10 @@ export function adminLogin(password: string): Promise<AdminLoginResult> {
 
 /* ============================ 创作者登录 ============================ */
 
-export function creatorLogin(email: string, password: string): Promise<CreatorAuthResult> {
+export function creatorLogin(username: string, password: string): Promise<CreatorAuthResult> {
   return request<CreatorAuthResult>('/api/creator/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
-  })
-}
-
-export function creatorActivate(token: string, password: string): Promise<CreatorAuthResult> {
-  return request<CreatorAuthResult>('/api/creator/activate', {
-    method: 'POST',
-    body: JSON.stringify({ token, password }),
-  })
-}
-
-export function creatorResendActivation(email: string): Promise<{ ok: true }> {
-  return request<{ ok: true }>('/api/creator/resend-activation', {
-    method: 'POST',
-    body: JSON.stringify({ email }),
-  })
-}
-
-export function creatorForgotPassword(email: string): Promise<{ ok: true }> {
-  return request<{ ok: true }>('/api/creator/forgot-password', {
-    method: 'POST',
-    body: JSON.stringify({ email }),
-  })
-}
-
-export function creatorResetPassword(token: string, password: string): Promise<{ ok: true }> {
-  return request<{ ok: true }>('/api/creator/reset-password', {
-    method: 'POST',
-    body: JSON.stringify({ token, password }),
+    body: JSON.stringify({ username, password }),
   })
 }
 
@@ -268,6 +245,39 @@ export function updateCreatorProfile(input: CreatorProfileInput): Promise<Creato
   return creatorRequest<CreatorMeResult>('/api/creator/profile', {
     method: 'PUT',
     body: JSON.stringify(input),
+  })
+}
+
+export function creatorLogout(): Promise<{ ok: true }> {
+  return creatorRequest<{ ok: true }>('/api/creator/logout', {
+    method: 'POST',
+  })
+}
+
+export function getCreatorBoards(): Promise<CreatorBoard[]> {
+  return creatorRequest<CreatorBoard[]>('/api/creator/boards')
+}
+
+export function createCreatorBoard(input: CreatorBoardInput): Promise<CreatorBoard> {
+  return creatorRequest<CreatorBoard>('/api/creator/boards', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateCreatorBoard(
+  id: string,
+  patch: UpdateCreatorBoardInput,
+): Promise<CreatorBoard> {
+  return creatorRequest<CreatorBoard>(`/api/creator/boards/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteCreatorBoard(id: string): Promise<{ ok: true }> {
+  return creatorRequest<{ ok: true }>(`/api/creator/boards/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
   })
 }
 
@@ -284,6 +294,25 @@ export function getAdminAuthors(): Promise<AdminAuthor[]> {
 /** GET /api/admin/submissions -> 投稿审核队列。 */
 export function getAdminSubmissions(): Promise<AdminSubmission[]> {
   return adminRequest<AdminSubmission[]>('/api/admin/submissions')
+}
+
+/** GET /api/admin/creator-accounts -> 创作者账号列表。 */
+export function getAdminCreatorAccounts(): Promise<AdminCreatorAccount[]> {
+  return adminRequest<AdminCreatorAccount[]>('/api/admin/creator-accounts')
+}
+
+/** POST /api/admin/creator-accounts/:id/reset-password -> 管理员重置创作者密码。 */
+export function resetCreatorPassword(
+  id: string,
+  password: string,
+): Promise<ResetCreatorPasswordResult> {
+  return adminRequest<ResetCreatorPasswordResult>(
+    `/api/admin/creator-accounts/${encodeURIComponent(id)}/reset-password`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    },
+  )
 }
 
 /** POST /api/admin/submissions/:id/approve -> 通过投稿并发布正式板。 */

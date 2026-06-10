@@ -136,17 +136,17 @@ test('visitor submission is stored as pending and visible only to admin queue', 
   assert.equal(queue.body.some((item) => item.id === body.id), true)
 })
 
-test('creator profile requests require contact information', async (t) => {
+test('creator profile requests require username and password', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())
 
   const { res, body } = await requestJson(server.baseUrl, '/api/submissions', {
     method: 'POST',
-    body: JSON.stringify(validSubmission({ wantsCreatorProfile: true, contact: '' })),
+    body: JSON.stringify(validSubmission({ wantsCreatorProfile: true })),
   })
 
   assert.equal(res.status, 400)
-  assert.match(body.error, /contact/)
+  assert.equal(body.error, '请填写用户名')
 })
 
 test('visitor submissions can omit season version', async (t) => {
@@ -202,7 +202,9 @@ test('admin approval can create an author and publish a board', async (t) => {
     body: JSON.stringify(
       validSubmission({
         wantsCreatorProfile: true,
-        contact: 'creator@example.com',
+        creatorUsername: 'submission_creator',
+        creatorPassword: 'creator-password-123',
+        contact: 'BattleTag#1234',
         creatorBio: '专注史诗团本',
         guildName: '测试公会',
       }),
