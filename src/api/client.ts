@@ -31,6 +31,10 @@ import type {
   CreatorBoardInput,
   UpdateCreatorBoardInput,
   ResetCreatorPasswordResult,
+  ReportReason,
+  BoardReport,
+  AuditLog,
+  Boss,
 } from '../data/types'
 import { getToken, clearToken, UnauthorizedError } from './adminAuth'
 import {
@@ -199,6 +203,17 @@ export function likeBoard(boardId: string): Promise<LikeResult> {
   })
 }
 
+/** POST /api/boards/:id/reports -> 举报公开板。 */
+export function reportBoard(
+  boardId: string,
+  input: { reason: ReportReason; detail?: string },
+): Promise<BoardReport> {
+  return request<BoardReport>(`/api/boards/${encodeURIComponent(boardId)}/reports`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
 /** POST /api/submissions -> 游客投稿，进入审核队列，不直接公开。 */
 export function createSubmission(input: CreateSubmissionInput): Promise<AdminSubmission> {
   const creatorToken = getCreatorToken()
@@ -299,6 +314,71 @@ export function getAdminSubmissions(): Promise<AdminSubmission[]> {
 /** GET /api/admin/creator-accounts -> 创作者账号列表。 */
 export function getAdminCreatorAccounts(): Promise<AdminCreatorAccount[]> {
   return adminRequest<AdminCreatorAccount[]>('/api/admin/creator-accounts')
+}
+
+export function getAdminReports(): Promise<BoardReport[]> {
+  return adminRequest<BoardReport[]>('/api/admin/reports')
+}
+
+export function getAdminAuditLogs(): Promise<AuditLog[]> {
+  return adminRequest<AuditLog[]>('/api/admin/audit-logs')
+}
+
+export function hideBoardFromReport(id: string, note?: string): Promise<BoardReport> {
+  return adminRequest<BoardReport>(`/api/admin/reports/${encodeURIComponent(id)}/hide-board`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
+}
+
+export function dismissReport(id: string, note?: string): Promise<BoardReport> {
+  return adminRequest<BoardReport>(`/api/admin/reports/${encodeURIComponent(id)}/dismiss`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
+}
+
+export function createRaid(input: { id?: string; name: string; patch: string }): Promise<Raid> {
+  return adminRequest<Raid>('/api/admin/raids', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateRaid(id: string, patch: { name?: string; patch?: string }): Promise<Raid> {
+  return adminRequest<Raid>(`/api/admin/raids/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteRaid(id: string): Promise<{ ok: true }> {
+  return adminRequest<{ ok: true }>(`/api/admin/raids/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+}
+
+export function createBoss(input: { id?: string; raidId: string; name: string; order: number }): Promise<Boss> {
+  return adminRequest<Boss>('/api/admin/bosses', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateBoss(
+  id: string,
+  patch: { raidId?: string; name?: string; order?: number },
+): Promise<Boss> {
+  return adminRequest<Boss>(`/api/admin/bosses/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteBoss(id: string): Promise<{ ok: true }> {
+  return adminRequest<{ ok: true }>(`/api/admin/bosses/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
 }
 
 /** POST /api/admin/creator-accounts/:id/reset-password -> 管理员重置创作者密码。 */

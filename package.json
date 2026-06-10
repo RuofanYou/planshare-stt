@@ -6,11 +6,14 @@
   "description": "STT 战术板分享平台 —— 让会写战术板的人有舞台，不会写的人有得抄",
   "scripts": {
     "dev": "concurrently -n web,server -c cyan,magenta \"npm:dev:web\" \"npm:dev:server\"",
+    "dev:e2e": "concurrently -n web,server -c cyan,magenta \"vite --port 5183 --strictPort\" \"node server/index.mjs\"",
     "dev:web": "vite",
     "dev:server": "node server/index.mjs",
     "start": "node server/index.mjs",
     "serve": "node --env-file=.env server/index.mjs",
-    "test": "node --test server/*.test.mjs",
+    "test": "node --test --test-concurrency=1 server/*.test.mjs",
+    "test:e2e": "playwright test",
+    "verify": "tsc -b && vite build && node --test --test-concurrency=1 server/*.test.mjs && playwright test",
     "test:security": "node --test server/security.test.mjs",
     "remote:export": "node scripts/remote-data.mjs export",
     "remote:import": "node scripts/remote-data.mjs import",
@@ -39,6 +42,7 @@
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@types/three": "^0.184.1",

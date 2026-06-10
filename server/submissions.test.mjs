@@ -239,7 +239,7 @@ test('admin rejection and spam actions do not publish boards', async (t) => {
   })
   const spamTarget = await requestJson(server.baseUrl, '/api/submissions', {
     method: 'POST',
-    body: JSON.stringify(validSubmission({ title: '会被标垃圾' })),
+    body: JSON.stringify(validSubmission({ title: '会被标垃圾', contentText: '这条由管理员标垃圾' })),
   })
 
   const rejected = await requestJson(

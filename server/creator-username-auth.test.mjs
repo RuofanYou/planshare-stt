@@ -148,8 +148,13 @@ async function adminSubmissions(baseUrl, token) {
 async function approveCreatorApplication(server, application) {
   const authorId = application.creatorAuth.author.id
   const admin = await adminToken(server.baseUrl)
+  const approval = await approveNextPendingForAuthor(server, admin, authorId)
+  return { admin, submission: approval.submission, approval }
+}
+
+async function approveNextPendingForAuthor(server, admin, authorId) {
   const submissions = await adminSubmissions(server.baseUrl, admin)
-  const submission = submissions.find((item) => item.authorId === authorId)
+  const submission = submissions.find((item) => item.authorId === authorId && item.status === 'pending')
   assert.ok(submission)
   const approve = await requestJson(server.baseUrl, `/api/admin/submissions/${submission.id}/approve`, {
     method: 'POST',
@@ -158,7 +163,40 @@ async function approveCreatorApplication(server, application) {
   })
   assert.equal(approve.res.status, 200)
   assert.equal(approve.body.author.visibility, 'approved')
-  return { admin, submission, approval: approve.body }
+  return approve.body
+}
+
+async function submitCreatorReview(server, token, suffix) {
+  const result = await requestJson(server.baseUrl, '/api/submissions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      title: `创作者审核投稿 ${suffix}`,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `第 ${suffix} 次审核投稿`,
+      contentText: `P1 分散 ${suffix}\nP2 集合 ${suffix}`,
+      submitterName: '用户名创作者',
+      wantsCreatorProfile: false,
+    }),
+  })
+  assert.equal(result.res.status, 201)
+  assert.equal(result.body.status, 'pending')
+  return result.body
+}
+
+async function approveCreatorUntilTrusted(server, application) {
+  const { admin } = await approveCreatorApplication(server, application)
+  await submitCreatorReview(server, application.creatorAuth.token, 'two')
+  const second = await approveNextPendingForAuthor(server, admin, application.creatorAuth.author.id)
+  assert.equal(second.creatorAccount.trustLevel, 'review')
+  await submitCreatorReview(server, application.creatorAuth.token, 'three')
+  const third = await approveNextPendingForAuthor(server, admin, application.creatorAuth.author.id)
+  assert.equal(third.creatorAccount.trustLevel, 'trusted')
+  assert.equal(third.creatorAccount.approvedSubmissionCount, 3)
+  return { admin, approval: third }
 }
 
 test('creator application creates active username account, semi-public author, session, and pending board', async (t) => {
@@ -445,8 +483,8 @@ test('admin approval with existing creator author promotes author approval', asy
       contentText: 'P1 分散',
     }),
   })
-  assert.equal(directCreate.res.status, 201)
-  assert.equal(directCreate.body.authorId, authorId)
+  assert.equal(directCreate.res.status, 403)
+  assert.equal(directCreate.body.error, '完成 3 次审核通过后才能直接发布战术板')
 })
 
 test('semi-public creator cannot directly publish boards before author approval', async (t) => {
@@ -476,7 +514,7 @@ test('approved creator can publish, edit, hide, and republish own boards without
   const server = await startServer()
   t.after(() => server.stop())
   const application = await submitCreatorApplication(server)
-  const { admin } = await approveCreatorApplication(server, application)
+  const { admin } = await approveCreatorUntilTrusted(server, application)
 
   const create = await requestJson(server.baseUrl, '/api/creator/boards', {
     method: 'POST',
@@ -539,7 +577,7 @@ test('approved creator cannot update another author board', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())
   const application = await submitCreatorApplication(server)
-  const { admin } = await approveCreatorApplication(server, application)
+  const { admin } = await approveCreatorUntilTrusted(server, application)
 
   const otherAuthor = await requestJson(server.baseUrl, '/api/authors', {
     method: 'POST',

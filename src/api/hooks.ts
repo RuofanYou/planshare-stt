@@ -35,6 +35,7 @@ import type {
   CreatorProfileInput,
   CreatorBoardInput,
   UpdateCreatorBoardInput,
+  ReportReason,
 } from '../data/types'
 
 /* ============================ 团本 ============================ */
@@ -106,6 +107,17 @@ export function useLikeBoard() {
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['boards'] })
       qc.invalidateQueries({ queryKey: ['board', result.id] })
+    },
+  })
+}
+
+export function useReportBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ boardId, reason, detail }: { boardId: string; reason: ReportReason; detail?: string }) =>
+      api.reportBoard(boardId, { reason, detail }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'reports'] })
     },
   })
 }
@@ -316,6 +328,88 @@ export function useAdminCreatorAccounts() {
   return useQuery({
     queryKey: ['admin', 'creator-accounts'],
     queryFn: api.getAdminCreatorAccounts,
+  })
+}
+
+export function useAdminReports() {
+  return useQuery({
+    queryKey: ['admin', 'reports'],
+    queryFn: api.getAdminReports,
+  })
+}
+
+export function useAdminAuditLogs() {
+  return useQuery({
+    queryKey: ['admin', 'audit-logs'],
+    queryFn: api.getAdminAuditLogs,
+  })
+}
+
+export function useHideBoardFromReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) => api.hideBoardFromReport(id, note),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+    },
+  })
+}
+
+export function useDismissReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) => api.dismissReport(id, note),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useCreateRaid() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: api.createRaid,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useDeleteRaid() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: api.deleteRaid,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useCreateBoss() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: api.createBoss,
+    onSuccess: (boss) => {
+      qc.invalidateQueries({ queryKey: ['raid', boss.raidId] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useDeleteBoss() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id }: { id: string; raidId: string }) => api.deleteBoss(id),
+    onSuccess: (_result, variables) => {
+      qc.invalidateQueries({ queryKey: ['raid', variables.raidId] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
   })
 }
 

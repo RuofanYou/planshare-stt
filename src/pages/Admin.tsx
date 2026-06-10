@@ -7,8 +7,10 @@ import type {
   AdminCreatorAccount,
   ApproveSubmissionInput,
   AuthorInput,
+  Boss,
   CreateBoardInput,
   Difficulty,
+  Raid,
   UpdateBoardInput,
 } from '../data/types'
 import {
@@ -17,9 +19,14 @@ import {
   useAdminBoards,
   useAdminAuthors,
   useAdminCreatorAccounts,
+  useAdminReports,
   useAdminSubmissions,
   useRaids,
   useRaid,
+  useCreateRaid,
+  useDeleteRaid,
+  useCreateBoss,
+  useDeleteBoss,
   useCreateBoard,
   useUpdateBoard,
   useDeleteBoard,
@@ -30,6 +37,8 @@ import {
   useRejectSubmission,
   useMarkSubmissionSpam,
   useResetCreatorPassword,
+  useHideBoardFromReport,
+  useDismissReport,
 } from '../api/hooks'
 import { difficultyLabel, formatDate } from '../lib/format'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
@@ -141,7 +150,7 @@ function LoginGate({ onLoggedIn }: { onLoggedIn: (token: string) => void }) {
 /* ============================================================
    管理台主体（已登录）
    ============================================================ */
-type Tab = 'boards' | 'authors' | 'submissions'
+type Tab = 'boards' | 'authors' | 'submissions' | 'reports' | 'resources'
 
 const TEMP_PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789_-'
 
@@ -217,14 +226,36 @@ function Console({
         >
           投稿审核
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'reports'}
+          className={tab === 'reports' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
+          onClick={() => setTab('reports')}
+        >
+          举报
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'resources'}
+          className={tab === 'resources' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
+          onClick={() => setTab('resources')}
+        >
+          团本
+        </button>
       </motion.div>
 
       {tab === 'boards' ? (
         <BoardsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
       ) : tab === 'authors' ? (
         <CreatorsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
-      ) : (
+      ) : tab === 'submissions' ? (
         <SubmissionsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+      ) : tab === 'reports' ? (
+        <ReportsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+      ) : (
+        <ResourcesSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
       )}
     </div>
   )
@@ -1234,6 +1265,335 @@ function submissionStatusLabel(status: AdminSubmission['status']) {
   if (status === 'approved') return '已发布'
   if (status === 'rejected') return '已驳回'
   return '垃圾'
+}
+
+/* ============================================================
+   举报队列：隐藏板 / 驳回举报
+   ============================================================ */
+function ReportsSection({
+  isUnauthorized,
+  onLogout,
+}: {
+  isUnauthorized: (error: unknown) => boolean
+  onLogout: () => void
+}) {
+  const reduce = useReducedMotion()
+  const reportsQuery = useAdminReports()
+  const hideBoard = useHideBoardFromReport()
+  const dismissReport = useDismissReport()
+
+  function guard(error: unknown) {
+    if (isUnauthorized(error)) onLogout()
+  }
+
+  if (reportsQuery.isLoading) return <ListSkeleton />
+  if (reportsQuery.isError) {
+    guard(reportsQuery.error)
+    return (
+      <EmptyState
+        icon="error"
+        text={(reportsQuery.error as Error)?.message ?? '举报队列加载失败。'}
+        actionLabel="重试"
+        onAction={() => reportsQuery.refetch()}
+      />
+    )
+  }
+
+  const reports = reportsQuery.data ?? []
+  const pendingCount = reports.filter((report) => report.status === 'pending').length
+
+  return (
+    <div className="ps-admin__section">
+      <section className="ps-admin__list-block" aria-label="举报队列">
+        <SectionHeading
+          eyebrow="内容治理"
+          title="举报队列"
+          size="h2"
+          trailing={pendingCount > 0 ? `${pendingCount} 条待处理` : undefined}
+        />
+        {reports.length === 0 ? (
+          <EmptyState icon="empty" text="暂无举报" />
+        ) : (
+          <motion.ul
+            className="ps-admin__rows"
+            variants={reduce ? undefined : staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
+            {reports.map((report) => {
+              const isPending = report.status === 'pending'
+              const busy =
+                (hideBoard.isPending && hideBoard.variables?.id === report.id) ||
+                (dismissReport.isPending && dismissReport.variables?.id === report.id)
+              return (
+                <motion.li key={report.id} variants={reduce ? undefined : staggerItem}>
+                  <GlassCard tone="glass" as="div" className={isPending ? 'ps-admin__row-card' : 'ps-admin__row-card ps-admin__row-card--handled'}>
+                    <div className="ps-admin__row-main">
+                      <div className="ps-admin__row-flags">
+                        <Tag variant={isPending ? 'gold' : 'neutral'}>
+                          {reportStatusLabel(report.status)}
+                        </Tag>
+                        <Tag variant="neutral">{reportReasonLabel(report.reason)}</Tag>
+                      </div>
+                      <p className="ps-admin__row-title">战术板 {report.boardId}</p>
+                      <p className="ps-admin__row-meta">
+                        提交于 {formatDate(report.createdAt)}
+                        {report.detail ? ` · ${report.detail}` : ''}
+                      </p>
+                    </div>
+                    <div className="ps-admin__row-actions">
+                      <Button to={`/board/${report.boardId}`} variant="secondary" size="sm">
+                        查看板
+                      </Button>
+                      {isPending && (
+                        <>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            disabled={busy}
+                            onClick={() =>
+                              hideBoard.mutate(
+                                { id: report.id, note: '后台处理举报隐藏' },
+                                { onError: guard },
+                              )
+                            }
+                          >
+                            隐藏板
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={busy}
+                            onClick={() =>
+                              dismissReport.mutate(
+                                { id: report.id, note: '后台驳回举报' },
+                                { onError: guard },
+                              )
+                            }
+                          >
+                            驳回举报
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </GlassCard>
+                </motion.li>
+              )
+            })}
+          </motion.ul>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function reportStatusLabel(status: string) {
+  if (status === 'pending') return '待处理'
+  if (status === 'hidden') return '已隐藏'
+  return '已驳回'
+}
+
+function reportReasonLabel(reason: string) {
+  if (reason === 'spam') return '垃圾内容'
+  if (reason === 'abuse') return '违规内容'
+  if (reason === 'wrong-info') return '内容有误'
+  if (reason === 'copyright') return '版权问题'
+  return '其它'
+}
+
+/* ============================================================
+   团本 / BOSS 管理
+   ============================================================ */
+function ResourcesSection({
+  isUnauthorized,
+  onLogout,
+}: {
+  isUnauthorized: (error: unknown) => boolean
+  onLogout: () => void
+}) {
+  const reduce = useReducedMotion()
+  const raidsQuery = useRaids()
+  const createRaid = useCreateRaid()
+  const deleteRaid = useDeleteRaid()
+  const [raidId, setRaidId] = useState('')
+  const [raidName, setRaidName] = useState('')
+  const [raidPatch, setRaidPatch] = useState('')
+
+  function guard(error: unknown) {
+    if (isUnauthorized(error)) onLogout()
+  }
+
+  function submitRaid(e: React.FormEvent) {
+    e.preventDefault()
+    if (!raidName.trim() || !raidPatch.trim()) return
+    createRaid.mutate(
+      {
+        id: raidId.trim() || undefined,
+        name: raidName.trim(),
+        patch: raidPatch.trim(),
+      },
+      {
+        onSuccess: () => {
+          setRaidId('')
+          setRaidName('')
+          setRaidPatch('')
+        },
+        onError: guard,
+      },
+    )
+  }
+
+  if (raidsQuery.isLoading) return <ListSkeleton />
+  if (raidsQuery.isError) {
+    guard(raidsQuery.error)
+    return (
+      <EmptyState
+        icon="error"
+        text={(raidsQuery.error as Error)?.message ?? '团本加载失败。'}
+        actionLabel="重试"
+        onAction={() => raidsQuery.refetch()}
+      />
+    )
+  }
+
+  const raids = raidsQuery.data ?? []
+
+  return (
+    <div className="ps-admin__section">
+      <form className="ps-admin__form glass" onSubmit={submitRaid}>
+        <SectionHeading eyebrow="团本管理" title="新增团本" size="h2" />
+        <div className="ps-admin__row-grid">
+          <div className="ps-admin__field">
+            <label className="ps-admin__label" htmlFor="ps-raid-id">ID（可选）</label>
+            <input id="ps-raid-id" className="ps-admin__input" value={raidId} onChange={(e) => setRaidId(e.target.value)} placeholder="不填则自动生成" />
+          </div>
+          <div className="ps-admin__field">
+            <label className="ps-admin__label" htmlFor="ps-raid-patch">版本</label>
+            <input id="ps-raid-patch" className="ps-admin__input" value={raidPatch} onChange={(e) => setRaidPatch(e.target.value)} placeholder="例如 12.0.0" />
+          </div>
+        </div>
+        <div className="ps-admin__field">
+          <label className="ps-admin__label" htmlFor="ps-raid-name">团本名</label>
+          <input id="ps-raid-name" className="ps-admin__input" value={raidName} onChange={(e) => setRaidName(e.target.value)} />
+        </div>
+        {createRaid.error && <p className="ps-admin__error">{(createRaid.error as Error).message}</p>}
+        <div className="ps-admin__actions">
+          <Button type="submit" variant="primary" disabled={createRaid.isPending || !raidName.trim() || !raidPatch.trim()}>
+            {createRaid.isPending ? '保存中…' : '新增团本'}
+          </Button>
+        </div>
+      </form>
+
+      <section className="ps-admin__list-block" aria-label="团本与 BOSS">
+        <SectionHeading eyebrow="资源" title="团本与 BOSS" size="h2" trailing={`${raids.length} 个团本`} />
+        <motion.ul
+          className="ps-admin__rows"
+          variants={reduce ? undefined : staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
+          {raids.map((raid) => (
+            <motion.li key={raid.id} variants={reduce ? undefined : staggerItem}>
+              <RaidResourceRow
+                raid={raid}
+                onGuard={guard}
+                onDeleteRaid={() => deleteRaid.mutate(raid.id, { onError: guard })}
+                raidDeleteBusy={deleteRaid.isPending && deleteRaid.variables === raid.id}
+              />
+            </motion.li>
+          ))}
+        </motion.ul>
+      </section>
+    </div>
+  )
+}
+
+function RaidResourceRow({
+  raid,
+  onGuard,
+  onDeleteRaid,
+  raidDeleteBusy,
+}: {
+  raid: Raid
+  onGuard: (error: unknown) => void
+  onDeleteRaid: () => void
+  raidDeleteBusy: boolean
+}) {
+  const raidQuery = useRaid(raid.id)
+  const createBoss = useCreateBoss()
+  const deleteBoss = useDeleteBoss()
+  const [bossName, setBossName] = useState('')
+  const [bossOrder, setBossOrder] = useState('')
+
+  const bosses: Boss[] = raidQuery.data?.bosses ?? []
+
+  function submitBoss(e: React.FormEvent) {
+    e.preventDefault()
+    const order = Number(bossOrder)
+    if (!bossName.trim() || !Number.isInteger(order) || order < 1) return
+    createBoss.mutate(
+      { raidId: raid.id, name: bossName.trim(), order },
+      {
+        onSuccess: () => {
+          setBossName('')
+          setBossOrder('')
+        },
+        onError: onGuard,
+      },
+    )
+  }
+
+  return (
+    <GlassCard tone="glass" as="div" className="ps-admin__row-card">
+      <div className="ps-admin__row-main">
+        <div className="ps-admin__row-flags">
+          <Tag variant="gold">{raid.patch}</Tag>
+          <Tag variant="neutral">{raid.boardCount} 块板</Tag>
+        </div>
+        <p className="ps-admin__row-title">{raid.name}</p>
+        <p className="ps-admin__row-path">{raid.id}</p>
+        <form className="ps-admin__inline-form" onSubmit={submitBoss}>
+          <input
+            className="ps-admin__input"
+            value={bossName}
+            onChange={(e) => setBossName(e.target.value)}
+            placeholder="新增 BOSS 名"
+          />
+          <input
+            className="ps-admin__input"
+            value={bossOrder}
+            onChange={(e) => setBossOrder(e.target.value)}
+            placeholder="顺序"
+            inputMode="numeric"
+          />
+          <Button type="submit" variant="secondary" size="sm" disabled={createBoss.isPending}>
+            新增 BOSS
+          </Button>
+        </form>
+        {createBoss.error && <p className="ps-admin__error">{(createBoss.error as Error).message}</p>}
+        {deleteBoss.error && <p className="ps-admin__error">{(deleteBoss.error as Error).message}</p>}
+        <div className="ps-admin__boss-list">
+          {bosses.map((boss) => (
+            <span key={boss.id} className="ps-admin__boss-chip">
+              {boss.order}. {boss.name}
+              <button
+                type="button"
+                onClick={() => deleteBoss.mutate({ id: boss.id, raidId: raid.id }, { onError: onGuard })}
+                disabled={deleteBoss.isPending}
+              >
+                删除
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="ps-admin__row-actions">
+        <Button variant="ghost" size="sm" onClick={onDeleteRaid} disabled={raidDeleteBusy}>
+          删除团本
+        </Button>
+      </div>
+    </GlassCard>
+  )
 }
 
 /* ============================================================

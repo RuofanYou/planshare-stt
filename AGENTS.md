@@ -8,7 +8,8 @@
 
 ## 技术栈
 - 前端：React + Vite + TypeScript。
-- 后端：Fastify + SQLite。
+- 后端业务权威：`server/index.mjs`（Fastify + SQLite）。
+- `worker/index.js` 是 Cloudflare D1 移植版，只有做双后端契约对齐时才改；常规业务先改 Fastify 主线。
 - 后端/API 托管：腾讯 CloudBase 云托管。
 - 临时公网前端托管：Cloudflare Pages。
 
@@ -31,6 +32,9 @@
   ```sh
   npm run dev
   npm run build
+  npm run test
+  npm run test:e2e
+  npm run verify
   npm run serve
   ```
 - 前端静态构建使用：

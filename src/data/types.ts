@@ -137,6 +137,7 @@ export interface CreateSubmissionInput {
   creatorGuildName?: string
   creatorGuildRecruit?: string
   creatorGuildContact?: string
+  website?: string
 }
 
 /** 管理员视角投稿：含联系方式与审核结果；公开站不读取此类型。 */
@@ -144,6 +145,7 @@ export interface AdminSubmission extends CreateSubmissionInput {
   id: string
   status: SubmissionStatus
   sourceKey?: string
+  spamReason?: string
   reviewNote?: string
   boardId?: string
   authorId?: string
@@ -171,6 +173,32 @@ export interface ApproveSubmissionResult {
   submission: AdminSubmission
   board: Board
   author: Author
+  creatorAccount: AdminCreatorAccount | null
+}
+
+export type ReportReason = 'spam' | 'abuse' | 'wrong-info' | 'copyright' | 'other'
+export type ReportStatus = 'pending' | 'hidden' | 'dismissed'
+
+export interface BoardReport {
+  id: string
+  boardId: string
+  reason: ReportReason
+  detail?: string
+  status: ReportStatus
+  resolutionNote?: string
+  createdAt: string
+  reviewedAt?: string
+}
+
+export interface AuditLog {
+  id: string
+  actorType: 'admin' | 'creator'
+  actorId?: string
+  action: string
+  entityType: string
+  entityId?: string
+  detail?: Record<string, unknown>
+  createdAt: string
 }
 
 /* ============================ 管理员后台契约 ============================ */
@@ -257,6 +285,8 @@ export interface CreatorUser {
   id: string
   username: string
   status: 'active' | 'suspended'
+  trustLevel?: 'review' | 'trusted'
+  approvedSubmissionCount?: number
   authorId?: string
   contact?: string
   createdAt: string

@@ -7,7 +7,7 @@ import {
   useMotionValue,
   animate,
 } from 'framer-motion'
-import { useBoard, useBoards, useLikeBoard } from '../api/hooks'
+import { useBoard, useBoards, useLikeBoard, useReportBoard } from '../api/hooks'
 import { formatDate, formatCount, difficultyLabel } from '../lib/format'
 import {
   staggerContainer,
@@ -37,6 +37,13 @@ const COLLAPSE_LINE_THRESHOLD = 14
 
 /** 玻璃 Toast 停留时长（与 CopyButton 的 1.5s 成功态对齐） */
 const TOAST_DURATION = 1500
+const REPORT_REASONS = [
+  { value: 'wrong-info', label: '内容有误' },
+  { value: 'spam', label: '垃圾内容' },
+  { value: 'abuse', label: '违规内容' },
+  { value: 'copyright', label: '版权问题' },
+  { value: 'other', label: '其它' },
+] as const
 
 /**
  * 浏览量大数字 count-up：进场触发一次，从 0 滚到终值。
@@ -225,6 +232,7 @@ export default function BoardDetail() {
   const navigate = useNavigate()
   const reduce = useReducedMotion()
   const boardQuery = useBoard(boardId)
+  const reportBoard = useReportBoard()
   const detail = boardQuery.data
   const board = detail?.board
 
@@ -235,6 +243,10 @@ export default function BoardDetail() {
 
   // 复制成功玻璃 Toast：CopyButton 内部已处理剪贴板，这里只负责站点级浮层提示
   const [toastOn, setToastOn] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState<(typeof REPORT_REASONS)[number]['value']>('wrong-info')
+  const [reportDetail, setReportDetail] = useState('')
+  const [reportDone, setReportDone] = useState(false)
   function flashToast() {
     setToastOn(true)
     window.setTimeout(() => setToastOn(false), TOAST_DURATION)
@@ -294,6 +306,25 @@ export default function BoardDetail() {
       document.body.removeChild(ta)
     }
     flashToast()
+  }
+
+  function submitReport(e: React.FormEvent) {
+    e.preventDefault()
+    if (!board || reportBoard.isPending) return
+    reportBoard.mutate(
+      {
+        boardId: board.id,
+        reason: reportReason,
+        detail: reportDetail.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setReportDone(true)
+          setReportOpen(false)
+          setReportDetail('')
+        },
+      },
+    )
   }
 
   return (
@@ -449,6 +480,58 @@ export default function BoardDetail() {
             {/* 点赞：服务端持久化 + 乐观更新 */}
             <div className="ps-detail__meta-block ps-detail__meta-block--like">
               <PersistedLike boardId={board.id} count={board.likeCount} />
+            </div>
+            <div className="ps-detail__meta-rule" aria-hidden="true" />
+            <div className="ps-detail__meta-block ps-detail__report">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setReportOpen((value) => !value)
+                  setReportDone(false)
+                }}
+              >
+                举报
+              </Button>
+              {reportDone && <p className="ps-detail__report-status">举报已提交</p>}
+              {reportOpen && (
+                <form className="ps-detail__report-form glass-strong" onSubmit={submitReport}>
+                  <label className="ps-detail__report-label" htmlFor="ps-report-reason">
+                    理由
+                  </label>
+                  <select
+                    id="ps-report-reason"
+                    className="ps-detail__report-select"
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value as typeof reportReason)}
+                  >
+                    {REPORT_REASONS.map((reason) => (
+                      <option key={reason.value} value={reason.value}>
+                        {reason.label}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="ps-detail__report-label" htmlFor="ps-report-detail">
+                    补充说明
+                  </label>
+                  <textarea
+                    id="ps-report-detail"
+                    className="ps-detail__report-textarea"
+                    value={reportDetail}
+                    onChange={(e) => setReportDetail(e.target.value)}
+                    rows={3}
+                    maxLength={200}
+                  />
+                  {reportBoard.error && (
+                    <p className="ps-detail__report-error" role="alert">
+                      {(reportBoard.error as Error).message}
+                    </p>
+                  )}
+                  <Button type="submit" variant="primary" size="sm" disabled={reportBoard.isPending}>
+                    {reportBoard.isPending ? '提交中…' : '提交举报'}
+                  </Button>
+                </form>
+              )}
             </div>
             {/* 作者小署名（侧栏复用主体作者链接行为） */}
             {author && (

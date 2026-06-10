@@ -32,6 +32,7 @@ export default function Submit() {
   const [creatorGuildName, setCreatorGuildName] = useState('')
   const [creatorGuildRecruit, setCreatorGuildRecruit] = useState('')
   const [creatorGuildContact, setCreatorGuildContact] = useState('')
+  const [website, setWebsite] = useState('')
   const [localError, setLocalError] = useState('')
   const [submittedId, setSubmittedId] = useState('')
   const [submittedKind, setSubmittedKind] = useState<'regular' | 'creator' | ''>('')
@@ -69,6 +70,7 @@ export default function Submit() {
     setCreatorGuildName('')
     setCreatorGuildRecruit('')
     setCreatorGuildContact('')
+    setWebsite('')
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -105,6 +107,7 @@ export default function Submit() {
         creatorGuildName: creatorGuildName.trim() || undefined,
         creatorGuildRecruit: creatorGuildRecruit.trim() || undefined,
         creatorGuildContact: creatorGuildContact.trim() || undefined,
+        website: website.trim() || undefined,
       },
       {
         onSuccess: (submission) => {
@@ -144,6 +147,17 @@ export default function Submit() {
         animate="show"
         noValidate
       >
+        <div className="ps-submit__honeypot" aria-hidden="true">
+          <label htmlFor="ps-submit-website">Website</label>
+          <input
+            id="ps-submit-website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+        </div>
+
         <motion.div className="ps-submit__field" variants={reduce ? undefined : staggerItem}>
           <label className="ps-submit__label" htmlFor="ps-submit-title">
             标题

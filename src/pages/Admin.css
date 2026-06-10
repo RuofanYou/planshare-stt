@@ -347,6 +347,46 @@
   border: 1px solid var(--glass-border);
 }
 
+.ps-admin__inline-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(88px, 120px) auto;
+  gap: var(--space-3);
+  align-items: end;
+  margin-top: var(--space-3);
+}
+
+.ps-admin__boss-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.ps-admin__boss-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-admin__boss-chip button {
+  color: var(--color-gold);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  cursor: pointer;
+}
+
+.ps-admin__boss-chip button:disabled {
+  color: var(--color-ink-faint);
+  cursor: not-allowed;
+}
+
 /* ============================================================
    6. 新增 / 编辑表单（玻璃卡，战术板与作者共用）
    ============================================================ */

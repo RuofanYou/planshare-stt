@@ -17,6 +17,14 @@
   padding: var(--space-6);
 }
 
+.ps-submit__honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .ps-submit__grid,
 .ps-submit__creator-fields {
   display: grid;
