@@ -306,7 +306,7 @@ function CreatorSecurityPanel() {
       <Tag variant="gold">账号安全</Tag>
       <h2 className="ps-creator__panel-title">修改密码</h2>
       <p className="ps-creator__panel-copy">
-        输入当前密码后设置新密码；当前窗口会继续保持登录，其他旧登录会被撤销。
+        输入当前密码后设置至少 8 位新密码；当前窗口会继续保持登录，其他旧登录会被撤销。
       </p>
       <form className="ps-creator__form" onSubmit={submitPassword}>
         <label className="ps-creator__label" htmlFor="creator-current-password">当前密码</label>
