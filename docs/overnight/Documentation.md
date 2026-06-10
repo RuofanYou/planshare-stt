@@ -31,6 +31,7 @@
 - 投稿者补缺口：投稿页新增本地草稿保护，刷新后恢复标题、团本、BOSS、难度、正文、署名和公开资料；密码与联系方式不保存，提交成功后清空草稿。
 - 创作者自循环补缺口：创作者登录后可自助修改密码；当前密码错误返回 400 不清登录态，成功后保留当前会话并撤销其他旧会话，同时写 `audit_logs`。
 - 创作者直发补缺口：正式创作者直接发布长战术板时也需要草稿保护；草稿按创作者账号 ID 存 localStorage，刷新后恢复，成功发布后清空。
+- 创作者投稿纠错补缺口：创作者自己的待审投稿可撤回，状态置为 `withdrawn` 并写审计日志；已处理投稿和他人投稿不可撤回。
 
 ## 验证输出
 
@@ -495,6 +496,63 @@ Playwright:
 in-app browser:
 /creator 登录页可正常加载，无 framework overlay。
 本轮 Browser 运行时缺 virtual clipboard，无法通过 Browser API 输入登录字段；真实登录、刷新恢复、发布清空由 Playwright 浏览器验证覆盖。
+```
+
+### UGC 生态补缺口：创作者撤回待审投稿
+```text
+node --test --test-concurrency=1 server/creator-username-auth.test.mjs
+
+# Subtest: creator can withdraw their own pending submission before admin review
+ok 3 - creator can withdraw their own pending submission before admin review
+
+1..20
+# tests 20
+# pass 20
+# fail 0
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.10s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 6 tests using 1 worker
+······
+6 passed (15.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.07s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:65:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (6.2s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:176:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.8s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:219:1 › creator can change password from dashboard and log in with the new password (2.0s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:257:1 › creator can withdraw a pending submission from dashboard (817ms)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:276:1 › home search finds boards by boss and author names (2.7s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:295:1 › submit draft survives reload without saving password or contact (1.4s)
+6 passed (16.9s)
+```
+
+```text
+in-app browser:
+/creator 页面可见，无 framework overlay，console errors=0。
+真实撤回点击、确认框、状态变“已撤回”由 Playwright 浏览器用例覆盖。
 ```
 
 ## 已知问题

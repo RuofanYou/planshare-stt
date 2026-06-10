@@ -264,6 +264,73 @@ test('creator can see their own submission review progress', async (t) => {
   assert.equal(tracked.body.some((item) => item.id === application.id && item.status === 'approved'), true)
 })
 
+test('creator can withdraw their own pending submission before admin review', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+  const application = await submitCreatorApplication(server)
+  const otherApplication = await submitCreatorApplication(server, {
+    title: '其他创作者投稿',
+    contentText: 'P1 其他创作者\nP2 集合',
+    creatorUsername: 'other_creator',
+    submitterName: '其他创作者',
+  })
+  const admin = await adminToken(server.baseUrl)
+
+  const otherWithdraw = await requestJson(
+    server.baseUrl,
+    `/api/creator/submissions/${application.id}/withdraw`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${otherApplication.creatorAuth.token}` },
+    },
+  )
+  assert.equal(otherWithdraw.res.status, 404)
+
+  const withdraw = await requestJson(
+    server.baseUrl,
+    `/api/creator/submissions/${application.id}/withdraw`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    },
+  )
+  assert.equal(withdraw.res.status, 200)
+  assert.equal(withdraw.body.status, 'withdrawn')
+  assert.ok(withdraw.body.reviewedAt)
+
+  const tracked = await requestJson(server.baseUrl, '/api/creator/submissions', {
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+  })
+  assert.equal(tracked.res.status, 200)
+  assert.equal(tracked.body[0].status, 'withdrawn')
+
+  const approve = await requestJson(server.baseUrl, `/api/admin/submissions/${application.id}/approve`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({ mode: 'createAuthor' }),
+  })
+  assert.equal(approve.res.status, 409)
+  assert.equal(approve.body.error, '该投稿已处理')
+
+  const secondWithdraw = await requestJson(
+    server.baseUrl,
+    `/api/creator/submissions/${application.id}/withdraw`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    },
+  )
+  assert.equal(secondWithdraw.res.status, 409)
+  assert.equal(secondWithdraw.body.error, '只有待审投稿可以撤回')
+
+  const logs = await requestJson(server.baseUrl, '/api/admin/audit-logs', {
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  assert.equal(logs.res.status, 200)
+  assert.equal(logs.body[0].action, 'creator_submission_withdraw')
+  assert.equal(logs.body[0].actorType, 'creator')
+})
+
 test('duplicate creator username returns 409', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

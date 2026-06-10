@@ -115,8 +115,8 @@ export interface CreateBoardInput {
   isFeatured: boolean
 }
 
-/** 游客投稿状态：pending 进入审核；approved/rejected/spam 为管理员处理结果。 */
-export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'spam'
+/** 游客投稿状态：pending 进入审核；approved/rejected/spam/withdrawn 为处理结果。 */
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'spam' | 'withdrawn'
 
 /** POST /api/submissions 请求体：游客投稿，不会直接公开。 */
 export interface CreateSubmissionInput {

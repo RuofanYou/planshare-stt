@@ -263,6 +263,12 @@ export function getCreatorSubmissions(): Promise<CreatorSubmission[]> {
   return creatorRequest<CreatorSubmission[]>('/api/creator/submissions')
 }
 
+export function withdrawCreatorSubmission(id: string): Promise<CreatorSubmission> {
+  return creatorRequest<CreatorSubmission>(`/api/creator/submissions/${encodeURIComponent(id)}/withdraw`, {
+    method: 'POST',
+  })
+}
+
 export function updateCreatorProfile(input: CreatorProfileInput): Promise<CreatorMeResult> {
   return creatorRequest<CreatorMeResult>('/api/creator/profile', {
     method: 'PUT',

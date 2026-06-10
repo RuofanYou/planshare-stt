@@ -13,6 +13,7 @@ import {
   useUpdateCreatorBoard,
   useUpdateCreatorPassword,
   useUpdateCreatorProfile,
+  useWithdrawCreatorSubmission,
 } from '../api/hooks'
 import { fadeUp, staggerContainer, staggerItem } from '../lib/motion'
 import { Avatar, Button, EmptyState, GlassCard, SectionHeading, Skeleton, Tag } from '../components/ui'
@@ -389,6 +390,12 @@ function CreatorSubmissionTracker() {
 
 function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }) {
   const status = submissionStatusMeta(submission)
+  const withdrawSubmission = useWithdrawCreatorSubmission()
+
+  function withdraw() {
+    if (!window.confirm('确定撤回这条待审投稿？撤回后管理员不会再审核它。')) return
+    withdrawSubmission.mutate(submission.id)
+  }
 
   return (
     <article className="ps-creator__submission">
@@ -417,7 +424,22 @@ function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }
             修改后重投
           </Button>
         )}
+        {submission.status === 'pending' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={withdraw}
+            disabled={withdrawSubmission.isPending}
+          >
+            {withdrawSubmission.isPending ? '撤回中…' : '撤回投稿'}
+          </Button>
+        )}
       </div>
+      {withdrawSubmission.error && (
+        <p className="ps-creator__error" role="alert">
+          {(withdrawSubmission.error as Error).message}
+        </p>
+      )}
     </article>
   )
 }
@@ -899,6 +921,7 @@ function submissionStatusMeta(submission: CreatorSubmission): {
   if (submission.status === 'approved') return { label: '已通过', copy: '已发布到公开站', tone: 'gold' }
   if (submission.status === 'rejected') return { label: '未通过', copy: '需要修改后重投', tone: 'neutral' }
   if (submission.status === 'spam') return { label: '被拦截', copy: '没有进入人工审核', tone: 'neutral' }
+  if (submission.status === 'withdrawn') return { label: '已撤回', copy: '创作者已自行撤回', tone: 'neutral' }
   return { label: '待审核', copy: '管理员审核中', tone: 'gold' }
 }
 

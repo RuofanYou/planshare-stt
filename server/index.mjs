@@ -628,7 +628,8 @@ const stmt = {
         WHEN 'pending' THEN 0
         WHEN 'approved' THEN 1
         WHEN 'rejected' THEN 2
-        ELSE 3
+        WHEN 'withdrawn' THEN 3
+        ELSE 4
       END,
       created_at DESC
   `),
@@ -1426,6 +1427,35 @@ app.get('/api/creator/submissions', { preHandler: requireCreatorAuth }, (req) =>
   const authorId = req.creatorAccount.author_id
   if (!authorId) return []
   return stmt.submissionsByAuthor.all(authorId).map(rowToCreatorSubmission)
+})
+
+// POST /api/creator/submissions/:id/withdraw -> 创作者撤回自己的待审投稿。
+app.post('/api/creator/submissions/:id/withdraw', { preHandler: requireCreatorAuth }, (req, reply) => {
+  const authorId = req.creatorAccount.author_id
+  const submission = stmt.submissionById.get(req.params.id)
+  if (!authorId || !submission || submission.author_id !== authorId) {
+    return reply.code(404).send({ error: 'submission not found' })
+  }
+  if (submission.status !== 'pending') {
+    return reply.code(409).send({ error: '只有待审投稿可以撤回' })
+  }
+  const reviewedAt = new Date().toISOString()
+  stmt.markSubmissionReviewed.run({
+    id: submission.id,
+    status: 'withdrawn',
+    reviewNote: null,
+    boardId: null,
+    authorId: submission.author_id,
+    reviewedAt,
+  })
+  auditLog({
+    actorType: 'creator',
+    actorId: req.creatorAccount.id,
+    action: 'creator_submission_withdraw',
+    entityType: 'submission',
+    entityId: submission.id,
+  })
+  return rowToCreatorSubmission(stmt.submissionById.get(submission.id))
 })
 
 // PUT /api/creator/password -> 创作者自助修改密码，保留当前会话并撤销其他会话。

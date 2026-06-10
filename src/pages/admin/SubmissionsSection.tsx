@@ -361,5 +361,6 @@ function submissionStatusLabel(status: AdminSubmission['status']) {
   if (status === 'pending') return '待审核'
   if (status === 'approved') return '已发布'
   if (status === 'rejected') return '已驳回'
+  if (status === 'withdrawn') return '已撤回'
   return '垃圾'
 }

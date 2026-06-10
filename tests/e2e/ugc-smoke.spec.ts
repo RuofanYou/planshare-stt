@@ -33,9 +33,10 @@ async function submitCreatorReview(request: APIRequestContext, token: string, su
 async function createCreatorApplication(request: APIRequestContext, suffix: string) {
   const username = `self_${suffix}`
   const password = 'creator-password-123'
+  const title = `E2E 自助账号 ${suffix}`
   const res = await request.post('/api/submissions', {
     data: {
-      title: `E2E 自助账号 ${suffix}`,
+      title,
       raidId: 'r-voidspire',
       bossId: 'b-averzian',
       difficulty: 'mythic',
@@ -49,7 +50,7 @@ async function createCreatorApplication(request: APIRequestContext, suffix: stri
     },
   })
   expect(res.status()).toBe(201)
-  return { username, password }
+  return { username, password, title }
 }
 
 async function approvePending(request: APIRequestContext, token: string, id: string, authorId?: string) {
@@ -251,6 +252,25 @@ test('creator can change password from dashboard and log in with the new passwor
   await page.getByLabel('密码').fill(nextPassword)
   await page.getByRole('button', { name: '登录' }).click()
   await expect(page.getByRole('heading', { name: '后台' })).toBeVisible()
+})
+
+test('creator can withdraw a pending submission from dashboard', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `withdraw_${runId}`)
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+  await expect(page.getByText(creator.title)).toBeVisible()
+  await expect(page.getByText('待审核', { exact: true })).toBeVisible()
+
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('button', { name: '撤回投稿' }).click()
+  await expect(page.getByText('已撤回', { exact: true })).toBeVisible()
+  await expect(page.getByText('创作者已自行撤回')).toBeVisible()
+  await expect(page.getByRole('button', { name: '撤回投稿' })).toHaveCount(0)
 })
 
 test('home search finds boards by boss and author names', async ({ page }) => {

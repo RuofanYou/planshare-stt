@@ -246,6 +246,18 @@ export function useCreatorSubmissions(enabled: boolean) {
   })
 }
 
+export function useWithdrawCreatorSubmission() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.withdrawCreatorSubmission(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['creator', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
 export function useCreatorLogin() {
   return useMutation({
     mutationFn: ({ username, password }: { username: string; password: string }) =>
