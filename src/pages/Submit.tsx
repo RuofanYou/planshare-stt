@@ -12,6 +12,86 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
   { value: 'mythic', label: '史诗' },
 ]
 
+const SUBMIT_DRAFT_KEY = 'planshare_submit_draft_v1'
+
+interface SubmitDraft {
+  title: string
+  raidId: string
+  bossId: string
+  difficulty: Difficulty
+  description: string
+  contentText: string
+  submitterName: string
+  wantsCreatorProfile: boolean
+  creatorUsername: string
+  creatorBio: string
+  creatorGuildName: string
+  creatorGuildRecruit: string
+  creatorGuildContact: string
+}
+
+const EMPTY_DRAFT: SubmitDraft = {
+  title: '',
+  raidId: '',
+  bossId: '',
+  difficulty: 'mythic',
+  description: '',
+  contentText: '',
+  submitterName: '',
+  wantsCreatorProfile: false,
+  creatorUsername: '',
+  creatorBio: '',
+  creatorGuildName: '',
+  creatorGuildRecruit: '',
+  creatorGuildContact: '',
+}
+
+function readSubmitDraft(): SubmitDraft {
+  if (typeof window === 'undefined') return EMPTY_DRAFT
+  try {
+    const raw = window.localStorage.getItem(SUBMIT_DRAFT_KEY)
+    if (!raw) return EMPTY_DRAFT
+    const parsed = JSON.parse(raw) as Partial<SubmitDraft>
+    return {
+      ...EMPTY_DRAFT,
+      ...parsed,
+      difficulty: parsed.difficulty === 'heroic' ? 'heroic' : 'mythic',
+      wantsCreatorProfile: parsed.wantsCreatorProfile === true,
+    }
+  } catch {
+    return EMPTY_DRAFT
+  }
+}
+
+function hasDraftContent(draft: SubmitDraft) {
+  return Boolean(
+    draft.title.trim() ||
+      draft.raidId ||
+      draft.bossId ||
+      draft.description.trim() ||
+      draft.contentText.trim() ||
+      draft.submitterName.trim() ||
+      draft.creatorUsername.trim() ||
+      draft.creatorBio.trim() ||
+      draft.creatorGuildName.trim() ||
+      draft.creatorGuildRecruit.trim() ||
+      draft.creatorGuildContact.trim(),
+  )
+}
+
+function writeSubmitDraft(draft: SubmitDraft) {
+  if (typeof window === 'undefined') return
+  try {
+    if (hasDraftContent(draft)) {
+      window.localStorage.setItem(SUBMIT_DRAFT_KEY, JSON.stringify(draft))
+    } else {
+      window.localStorage.removeItem(SUBMIT_DRAFT_KEY)
+    }
+  } catch {
+    // localStorage 不可用时忽略；投稿本身不依赖草稿。
+  }
+}
+
 export default function Submit() {
   const reduce = useReducedMotion()
   const raidsQuery = useRaids()
@@ -21,22 +101,24 @@ export default function Submit() {
   const templateBoardId = searchParams.get('from') || ''
   const templateQuery = useBoard(templateBoardId || undefined)
   const appliedTemplateId = useRef('')
+  const initialDraft = useRef(readSubmitDraft())
+  const draftHydrated = useRef(false)
 
-  const [title, setTitle] = useState('')
-  const [raidId, setRaidId] = useState('')
-  const [bossId, setBossId] = useState('')
-  const [difficulty, setDifficulty] = useState<Difficulty>('mythic')
-  const [description, setDescription] = useState('')
-  const [contentText, setContentText] = useState('')
-  const [submitterName, setSubmitterName] = useState('')
-  const [wantsCreatorProfile, setWantsCreatorProfile] = useState(false)
-  const [creatorUsername, setCreatorUsername] = useState('')
+  const [title, setTitle] = useState(initialDraft.current.title)
+  const [raidId, setRaidId] = useState(initialDraft.current.raidId)
+  const [bossId, setBossId] = useState(initialDraft.current.bossId)
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialDraft.current.difficulty)
+  const [description, setDescription] = useState(initialDraft.current.description)
+  const [contentText, setContentText] = useState(initialDraft.current.contentText)
+  const [submitterName, setSubmitterName] = useState(initialDraft.current.submitterName)
+  const [wantsCreatorProfile, setWantsCreatorProfile] = useState(initialDraft.current.wantsCreatorProfile)
+  const [creatorUsername, setCreatorUsername] = useState(initialDraft.current.creatorUsername)
   const [creatorPassword, setCreatorPassword] = useState('')
   const [contact, setContact] = useState('')
-  const [creatorBio, setCreatorBio] = useState('')
-  const [creatorGuildName, setCreatorGuildName] = useState('')
-  const [creatorGuildRecruit, setCreatorGuildRecruit] = useState('')
-  const [creatorGuildContact, setCreatorGuildContact] = useState('')
+  const [creatorBio, setCreatorBio] = useState(initialDraft.current.creatorBio)
+  const [creatorGuildName, setCreatorGuildName] = useState(initialDraft.current.creatorGuildName)
+  const [creatorGuildRecruit, setCreatorGuildRecruit] = useState(initialDraft.current.creatorGuildRecruit)
+  const [creatorGuildContact, setCreatorGuildContact] = useState(initialDraft.current.creatorGuildContact)
   const [website, setWebsite] = useState('')
   const [localError, setLocalError] = useState('')
   const [submittedId, setSubmittedId] = useState('')
@@ -55,6 +137,10 @@ export default function Submit() {
     !pending
 
   useEffect(() => {
+    draftHydrated.current = true
+  }, [])
+
+  useEffect(() => {
     const template = templateQuery.data?.board
     if (!templateBoardId || !template || appliedTemplateId.current === templateBoardId) return
     appliedTemplateId.current = templateBoardId
@@ -65,6 +151,39 @@ export default function Submit() {
     setDescription(`基于「${template.title}」修改`.slice(0, 120))
     setContentText(template.contentText)
   }, [templateBoardId, templateQuery.data])
+
+  useEffect(() => {
+    if (!draftHydrated.current) return
+    writeSubmitDraft({
+      title,
+      raidId,
+      bossId,
+      difficulty,
+      description,
+      contentText,
+      submitterName,
+      wantsCreatorProfile,
+      creatorUsername,
+      creatorBio,
+      creatorGuildName,
+      creatorGuildRecruit,
+      creatorGuildContact,
+    })
+  }, [
+    title,
+    raidId,
+    bossId,
+    difficulty,
+    description,
+    contentText,
+    submitterName,
+    wantsCreatorProfile,
+    creatorUsername,
+    creatorBio,
+    creatorGuildName,
+    creatorGuildRecruit,
+    creatorGuildContact,
+  ])
 
   function handleRaidChange(next: string) {
     setRaidId(next)
@@ -133,6 +252,7 @@ export default function Submit() {
           if (submission.creatorAuth?.token) {
             creatorSession.login(submission.creatorAuth.token)
           }
+          writeSubmitDraft(EMPTY_DRAFT)
           resetForm()
         },
       },
@@ -165,6 +285,10 @@ export default function Submit() {
               : '已带入源战术板内容，修改后提交审核。'}
         </p>
       )}
+
+      <p className="ps-submit__draft-note">
+        草稿会自动保存在本机；密码和联系方式不会保存。
+      </p>
 
       <motion.form
         className="ps-submit__form glass"

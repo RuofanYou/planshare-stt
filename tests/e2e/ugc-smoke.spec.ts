@@ -195,3 +195,35 @@ test('home search finds boards by boss and author names', async ({ page }) => {
   await expect(page).toHaveURL(/\/board\/p-beloren-nike$/)
   await expect(page.locator('.ps-detail__author', { hasText: '妮可' })).toBeVisible()
 })
+
+test('submit draft survives reload without saving password or contact', async ({ page }) => {
+  const runId = Date.now().toString(36)
+  const draftTitle = `草稿保护 ${runId}`
+
+  await page.goto('/submit')
+  await expect(page.getByText('草稿会自动保存在本机；密码和联系方式不会保存。')).toBeVisible()
+  await page.getByLabel('标题').fill(draftTitle)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await page.getByRole('radio', { name: /申请创作者/ }).click()
+  await page.getByLabel('作者名 / 投稿署名').fill(`草稿作者 ${runId}`)
+  await page.getByLabel('用户名').fill(`draft_${runId}`)
+  await page.getByLabel('密码').fill('creator-password-123')
+  await page.getByLabel('联系方式（可选）', { exact: true }).fill('secret-contact')
+  await page.getByLabel('战术正文').fill(`P1 草稿保护 ${runId}\nP2 集合`)
+
+  await page.reload()
+  await expect(page.getByLabel('标题')).toHaveValue(draftTitle)
+  await expect(page.locator('#ps-submit-raid')).toHaveValue('r-voidspire')
+  await expect(page.locator('#ps-submit-boss')).toHaveValue('b-averzian')
+  await expect(page.getByLabel('作者名 / 投稿署名')).toHaveValue(`草稿作者 ${runId}`)
+  await expect(page.getByLabel('用户名')).toHaveValue(`draft_${runId}`)
+  await expect(page.getByLabel('密码')).toHaveValue('')
+  await expect(page.getByLabel('联系方式（可选）', { exact: true })).toHaveValue('')
+  await expect(page.getByLabel('战术正文')).toHaveValue(`P1 草稿保护 ${runId}\nP2 集合`)
+
+  await page.getByRole('radio', { name: /普通投稿/ }).click()
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
+  await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()
+})

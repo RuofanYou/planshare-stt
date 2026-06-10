@@ -28,6 +28,7 @@
 - 浏览用户补缺口：详情页新增“复制链接”，让用户可以把战术板发给队友；“复制战术”仍保留为主按钮。
 - 浏览用户发现补缺口：首页搜索文案承诺可搜 BOSS/作者，但旧实现只搜标题、简介、正文。已扩展搜索索引到团本名、BOSS 名、作者名。
 - 浏览转创作补缺口：详情页新增“基于此投稿”，打开投稿页时自动带入源板团本、BOSS、难度和正文，降低二创/纠错投稿成本。
+- 投稿者补缺口：投稿页新增本地草稿保护，刷新后恢复标题、团本、BOSS、难度、正文、署名和公开资料；密码与联系方式不保存，提交成功后清空草稿。
 
 ## 验证输出
 
@@ -343,6 +344,48 @@ vite v5.4.21 building for production...
 in-app browser:
 /board/p-midnight-m9 显示“基于此投稿”，无 Application error。
 /submit?from=p-midnight-m9 显示“已带入源战术板内容”，标题、团本、BOSS、正文均已预填。
+```
+
+### UGC 生态补缺口：投稿草稿保护
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.39s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 4 tests using 1 worker
+····
+  4 passed (13.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.08s
+
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (6.7s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:137:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:180:1 › home search finds boards by boss and author names (2.7s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:199:1 › submit draft survives reload without saving password or contact (876ms)
+4 passed (14.2s)
+```
+
+```text
+in-app browser:
+/submit 显示“草稿会自动保存在本机；密码和联系方式不会保存。”，无 Application error。
 ```
 
 ## 已知问题

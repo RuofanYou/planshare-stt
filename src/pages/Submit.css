@@ -18,6 +18,13 @@
   line-height: var(--lh-meta);
 }
 
+.ps-submit__draft-note {
+  margin: calc(var(--space-6) * -1) 0 var(--space-6);
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
 .ps-submit__form {
   display: grid;
   gap: var(--space-5);
