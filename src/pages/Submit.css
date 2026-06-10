@@ -11,6 +11,13 @@
   margin-bottom: var(--space-8);
 }
 
+.ps-submit__template-note {
+  margin: calc(var(--space-4) * -1) 0 var(--space-6);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
 .ps-submit__form {
   display: grid;
   gap: var(--space-5);

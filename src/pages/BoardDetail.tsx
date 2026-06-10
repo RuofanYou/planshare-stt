@@ -424,6 +424,12 @@ export default function BoardDetail() {
             >
               复制链接
             </Button>
+            <Button
+              variant="secondary"
+              to={`/submit?from=${encodeURIComponent(board.id)}`}
+            >
+              基于此投稿
+            </Button>
           </motion.div>
 
           {/* 战术正文块：深玻璃底、mono、保留换行、长文可折叠、右上角 icon 复制 */}

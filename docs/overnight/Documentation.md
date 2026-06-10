@@ -27,6 +27,7 @@
 - 创作者投稿列表按 `created_at DESC, id DESC` 排序，避免同秒提交时“最新投稿”顺序不稳定。
 - 浏览用户补缺口：详情页新增“复制链接”，让用户可以把战术板发给队友；“复制战术”仍保留为主按钮。
 - 浏览用户发现补缺口：首页搜索文案承诺可搜 BOSS/作者，但旧实现只搜标题、简介、正文。已扩展搜索索引到团本名、BOSS 名、作者名。
+- 浏览转创作补缺口：详情页新增“基于此投稿”，打开投稿页时自动带入源板团本、BOSS、难度和正文，降低二创/纠错投稿成本。
 
 ## 验证输出
 
@@ -300,6 +301,48 @@ vite v5.4.21 building for production...
 in-app browser:
 / 首页显示搜索框 placeholder="搜索 BOSS、作者、技能名或关键词"，无 Application error。
 注：Browser 插件本轮无法向 input 填字，报 virtual clipboard 缺失；实际搜索行为已由 Playwright 真实浏览器用例覆盖。
+```
+
+### UGC 生态补缺口：浏览转创作
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.34s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 3 tests using 1 worker
+···
+  3 passed (13.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.07s
+
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (6.4s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:137:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:180:1 › home search finds boards by boss and author names (2.7s)
+3 passed (13.0s)
+```
+
+```text
+in-app browser:
+/board/p-midnight-m9 显示“基于此投稿”，无 Application error。
+/submit?from=p-midnight-m9 显示“已带入源战术板内容”，标题、团本、BOSS、正文均已预填。
 ```
 
 ## 已知问题

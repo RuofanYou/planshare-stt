@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Difficulty } from '../data/types'
-import { useCreateSubmission, useCreatorSession, useRaid, useRaids } from '../api/hooks'
+import { useBoard, useCreateSubmission, useCreatorSession, useRaid, useRaids } from '../api/hooks'
 import { Button, SectionHeading, Tag } from '../components/ui'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
 import './Submit.css'
@@ -16,6 +17,10 @@ export default function Submit() {
   const raidsQuery = useRaids()
   const createSubmission = useCreateSubmission()
   const creatorSession = useCreatorSession()
+  const [searchParams] = useSearchParams()
+  const templateBoardId = searchParams.get('from') || ''
+  const templateQuery = useBoard(templateBoardId || undefined)
+  const appliedTemplateId = useRef('')
 
   const [title, setTitle] = useState('')
   const [raidId, setRaidId] = useState('')
@@ -48,6 +53,18 @@ export default function Submit() {
     submitterName.trim() !== '' &&
     (!wantsCreatorProfile || (creatorUsername.trim() !== '' && creatorPassword.length >= 8)) &&
     !pending
+
+  useEffect(() => {
+    const template = templateQuery.data?.board
+    if (!templateBoardId || !template || appliedTemplateId.current === templateBoardId) return
+    appliedTemplateId.current = templateBoardId
+    setTitle(`基于 ${template.title} 的调整`.slice(0, 80))
+    setRaidId(template.raidId)
+    setBossId(template.bossId ?? '')
+    setDifficulty(template.difficulty)
+    setDescription(`基于「${template.title}」修改`.slice(0, 120))
+    setContentText(template.contentText)
+  }, [templateBoardId, templateQuery.data])
 
   function handleRaidChange(next: string) {
     setRaidId(next)
@@ -138,6 +155,16 @@ export default function Submit() {
           size="display"
         />
       </motion.header>
+
+      {templateBoardId && (
+        <p className="ps-submit__template-note">
+          {templateQuery.isError
+            ? '源战术板加载失败，可以继续手动投稿。'
+            : templateQuery.isPending
+              ? '正在带入源战术板内容…'
+              : '已带入源战术板内容，修改后提交审核。'}
+        </p>
+      )}
 
       <motion.form
         className="ps-submit__form glass"
