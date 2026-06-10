@@ -11,6 +11,7 @@ import {
   useRaid,
   useRaids,
   useUpdateCreatorBoard,
+  useUpdateCreatorPassword,
   useUpdateCreatorProfile,
 } from '../api/hooks'
 import { fadeUp, staggerContainer, staggerItem } from '../lib/motion'
@@ -212,6 +213,10 @@ function CreatorConsole({
             </GlassCard>
           )}
         </motion.div>
+
+        <motion.div variants={reduce ? undefined : staggerItem}>
+          <CreatorSecurityPanel />
+        </motion.div>
       </motion.div>
 
       {author && (
@@ -261,6 +266,89 @@ function CreatorConsole({
         </motion.div>
       )}
     </div>
+  )
+}
+
+function CreatorSecurityPanel() {
+  const updatePassword = useUpdateCreatorPassword()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [nextPassword, setNextPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [localError, setLocalError] = useState('')
+
+  const canSubmit =
+    currentPassword.length > 0 &&
+    nextPassword.length >= 8 &&
+    confirmPassword.length >= 8 &&
+    !updatePassword.isPending
+
+  function submitPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setLocalError('')
+    if (nextPassword !== confirmPassword) {
+      setLocalError('两次新密码不一致。')
+      return
+    }
+    updatePassword.mutate(
+      { currentPassword, nextPassword },
+      {
+        onSuccess: () => {
+          setCurrentPassword('')
+          setNextPassword('')
+          setConfirmPassword('')
+        },
+      },
+    )
+  }
+
+  return (
+    <GlassCard tone="glass" className="ps-creator__panel">
+      <Tag variant="gold">账号安全</Tag>
+      <h2 className="ps-creator__panel-title">修改密码</h2>
+      <p className="ps-creator__panel-copy">
+        输入当前密码后设置新密码；当前窗口会继续保持登录，其他旧登录会被撤销。
+      </p>
+      <form className="ps-creator__form" onSubmit={submitPassword}>
+        <label className="ps-creator__label" htmlFor="creator-current-password">当前密码</label>
+        <input
+          id="creator-current-password"
+          className="ps-creator__input"
+          type="password"
+          autoComplete="current-password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+        />
+        <label className="ps-creator__label" htmlFor="creator-next-password">新密码</label>
+        <input
+          id="creator-next-password"
+          className="ps-creator__input"
+          type="password"
+          autoComplete="new-password"
+          value={nextPassword}
+          onChange={(e) => setNextPassword(e.target.value)}
+        />
+        <label className="ps-creator__label" htmlFor="creator-confirm-password">确认新密码</label>
+        <input
+          id="creator-confirm-password"
+          className="ps-creator__input"
+          type="password"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+        {(localError || updatePassword.error) && (
+          <p className="ps-creator__error" role="alert">
+            {localError || (updatePassword.error as Error).message}
+          </p>
+        )}
+        {updatePassword.isSuccess && <p className="ps-creator__notice">密码已更新。</p>}
+        <div className="ps-creator__actions">
+          <Button type="submit" variant="primary" disabled={!canSubmit}>
+            {updatePassword.isPending ? '更新中…' : '更新密码'}
+          </Button>
+        </div>
+      </form>
+    </GlassCard>
   )
 }
 

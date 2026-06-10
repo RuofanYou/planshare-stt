@@ -572,6 +572,13 @@ const stmt = {
     SET revoked_at = @revokedAt
     WHERE creator_account_id = @creatorAccountId AND revoked_at IS NULL
   `),
+  revokeOtherCreatorSessionsByAccount: db.prepare(`
+    UPDATE creator_sessions
+    SET revoked_at = @revokedAt
+    WHERE creator_account_id = @creatorAccountId
+      AND token_hash != @tokenHash
+      AND revoked_at IS NULL
+  `),
   deleteExpiredCreatorSessions: db.prepare(`
     DELETE FROM creator_sessions
     WHERE expires_at <= ?
@@ -1419,6 +1426,49 @@ app.get('/api/creator/submissions', { preHandler: requireCreatorAuth }, (req) =>
   const authorId = req.creatorAccount.author_id
   if (!authorId) return []
   return stmt.submissionsByAuthor.all(authorId).map(rowToCreatorSubmission)
+})
+
+// PUT /api/creator/password -> 创作者自助修改密码，保留当前会话并撤销其他会话。
+app.put('/api/creator/password', { preHandler: requireCreatorAuth }, (req, reply) => {
+  if (req.creatorAccount.status !== 'active') {
+    return reply.code(403).send({ error: '账号已被暂停，请联系管理员' })
+  }
+  const currentPassword = typeof req.body?.currentPassword === 'string' ? req.body.currentPassword : ''
+  const nextPassword = typeof req.body?.nextPassword === 'string' ? req.body.nextPassword : ''
+  if (!verifyPassword(currentPassword, req.creatorAccount.password_hash)) {
+    return reply.code(400).send({ error: '当前密码不正确' })
+  }
+  if (nextPassword.length < 8) {
+    return reply.code(400).send({ error: '密码长度至少 8 位' })
+  }
+  if (verifyPassword(nextPassword, req.creatorAccount.password_hash)) {
+    return reply.code(400).send({ error: '新密码不能和当前密码相同' })
+  }
+
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+  const now = new Date().toISOString()
+  stmt.updateCreatorAccountPassword.run({
+    id: req.creatorAccount.id,
+    passwordHash: hashPassword(nextPassword),
+    updatedAt: now,
+  })
+  stmt.revokeOtherCreatorSessionsByAccount.run({
+    creatorAccountId: req.creatorAccount.id,
+    tokenHash: hashSessionToken(token),
+    revokedAt: now,
+  })
+  auditLog({
+    actorType: 'creator',
+    actorId: req.creatorAccount.id,
+    action: 'creator_password_update',
+    entityType: 'creator_account',
+    entityId: req.creatorAccount.id,
+  })
+  return {
+    ok: true,
+    revokedOtherSessions: true,
+  }
 })
 
 // PUT /api/creator/profile -> 创作者编辑自己的半公开作者资料。

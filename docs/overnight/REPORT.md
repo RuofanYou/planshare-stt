@@ -16,6 +16,7 @@
 - 浏览用户发现补缺口：首页搜索现在匹配标题、正文、团本名、BOSS 名、作者名，解决“文案说能搜 BOSS/作者但实际搜不到”的断点。
 - 浏览转创作补缺口：战术详情页新增“基于此投稿”，投稿页可按源板自动预填团本、BOSS、难度和正文，让纠错/改版投稿不需要手动搬运内容。
 - 投稿者补缺口：投稿页新增本地草稿保护，刷新后恢复非敏感投稿内容；密码与联系方式不保存，成功提交后清空草稿。
+- 创作者自循环补缺口：创作者后台新增自助修改密码；旧密码错误、确认密码不一致、成功改密、旧密码失效、新密码登录均已覆盖。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -348,11 +349,61 @@ in-app browser:
 /submit 显示“草稿会自动保存在本机；密码和联系方式不会保存。”，无 Application error。
 ```
 
+### 创作者自助改密码验证
+```text
+node --test --test-concurrency=1 server/creator-username-auth.test.mjs
+
+# Subtest: creator can change password without losing current session
+ok 9 - creator can change password without losing current session
+
+1..19
+# tests 19
+# pass 19
+# fail 0
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 5 tests using 1 worker
+·····
+5 passed (15.7s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.01s
+
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:64:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (6.3s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:159:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:202:1 › creator can change password from dashboard and log in with the new password (2.0s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:240:1 › home search finds boards by boss and author names (2.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:259:1 › submit draft survives reload without saving password or contact (1.1s)
+5 passed (16.1s)
+```
+
+```text
+in-app browser:
+/creator 登录本地临时创作者账号后显示“账号安全 / 修改密码”和“投稿进度”。
+旧密码错误显示“当前密码不正确”；确认密码不一致显示“两次新密码不一致。”；正确修改后显示“密码已更新。”。
+无 framework overlay，console errors=0。
+```
+
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
 - `playwright.config.ts`：使用 `localhost:5183` 和 `/tmp` 临时 SQLite，避免本机端口与生产数据冲突。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
+- `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `server/index.mjs`：驳回/spam 投稿现在保留 `author_id`，让创作者可以看到失败状态；需确认这符合运营上“失败记录对创作者可见”的预期。
 - `worker/index.js`：D1 移植版同步了 Fastify 的 UGC 字段与核心治理端点；当前由契约测试守核心读结构，但生产权威仍是 Fastify。
 

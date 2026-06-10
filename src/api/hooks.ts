@@ -34,6 +34,7 @@ import type {
   CreateSubmissionInput,
   ApproveSubmissionInput,
   CreatorProfileInput,
+  CreatorPasswordInput,
   CreatorBoardInput,
   UpdateCreatorBoardInput,
   ReportReason,
@@ -262,6 +263,16 @@ export function useUpdateCreatorProfile() {
         qc.invalidateQueries({ queryKey: ['author', result.author.id] })
         qc.invalidateQueries({ queryKey: ['authors'] })
       }
+    },
+  })
+}
+
+export function useUpdateCreatorPassword() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreatorPasswordInput) => api.updateCreatorPassword(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['creator', 'me'] })
     },
   })
 }

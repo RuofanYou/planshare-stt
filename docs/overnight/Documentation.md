@@ -4,7 +4,7 @@
 - 分支：`overnight/ugc-ready-20260610`
 - 本地主线后端：`server/index.mjs`（Fastify + SQLite），本轮业务实现以它为权威。
 - 已通过：`npm run verify`
-- 本地预览：`http://localhost:5183/`，使用 `/tmp/planshare-preview.db` 临时 SQLite。
+- 本地预览：`http://localhost:5183/`，使用 `/tmp/planshare-preview-progress.db` 临时 SQLite。
 - 未执行：`wrangler deploy`、`wrangler pages deploy`、`tcb`、`git push`、生产 URL 写请求。
 - 未修改：`.env`、生产数据、`server/planshare.db`。
 
@@ -29,6 +29,7 @@
 - 浏览用户发现补缺口：首页搜索文案承诺可搜 BOSS/作者，但旧实现只搜标题、简介、正文。已扩展搜索索引到团本名、BOSS 名、作者名。
 - 浏览转创作补缺口：详情页新增“基于此投稿”，打开投稿页时自动带入源板团本、BOSS、难度和正文，降低二创/纠错投稿成本。
 - 投稿者补缺口：投稿页新增本地草稿保护，刷新后恢复标题、团本、BOSS、难度、正文、署名和公开资料；密码与联系方式不保存，提交成功后清空草稿。
+- 创作者自循环补缺口：创作者登录后可自助修改密码；当前密码错误返回 400 不清登录态，成功后保留当前会话并撤销其他旧会话，同时写 `audit_logs`。
 
 ## 验证输出
 
@@ -386,6 +387,64 @@ vite v5.4.21 building for production...
 ```text
 in-app browser:
 /submit 显示“草稿会自动保存在本机；密码和联系方式不会保存。”，无 Application error。
+```
+
+### UGC 生态补缺口：创作者自助改密码
+```text
+node --test --test-concurrency=1 server/creator-username-auth.test.mjs
+
+# Subtest: creator can change password without losing current session
+ok 9 - creator can change password without losing current session
+
+1..19
+# tests 19
+# pass 19
+# fail 0
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.04s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 5 tests using 1 worker
+·····
+5 passed (15.7s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.01s
+
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:64:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (6.3s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:159:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:202:1 › creator can change password from dashboard and log in with the new password (2.0s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:240:1 › home search finds boards by boss and author names (2.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:259:1 › submit draft survives reload without saving password or contact (1.1s)
+5 passed (16.1s)
+```
+
+```text
+in-app browser:
+/creator 登录本地临时创作者账号后显示“账号安全 / 修改密码”和“投稿进度”。
+旧密码错误显示“当前密码不正确”，仍停留在创作者后台。
+确认密码不一致显示“两次新密码不一致。”。
+正确修改后显示“密码已更新。”；无 framework overlay，console errors=0。
 ```
 
 ## 已知问题

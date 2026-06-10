@@ -30,6 +30,28 @@ async function submitCreatorReview(request: APIRequestContext, token: string, su
   return res.json()
 }
 
+async function createCreatorApplication(request: APIRequestContext, suffix: string) {
+  const username = `self_${suffix}`
+  const password = 'creator-password-123'
+  const res = await request.post('/api/submissions', {
+    data: {
+      title: `E2E 自助账号 ${suffix}`,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `E2E 自助账号 ${suffix}`,
+      contentText: `P1 自助账号 ${suffix}\nP2 集合`,
+      submitterName: `自助创作者 ${suffix}`,
+      wantsCreatorProfile: true,
+      creatorUsername: username,
+      creatorPassword: password,
+    },
+  })
+  expect(res.status()).toBe(201)
+  return { username, password }
+}
+
 async function approvePending(request: APIRequestContext, token: string, id: string, authorId?: string) {
   const res = await request.post(`/api/admin/submissions/${id}/approve`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -175,6 +197,44 @@ test('creator application guardrails handle missing fields, invalid usernames, a
   await fillCreatorApplication(`重复用户名防呆 ${runId}`, creatorUsername.toUpperCase())
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText('这个用户名已被占用')).toBeVisible()
+})
+
+test('creator can change password from dashboard and log in with the new password', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, runId)
+  const nextPassword = 'creator-password-456'
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '修改密码' })).toBeVisible()
+
+  await page.getByLabel('当前密码').fill('wrong-password')
+  await page.getByLabel('新密码', { exact: true }).fill(nextPassword)
+  await page.getByLabel('确认新密码').fill(nextPassword)
+  await page.getByRole('button', { name: '更新密码' }).click()
+  await expect(page.getByText('当前密码不正确')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+
+  await page.getByLabel('当前密码').fill(creator.password)
+  await page.getByLabel('确认新密码').fill('mismatch-password')
+  await page.getByRole('button', { name: '更新密码' }).click()
+  await expect(page.getByText('两次新密码不一致。')).toBeVisible()
+
+  await page.getByLabel('确认新密码').fill(nextPassword)
+  await page.getByRole('button', { name: '更新密码' }).click()
+  await expect(page.getByText('密码已更新。')).toBeVisible()
+
+  await page.getByRole('button', { name: '退出登录' }).click()
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByText('用户名或密码错误')).toBeVisible()
+
+  await page.getByLabel('密码').fill(nextPassword)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '后台' })).toBeVisible()
 })
 
 test('home search finds boards by boss and author names', async ({ page }) => {

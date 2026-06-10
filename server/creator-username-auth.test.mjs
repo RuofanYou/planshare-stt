@@ -360,6 +360,73 @@ test('creator login fails with wrong password without revealing username existen
   assert.equal(login.body.error, '用户名或密码错误')
 })
 
+test('creator can change password without losing current session', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+  const application = await submitCreatorApplication(server)
+
+  const wrongCurrent = await requestJson(server.baseUrl, '/api/creator/password', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({
+      currentPassword: 'wrong-password',
+      nextPassword: 'new-creator-password-456',
+    }),
+  })
+  assert.equal(wrongCurrent.res.status, 400)
+  assert.equal(wrongCurrent.body.error, '当前密码不正确')
+
+  const samePassword = await requestJson(server.baseUrl, '/api/creator/password', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({
+      currentPassword: 'creator-password-123',
+      nextPassword: 'creator-password-123',
+    }),
+  })
+  assert.equal(samePassword.res.status, 400)
+  assert.equal(samePassword.body.error, '新密码不能和当前密码相同')
+
+  const update = await requestJson(server.baseUrl, '/api/creator/password', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({
+      currentPassword: 'creator-password-123',
+      nextPassword: 'new-creator-password-456',
+    }),
+  })
+  assert.equal(update.res.status, 200)
+  assert.equal(update.body.ok, true)
+  assert.equal(update.body.revokedOtherSessions, true)
+
+  const currentSession = await requestJson(server.baseUrl, '/api/creator/me', {
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+  })
+  assert.equal(currentSession.res.status, 200)
+  assert.equal(currentSession.body.user.username, 'creator_one')
+
+  const oldPasswordLogin = await requestJson(server.baseUrl, '/api/creator/login', {
+    method: 'POST',
+    body: JSON.stringify({ username: 'creator_one', password: 'creator-password-123' }),
+  })
+  assert.equal(oldPasswordLogin.res.status, 401)
+
+  const newPasswordLogin = await requestJson(server.baseUrl, '/api/creator/login', {
+    method: 'POST',
+    body: JSON.stringify({ username: 'creator_one', password: 'new-creator-password-456' }),
+  })
+  assert.equal(newPasswordLogin.res.status, 200)
+  assert.ok(newPasswordLogin.body.token)
+
+  const admin = await adminToken(server.baseUrl)
+  const logs = await requestJson(server.baseUrl, '/api/admin/audit-logs', {
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  assert.equal(logs.res.status, 200)
+  assert.equal(logs.body[0].action, 'creator_password_update')
+  assert.equal(logs.body[0].actorType, 'creator')
+})
+
 test('suspended creator account cannot log in', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

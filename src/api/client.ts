@@ -28,6 +28,8 @@ import type {
   CreatorSubmission,
   CreatorAuthResult,
   CreatorProfileInput,
+  CreatorPasswordInput,
+  CreatorPasswordResult,
   CreatorBoard,
   CreatorBoardInput,
   UpdateCreatorBoardInput,
@@ -263,6 +265,13 @@ export function getCreatorSubmissions(): Promise<CreatorSubmission[]> {
 
 export function updateCreatorProfile(input: CreatorProfileInput): Promise<CreatorMeResult> {
   return creatorRequest<CreatorMeResult>('/api/creator/profile', {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateCreatorPassword(input: CreatorPasswordInput): Promise<CreatorPasswordResult> {
+  return creatorRequest<CreatorPasswordResult>('/api/creator/password', {
     method: 'PUT',
     body: JSON.stringify(input),
   })

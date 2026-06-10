@@ -325,6 +325,16 @@ export interface CreatorProfileInput {
   guildContact?: string
 }
 
+export interface CreatorPasswordInput {
+  currentPassword: string
+  nextPassword: string
+}
+
+export interface CreatorPasswordResult {
+  ok: true
+  revokedOtherSessions: boolean
+}
+
 /** GET /api/creator/me 响应。 */
 export interface CreatorMeResult {
   user: CreatorUser
