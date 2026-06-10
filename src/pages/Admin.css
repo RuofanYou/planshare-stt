@@ -123,6 +123,48 @@
   gap: var(--space-6);
 }
 
+.ps-admin__resource-note {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-admin__resource-note--warn {
+  color: var(--color-gold-cream);
+}
+
+.ps-admin__toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px) minmax(160px, 220px) auto;
+  align-items: end;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.ps-admin__toolbar-search {
+  min-width: 0;
+}
+
+.ps-admin__toolbar-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-admin__toolbar-stats span {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+}
+
 /* 列表：纵向卡片堆叠 */
 .ps-admin__rows {
   display: flex;
@@ -294,6 +336,15 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+.ps-admin__reset-form {
+  display: grid;
+  gap: var(--space-3);
+  width: min(420px, 100%);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
 }
 
 /* ============================================================
@@ -568,6 +619,12 @@
   color: var(--color-ember-bright);
 }
 
+.ps-admin__success {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-gold);
+}
+
 /* ---------- 操作区：靠右主按钮 ---------- */
 .ps-admin__actions {
   display: flex;
@@ -602,6 +659,14 @@
 
   .ps-admin__row-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ps-admin__toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-admin__toolbar-stats {
+    justify-content: flex-start;
   }
 
   .ps-admin__form {

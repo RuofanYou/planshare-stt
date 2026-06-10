@@ -215,6 +215,13 @@
   line-height: var(--lh-caption);
 }
 
+.ps-submit__hint {
+  margin: 0;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
 .ps-submit__error,
 .ps-submit__success {
   margin: 0;
@@ -226,7 +233,20 @@
 }
 
 .ps-submit__success {
+  display: grid;
+  gap: var(--space-2);
   color: var(--color-success);
+}
+
+.ps-submit__success p {
+  margin: 0;
+}
+
+.ps-submit__activation-link {
+  color: var(--color-gold);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .ps-submit__actions {

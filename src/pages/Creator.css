@@ -1,4 +1,4 @@
-/* 创作者后台 MVP —— 微信登录入口 + 当前身份 + 作者绑定状态。
+/* 创作者后台 —— 用户名登录 + 当前身份 + 作者资料 / 战术板管理。
    令牌全部取自 tokens.css，不写裸 hex / rgba / blur / 字号。 */
 
 .ps-creator {
@@ -100,6 +100,114 @@
   margin-top: var(--space-2);
 }
 
+.ps-creator__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.ps-creator__label {
+  color: var(--color-gold-cream);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+}
+
+.ps-creator__input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink);
+  padding: 0 var(--space-4);
+  font: inherit;
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease-epic), box-shadow var(--dur-fast) var(--ease-epic);
+}
+
+.ps-creator__textarea {
+  min-height: 180px;
+  padding-block: var(--space-3);
+  resize: vertical;
+}
+
+.ps-creator__input:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px var(--color-gold-glow);
+}
+
+.ps-creator__field,
+.ps-creator__section-head,
+.ps-creator__board-top {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.ps-creator__field {
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ps-creator__section-head,
+.ps-creator__board-top {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.ps-creator__boards,
+.ps-creator__board-form,
+.ps-creator__board-list,
+.ps-creator__board {
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-creator__boards {
+  gap: var(--space-6);
+}
+
+.ps-creator__field-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.ps-creator__board-list {
+  gap: var(--space-4);
+}
+
+.ps-creator__board {
+  gap: var(--space-3);
+  border-top: 1px solid var(--glass-border);
+  padding-top: var(--space-4);
+}
+
+.ps-creator__board-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0;
+}
+
+.ps-creator__error,
+.ps-creator__notice {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-creator__error {
+  color: var(--color-ember-bright);
+}
+
+.ps-creator__notice {
+  color: var(--color-success);
+}
+
 @media (max-width: 760px) {
   .ps-creator__head {
     align-items: stretch;
@@ -108,6 +216,10 @@
 
   .ps-creator__grid {
     grid-template-columns: 1fr;
+  }
+
+  .ps-creator__field-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -124,6 +236,13 @@
 
   .ps-creator__profile {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ps-creator__field-grid,
+  .ps-creator__section-head,
+  .ps-creator__board-top {
+    grid-template-columns: 1fr;
     flex-direction: column;
   }
 }

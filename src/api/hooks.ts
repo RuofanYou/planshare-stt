@@ -32,6 +32,9 @@ import type {
   UpdateAuthorInput,
   CreateSubmissionInput,
   ApproveSubmissionInput,
+  CreatorProfileInput,
+  CreatorBoardInput,
+  UpdateCreatorBoardInput,
 } from '../data/types'
 
 /* ============================ 团本 ============================ */
@@ -192,6 +195,7 @@ export function useCreatorSession() {
   }, [])
 
   const logout = useCallback(() => {
+    void api.creatorLogout().catch(() => {})
     clearCreatorToken()
     setTokenState(null)
     qc.removeQueries({ queryKey: ['creator'] })
@@ -219,6 +223,79 @@ export function useCreatorMe(enabled: boolean) {
   })
 }
 
+export function useCreatorLogin() {
+  return useMutation({
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      api.creatorLogin(username, password),
+  })
+}
+
+export function useUpdateCreatorProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreatorProfileInput) => api.updateCreatorProfile(input),
+    onSuccess: (result) => {
+      qc.setQueryData(['creator', 'me'], result)
+      if (result.author) {
+        qc.invalidateQueries({ queryKey: ['author', result.author.id] })
+        qc.invalidateQueries({ queryKey: ['authors'] })
+      }
+    },
+  })
+}
+
+export function useCreatorBoards(enabled: boolean) {
+  return useQuery({
+    queryKey: ['creator', 'boards'],
+    queryFn: api.getCreatorBoards,
+    enabled,
+  })
+}
+
+export function useCreateCreatorBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreatorBoardInput) => api.createCreatorBoard(input),
+    onSuccess: (board) => {
+      qc.invalidateQueries({ queryKey: ['creator', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['authors'] })
+      qc.invalidateQueries({ queryKey: ['author', board.authorId] })
+    },
+  })
+}
+
+export function useUpdateCreatorBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: UpdateCreatorBoardInput }) =>
+      api.updateCreatorBoard(id, patch),
+    onSuccess: (board) => {
+      qc.invalidateQueries({ queryKey: ['creator', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['authors'] })
+      qc.invalidateQueries({ queryKey: ['board', board.id] })
+      qc.invalidateQueries({ queryKey: ['author', board.authorId] })
+    },
+  })
+}
+
+export function useDeleteCreatorBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.deleteCreatorBoard(id),
+    onSuccess: (_result, id) => {
+      qc.invalidateQueries({ queryKey: ['creator', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['authors'] })
+      qc.invalidateQueries({ queryKey: ['board', id] })
+    },
+  })
+}
+
 /** 后台全部板（含隐藏，按 updatedAt 倒序）。 */
 export function useAdminBoards() {
   return useQuery({ queryKey: ['admin', 'boards'], queryFn: api.getAdminBoards })
@@ -232,6 +309,27 @@ export function useAdminAuthors() {
 /** 投稿审核队列（pending 排最前，含已处理记录）。 */
 export function useAdminSubmissions() {
   return useQuery({ queryKey: ['admin', 'submissions'], queryFn: api.getAdminSubmissions })
+}
+
+/** 创作者账号列表（用于后台人工账号救援）。 */
+export function useAdminCreatorAccounts() {
+  return useQuery({
+    queryKey: ['admin', 'creator-accounts'],
+    queryFn: api.getAdminCreatorAccounts,
+  })
+}
+
+/** 管理员重置创作者密码；成功后刷新账号列表并让创作者端重新拉身份。 */
+export function useResetCreatorPassword() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      api.resetCreatorPassword(id, password),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'creator-accounts'] })
+      qc.invalidateQueries({ queryKey: ['creator'] })
+    },
+  })
 }
 
 /** 通过投稿：创建正式板并更新投稿状态。 */
@@ -249,6 +347,7 @@ export function useApproveSubmission() {
       qc.invalidateQueries({ queryKey: ['authors'] })
       qc.invalidateQueries({ queryKey: ['board', result.board.id] })
       qc.invalidateQueries({ queryKey: ['author', result.author.id] })
+      qc.invalidateQueries({ queryKey: ['creator'] })
     },
   })
 }

@@ -14,7 +14,7 @@
 
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import Database from 'better-sqlite3'
 import Fastify from 'fastify'
@@ -36,14 +36,21 @@ const DB_PATH = ensureDatabasePath({ envPath: process.env.DATABASE_PATH, serverD
 // 生产可经环境变量配置端口/绑定地址（容器/托管常用 0.0.0.0 + 平台注入 PORT）。
 const PORT = Number(process.env.PORT) || 3001
 const HOST = process.env.HOST || '127.0.0.1'
-const PUBLIC_API_BASE = (process.env.PUBLIC_API_BASE || `http://${HOST}:${PORT}`).replace(/\/$/, '')
-const FRONTEND_BASE_URL = (process.env.FRONTEND_BASE_URL || 'https://zhaobanzi.pages.dev').replace(/\/$/, '')
-const WECHAT_APP_ID = process.env.WECHAT_APP_ID?.trim() || ''
-const WECHAT_APP_SECRET = process.env.WECHAT_APP_SECRET?.trim() || ''
-const WECHAT_API_BASE = (process.env.WECHAT_API_BASE || 'https://api.weixin.qq.com').replace(/\/$/, '')
-const WECHAT_AUTH_URL = process.env.WECHAT_AUTH_URL || 'https://open.weixin.qq.com/connect/qrconnect'
-const WECHAT_REDIRECT_URI =
-  process.env.WECHAT_REDIRECT_URI?.trim() || `${PUBLIC_API_BASE}/api/auth/wechat/callback`
+const CREATOR_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
+const RESERVED_CREATOR_USERNAMES = new Set([
+  'admin',
+  'root',
+  'api',
+  'creator',
+  'submit',
+  'author',
+  'authors',
+  'board',
+  'boards',
+  'login',
+  'register',
+  'zhaobanzi',
+])
 
 // 管理员鉴权：单密码 + 内存有效 token 集合（重启即失效）。
 const ADMIN_PASSWORD = assertSafeAdminPassword({
@@ -52,9 +59,6 @@ const ADMIN_PASSWORD = assertSafeAdminPassword({
   nodeEnv: process.env.NODE_ENV,
 })
 const validTokens = new Set()
-const validCreatorTokens = new Map()
-const AUTH_STATE_SECRET = process.env.AUTH_STATE_SECRET || ADMIN_PASSWORD
-const AUTH_STATE_TTL_MS = 10 * 60 * 1000
 
 // 安全边界：跨域只放行正式前端和本地开发；公开写接口与登录都做内存限流。
 const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.CORS_ORIGINS)
@@ -70,6 +74,7 @@ const sweepTimer = setInterval(() => {
   likeBoardLimiter.sweep()
   submissionLimiter.sweep()
   viewDeduper.sweep()
+  stmt.deleteExpiredCreatorSessions.run(new Date().toISOString())
 }, 5 * 60 * 1000)
 sweepTimer.unref?.()
 
@@ -101,7 +106,11 @@ db.exec(`
     bio           TEXT,
     guild_name    TEXT,
     guild_recruit TEXT,
-    guild_contact TEXT
+    guild_contact TEXT,
+    creator_account_id TEXT,
+    visibility    TEXT NOT NULL DEFAULT 'approved',
+    moderation_status TEXT NOT NULL DEFAULT 'clean',
+    updated_at    TEXT
   );
 
   CREATE TABLE IF NOT EXISTS boards (
@@ -145,27 +154,43 @@ db.exec(`
     review_note           TEXT,
     board_id              TEXT,
     author_id             TEXT,
-    creator_user_id       TEXT,
     created_at            TEXT NOT NULL,
     reviewed_at           TEXT
   );
 
-  CREATE TABLE IF NOT EXISTS creator_users (
-    id            TEXT PRIMARY KEY,
-    provider      TEXT NOT NULL,
-    open_id       TEXT NOT NULL,
-    union_id      TEXT,
-    nickname      TEXT,
-    avatar_url    TEXT,
-    author_id     TEXT,
-    created_at    TEXT NOT NULL,
-    updated_at    TEXT NOT NULL,
-    last_login_at TEXT NOT NULL,
-    UNIQUE(provider, open_id)
+  CREATE TABLE IF NOT EXISTS creator_accounts (
+    id                TEXT PRIMARY KEY,
+    email             TEXT UNIQUE,
+    username          TEXT UNIQUE,
+    email_verified_at TEXT,
+    password_hash     TEXT,
+    status            TEXT NOT NULL,
+    author_id         TEXT,
+    contact           TEXT,
+    created_at        TEXT NOT NULL,
+    updated_at        TEXT NOT NULL,
+    last_login_at     TEXT
   );
 
-  CREATE INDEX IF NOT EXISTS idx_creator_users_union_id
-    ON creator_users (provider, union_id);
+  CREATE TABLE IF NOT EXISTS creator_email_tokens (
+    id                 TEXT PRIMARY KEY,
+    creator_account_id TEXT NOT NULL,
+    purpose            TEXT NOT NULL,
+    token_hash         TEXT NOT NULL UNIQUE,
+    expires_at         TEXT NOT NULL,
+    consumed_at        TEXT,
+    created_at         TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS creator_sessions (
+    id                 TEXT PRIMARY KEY,
+    creator_account_id TEXT NOT NULL,
+    token_hash         TEXT NOT NULL UNIQUE,
+    created_at         TEXT NOT NULL,
+    expires_at         TEXT NOT NULL,
+    last_seen_at       TEXT,
+    revoked_at         TEXT
+  );
 `)
 
 function ensureColumn(table, column, definition) {
@@ -174,7 +199,14 @@ function ensureColumn(table, column, definition) {
   db.exec(`ALTER TABLE ${table} ADD COLUMN ${definition}`)
 }
 
-ensureColumn('submissions', 'creator_user_id', 'creator_user_id TEXT')
+ensureColumn('authors', 'creator_account_id', 'creator_account_id TEXT')
+ensureColumn('authors', 'visibility', "visibility TEXT NOT NULL DEFAULT 'approved'")
+ensureColumn('authors', 'moderation_status', "moderation_status TEXT NOT NULL DEFAULT 'clean'")
+ensureColumn('authors', 'updated_at', 'updated_at TEXT')
+ensureColumn('creator_accounts', 'username', 'username TEXT')
+ensureColumn('creator_accounts', 'contact', 'contact TEXT')
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_creator_accounts_username_unique ON creator_accounts(username)')
+db.exec('CREATE INDEX IF NOT EXISTS idx_creator_sessions_account_id ON creator_sessions(creator_account_id)')
 
 function seedIfEmpty() {
   const count = db.prepare('SELECT COUNT(*) AS n FROM boards').get().n
@@ -185,8 +217,14 @@ function seedIfEmpty() {
     'INSERT INTO bosses (id, raid_id, name, "order") VALUES (@id, @raidId, @name, @order)'
   )
   const insertAuthor = db.prepare(`
-    INSERT INTO authors (id, name, avatar_url, bio, guild_name, guild_recruit, guild_contact)
-    VALUES (@id, @name, @avatarUrl, @bio, @guildName, @guildRecruit, @guildContact)
+    INSERT INTO authors (
+      id, name, avatar_url, bio, guild_name, guild_recruit, guild_contact,
+      creator_account_id, visibility, moderation_status, updated_at
+    )
+    VALUES (
+      @id, @name, @avatarUrl, @bio, @guildName, @guildRecruit, @guildContact,
+      @creatorAccountId, @visibility, @moderationStatus, @updatedAt
+    )
   `)
   const insertBoard = db.prepare(`
     INSERT INTO boards (
@@ -212,6 +250,10 @@ function seedIfEmpty() {
         guildName: a.guildName ?? null,
         guildRecruit: a.guildRecruit ?? null,
         guildContact: a.guildContact ?? null,
+        creatorAccountId: null,
+        visibility: 'approved',
+        moderationStatus: 'clean',
+        updatedAt: null,
       })
     }
     for (const b of boards) {
@@ -258,6 +300,9 @@ function rowToAuthor(row) {
     guildName: row.guild_name ?? undefined,
     guildRecruit: row.guild_recruit ?? undefined,
     guildContact: row.guild_contact ?? undefined,
+    creatorAccountId: row.creator_account_id ?? undefined,
+    visibility: row.visibility ?? 'approved',
+    moderationStatus: row.moderation_status ?? 'clean',
   }
 }
 
@@ -309,24 +354,43 @@ function rowToSubmission(row) {
     reviewNote: row.review_note ?? undefined,
     boardId: row.board_id ?? undefined,
     authorId: row.author_id ?? undefined,
-    creatorUserId: row.creator_user_id ?? undefined,
     createdAt: row.created_at,
     reviewedAt: row.reviewed_at ?? undefined,
   }
 }
 
-function rowToCreatorUser(row) {
+function rowToCreatorAccount(row) {
   return {
     id: row.id,
-    provider: row.provider,
-    openid: row.open_id,
-    unionid: row.union_id ?? undefined,
-    nickname: row.nickname ?? undefined,
-    avatarUrl: row.avatar_url ?? undefined,
+    username: row.username,
+    status: row.status,
     authorId: row.author_id ?? undefined,
+    contact: row.contact ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    lastLoginAt: row.last_login_at,
+    lastLoginAt: row.last_login_at ?? undefined,
+  }
+}
+
+function rowToCreatorAccountExport(row) {
+  return {
+    ...rowToCreatorAccount(row),
+    email: row.email ?? undefined,
+    emailVerifiedAt: row.email_verified_at ?? undefined,
+    passwordHash: row.password_hash ?? undefined,
+  }
+}
+
+function rowToAdminCreatorAccount(row) {
+  const author = row.author_id ? stmt.authorById.get(row.author_id) : null
+  return {
+    ...rowToCreatorAccount(row),
+    author: author
+      ? {
+          ...rowToAuthor(author),
+          boardCount: stmt.boardCountByAuthor.get(author.id).n,
+        }
+      : null,
   }
 }
 
@@ -347,34 +411,97 @@ const stmt = {
   bossesByRaid: db.prepare('SELECT * FROM bosses WHERE raid_id = ? ORDER BY "order" ASC'),
   bossById: db.prepare('SELECT * FROM bosses WHERE id = ?'),
   allAuthors: db.prepare('SELECT * FROM authors'),
+  publicAuthors: db.prepare("SELECT * FROM authors WHERE visibility = 'approved'"),
   authorById: db.prepare('SELECT * FROM authors WHERE id = ?'),
+  authorByCreatorAccountId: db.prepare('SELECT * FROM authors WHERE creator_account_id = ?'),
   boardById: db.prepare('SELECT * FROM boards WHERE id = ?'),
-  creatorUserById: db.prepare('SELECT * FROM creator_users WHERE id = ?'),
-  allCreatorUsers: db.prepare('SELECT * FROM creator_users ORDER BY updated_at DESC'),
-  creatorUserByProviderOpenId: db.prepare(
-    'SELECT * FROM creator_users WHERE provider = ? AND open_id = ?'
-  ),
-  upsertCreatorUser: db.prepare(`
-    INSERT INTO creator_users (
-      id, provider, open_id, union_id, nickname, avatar_url, author_id,
+  creatorAccountById: db.prepare('SELECT * FROM creator_accounts WHERE id = ?'),
+  creatorAccountByUsername: db.prepare('SELECT * FROM creator_accounts WHERE username = ?'),
+  allCreatorAccounts: db.prepare('SELECT * FROM creator_accounts ORDER BY updated_at DESC'),
+  insertCreatorAccount: db.prepare(`
+    INSERT INTO creator_accounts (
+      id, email, username, email_verified_at, password_hash, status, author_id, contact,
       created_at, updated_at, last_login_at
     ) VALUES (
-      @id, @provider, @openId, @unionId, @nickname, @avatarUrl, @authorId,
-      @createdAt, @updatedAt, @lastLoginAt
+      @id, @email, @username, NULL, @passwordHash, @status, @authorId, @contact,
+      @createdAt, @updatedAt, NULL
     )
-    ON CONFLICT(provider, open_id) DO UPDATE SET
-      union_id = COALESCE(excluded.union_id, creator_users.union_id),
-      nickname = COALESCE(excluded.nickname, creator_users.nickname),
-      avatar_url = COALESCE(excluded.avatar_url, creator_users.avatar_url),
-      author_id = COALESCE(excluded.author_id, creator_users.author_id),
-      updated_at = excluded.updated_at,
-      last_login_at = excluded.last_login_at
   `),
-  updateCreatorUserAuthor: db.prepare(`
-    UPDATE creator_users
+  updateCreatorLogin: db.prepare(`
+    UPDATE creator_accounts
+    SET updated_at = @updatedAt,
+        last_login_at = @lastLoginAt
+    WHERE id = @id
+  `),
+  updateCreatorAccountStatus: db.prepare(`
+    UPDATE creator_accounts
+    SET status = @status,
+        updated_at = @updatedAt
+    WHERE id = @id
+  `),
+  updateCreatorAccountPassword: db.prepare(`
+    UPDATE creator_accounts
+    SET password_hash = @passwordHash,
+        updated_at = @updatedAt
+    WHERE id = @id
+  `),
+  creatorSessionByTokenHash: db.prepare(`
+    SELECT * FROM creator_sessions
+    WHERE token_hash = ?
+      AND revoked_at IS NULL
+      AND expires_at > ?
+  `),
+  insertCreatorSession: db.prepare(`
+    INSERT INTO creator_sessions (
+      id, creator_account_id, token_hash, created_at, expires_at, last_seen_at, revoked_at
+    ) VALUES (
+      @id, @creatorAccountId, @tokenHash, @createdAt, @expiresAt, @lastSeenAt, NULL
+    )
+  `),
+  touchCreatorSession: db.prepare(`
+    UPDATE creator_sessions
+    SET last_seen_at = @lastSeenAt
+    WHERE id = @id
+  `),
+  revokeCreatorSessionByTokenHash: db.prepare(`
+    UPDATE creator_sessions
+    SET revoked_at = @revokedAt
+    WHERE token_hash = @tokenHash AND revoked_at IS NULL
+  `),
+  revokeCreatorSessionsByAccount: db.prepare(`
+    UPDATE creator_sessions
+    SET revoked_at = @revokedAt
+    WHERE creator_account_id = @creatorAccountId AND revoked_at IS NULL
+  `),
+  deleteExpiredCreatorSessions: db.prepare(`
+    DELETE FROM creator_sessions
+    WHERE expires_at <= ?
+  `),
+  updateCreatorAccountAuthor: db.prepare(`
+    UPDATE creator_accounts
     SET author_id = @authorId,
         updated_at = @updatedAt
     WHERE id = @id
+  `),
+  upsertCreatorAccount: db.prepare(`
+    INSERT INTO creator_accounts (
+      id, email, username, email_verified_at, password_hash, status, author_id, contact,
+      created_at, updated_at, last_login_at
+    ) VALUES (
+      @id, @email, @username, @emailVerifiedAt, @passwordHash, @status, @authorId, @contact,
+      @createdAt, @updatedAt, @lastLoginAt
+    )
+    ON CONFLICT(id) DO UPDATE SET
+      email = excluded.email,
+      username = excluded.username,
+      email_verified_at = excluded.email_verified_at,
+      password_hash = excluded.password_hash,
+      status = excluded.status,
+      author_id = excluded.author_id,
+      contact = excluded.contact,
+      created_at = excluded.created_at,
+      updated_at = excluded.updated_at,
+      last_login_at = excluded.last_login_at
   `),
   bumpView: db.prepare('UPDATE boards SET view_count = view_count + 1 WHERE id = ?'),
   bumpLike: db.prepare('UPDATE boards SET like_count = like_count + 1 WHERE id = ?'),
@@ -395,12 +522,12 @@ const stmt = {
       id, title, raid_id, boss_id, difficulty, season_version, description,
       content_text, submitter_name, contact, wants_creator_profile,
       creator_avatar_url, creator_bio, creator_guild_name, creator_guild_recruit,
-      creator_guild_contact, status, source_key, creator_user_id, created_at
+      creator_guild_contact, status, source_key, author_id, created_at
     ) VALUES (
       @id, @title, @raidId, @bossId, @difficulty, @seasonVersion, @description,
       @contentText, @submitterName, @contact, @wantsCreatorProfile,
       @creatorAvatarUrl, @creatorBio, @creatorGuildName, @creatorGuildRecruit,
-      @creatorGuildContact, 'pending', @sourceKey, @creatorUserId, @createdAt
+      @creatorGuildContact, 'pending', @sourceKey, @authorId, @createdAt
     )
   `),
   markSubmissionReviewed: db.prepare(`
@@ -418,13 +545,13 @@ const stmt = {
       content_text, submitter_name, contact, wants_creator_profile,
       creator_avatar_url, creator_bio, creator_guild_name, creator_guild_recruit,
       creator_guild_contact, status, source_key, review_note, board_id, author_id,
-      creator_user_id, created_at, reviewed_at
+      created_at, reviewed_at
     ) VALUES (
       @id, @title, @raidId, @bossId, @difficulty, @seasonVersion, @description,
       @contentText, @submitterName, @contact, @wantsCreatorProfile,
       @creatorAvatarUrl, @creatorBio, @creatorGuildName, @creatorGuildRecruit,
       @creatorGuildContact, @status, @sourceKey, @reviewNote, @boardId, @authorId,
-      @creatorUserId, @createdAt, @reviewedAt
+      @createdAt, @reviewedAt
     )
     ON CONFLICT(id) DO UPDATE SET
       title = excluded.title,
@@ -447,12 +574,12 @@ const stmt = {
       review_note = excluded.review_note,
       board_id = excluded.board_id,
       author_id = excluded.author_id,
-      creator_user_id = excluded.creator_user_id,
       created_at = excluded.created_at,
       reviewed_at = excluded.reviewed_at
   `),
   // 管理端：全部板（含隐藏），按 updatedAt 倒序
   allBoardsAdmin: db.prepare('SELECT * FROM boards ORDER BY updated_at DESC'),
+  boardsByAuthorAdmin: db.prepare('SELECT * FROM boards WHERE author_id = ? ORDER BY updated_at DESC'),
   // 某作者名下板数（含隐藏，用于删除前校验与作者列表统计）
   boardCountByAuthor: db.prepare('SELECT COUNT(*) AS n FROM boards WHERE author_id = ?'),
   deleteBoard: db.prepare('DELETE FROM boards WHERE id = ?'),
@@ -472,19 +599,56 @@ const stmt = {
       "order" = excluded."order"
   `),
   insertAuthor: db.prepare(`
-    INSERT INTO authors (id, name, avatar_url, bio, guild_name, guild_recruit, guild_contact)
-    VALUES (@id, @name, @avatarUrl, @bio, @guildName, @guildRecruit, @guildContact)
+    INSERT INTO authors (
+      id, name, avatar_url, bio, guild_name, guild_recruit, guild_contact,
+      creator_account_id, visibility, moderation_status, updated_at
+    )
+    VALUES (
+      @id, @name, @avatarUrl, @bio, @guildName, @guildRecruit, @guildContact,
+      @creatorAccountId, @visibility, @moderationStatus, @updatedAt
+    )
   `),
   upsertAuthor: db.prepare(`
-    INSERT INTO authors (id, name, avatar_url, bio, guild_name, guild_recruit, guild_contact)
-    VALUES (@id, @name, @avatarUrl, @bio, @guildName, @guildRecruit, @guildContact)
+    INSERT INTO authors (
+      id, name, avatar_url, bio, guild_name, guild_recruit, guild_contact,
+      creator_account_id, visibility, moderation_status, updated_at
+    )
+    VALUES (
+      @id, @name, @avatarUrl, @bio, @guildName, @guildRecruit, @guildContact,
+      @creatorAccountId, @visibility, @moderationStatus, @updatedAt
+    )
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       avatar_url = excluded.avatar_url,
       bio = excluded.bio,
       guild_name = excluded.guild_name,
       guild_recruit = excluded.guild_recruit,
-      guild_contact = excluded.guild_contact
+      guild_contact = excluded.guild_contact,
+      creator_account_id = COALESCE(excluded.creator_account_id, authors.creator_account_id),
+      visibility = COALESCE(excluded.visibility, authors.visibility),
+      moderation_status = COALESCE(excluded.moderation_status, authors.moderation_status),
+      updated_at = COALESCE(excluded.updated_at, authors.updated_at)
+  `),
+  updateAuthorCreatorState: db.prepare(`
+    UPDATE authors
+    SET creator_account_id = COALESCE(@creatorAccountId, creator_account_id),
+        visibility = @visibility,
+        moderation_status = @moderationStatus,
+        updated_at = @updatedAt
+    WHERE id = @id
+  `),
+  updateAuthorProfile: db.prepare(`
+    UPDATE authors
+    SET name = @name,
+        avatar_url = @avatarUrl,
+        bio = @bio,
+        guild_name = @guildName,
+        guild_recruit = @guildRecruit,
+        guild_contact = @guildContact,
+        visibility = @visibility,
+        moderation_status = @moderationStatus,
+        updated_at = @updatedAt
+    WHERE id = @id
   `),
   deleteAuthor: db.prepare('DELETE FROM authors WHERE id = ?'),
   insertBoard: db.prepare(`
@@ -559,139 +723,102 @@ function optionalText(value) {
   return text || null
 }
 
-function jsonBase64Url(value) {
-  return Buffer.from(JSON.stringify(value)).toString('base64url')
-}
-
-function signStatePayload(encodedPayload) {
-  return createHmac('sha256', AUTH_STATE_SECRET).update(encodedPayload).digest('base64url')
-}
-
 function timingSafeStringEqual(a, b) {
   const aBuf = Buffer.from(a)
   const bBuf = Buffer.from(b)
   return aBuf.length === bBuf.length && timingSafeEqual(aBuf, bBuf)
 }
 
-function sanitizeReturnTo(value) {
-  const target = cleanText(value) || '/creator'
-  if (!target.startsWith('/') || target.startsWith('//')) return '/creator'
-  if (!target.startsWith('/creator')) return '/creator'
-  return target
+function normalizeUsername(value) {
+  return cleanText(value).toLowerCase()
 }
 
-function createAuthState(returnTo) {
-  const payload = jsonBase64Url({
-    nonce: randomBytes(12).toString('hex'),
-    returnTo: sanitizeReturnTo(returnTo),
-    iat: Date.now(),
+function validateCreatorUsername(username) {
+  if (!username) return '请填写用户名'
+  if (username.length < 3 || username.length > 24) return '用户名长度需要 3-24 位'
+  if (!/^[a-z0-9_-]+$/.test(username)) return '用户名只能包含小写英文、数字、下划线或短横线'
+  if (RESERVED_CREATOR_USERNAMES.has(username)) return '这个用户名不能使用'
+  return ''
+}
+
+function hashPassword(password) {
+  const salt = randomBytes(16).toString('hex')
+  const hash = scryptSync(password, salt, 64).toString('hex')
+  return `scrypt:${salt}:${hash}`
+}
+
+function verifyPassword(password, stored) {
+  const [kind, salt, expected] = String(stored || '').split(':')
+  if (kind !== 'scrypt' || !salt || !expected) return false
+  const actual = scryptSync(password, salt, 64).toString('hex')
+  return timingSafeStringEqual(actual, expected)
+}
+
+function hashSessionToken(token) {
+  return createHash('sha256').update(token).digest('hex')
+}
+
+function createCreatorAccountSession(accountId) {
+  const token = randomBytes(32).toString('hex')
+  const now = new Date()
+  const nowIso = now.toISOString()
+  stmt.insertCreatorSession.run({
+    id: `cs-${randomBytes(8).toString('hex')}`,
+    creatorAccountId: accountId,
+    tokenHash: hashSessionToken(token),
+    createdAt: nowIso,
+    expiresAt: new Date(now.getTime() + CREATOR_SESSION_TTL_MS).toISOString(),
+    lastSeenAt: nowIso,
   })
-  return `${payload}.${signStatePayload(payload)}`
-}
-
-function verifyAuthState(state) {
-  const raw = cleanText(state)
-  const [payload, signature, extra] = raw.split('.')
-  if (!payload || !signature || extra) return null
-  if (!timingSafeStringEqual(signature, signStatePayload(payload))) return null
-  try {
-    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
-    if (!parsed || typeof parsed.iat !== 'number') return null
-    if (Date.now() - parsed.iat > AUTH_STATE_TTL_MS) return null
-    return { returnTo: sanitizeReturnTo(parsed.returnTo) }
-  } catch {
-    return null
-  }
-}
-
-function requireWechatConfig(reply) {
-  if (WECHAT_APP_ID && WECHAT_APP_SECRET) return true
-  reply.code(501).send({ error: '微信登录未配置：请设置 WECHAT_APP_ID 与 WECHAT_APP_SECRET' })
-  return false
-}
-
-function wechatApiUrl(path, params) {
-  const url = new URL(path, `${WECHAT_API_BASE}/`)
-  for (const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value)
-  }
-  return url
-}
-
-async function fetchWechatJson(url) {
-  const res = await fetch(url)
-  let body
-  try {
-    body = await res.json()
-  } catch {
-    throw new Error(`微信接口响应不是 JSON（${res.status}）`)
-  }
-  if (!res.ok || body?.errcode) {
-    throw new Error(body?.errmsg || `微信接口请求失败（${res.status}）`)
-  }
-  return body
-}
-
-async function exchangeWechatCode(code) {
-  const token = await fetchWechatJson(
-    wechatApiUrl('/sns/oauth2/access_token', {
-      appid: WECHAT_APP_ID,
-      secret: WECHAT_APP_SECRET,
-      code,
-      grant_type: 'authorization_code',
-    })
-  )
-  if (!token.openid || !token.access_token) {
-    throw new Error('微信登录响应缺少 openid/access_token')
-  }
-
-  try {
-    const profile = await fetchWechatJson(
-      wechatApiUrl('/sns/userinfo', {
-        access_token: token.access_token,
-        openid: token.openid,
-        lang: 'zh_CN',
-      })
-    )
-    return {
-      openid: token.openid,
-      unionid: profile.unionid || token.unionid || null,
-      nickname: profile.nickname || null,
-      avatarUrl: profile.headimgurl || null,
-    }
-  } catch {
-    return {
-      openid: token.openid,
-      unionid: token.unionid || null,
-      nickname: null,
-      avatarUrl: null,
-    }
-  }
-}
-
-function upsertWechatUser(identity) {
-  const now = new Date().toISOString()
-  const existing = stmt.creatorUserByProviderOpenId.get('wechat', identity.openid)
-  const id = existing?.id || `u-${randomBytes(8).toString('hex')}`
-  stmt.upsertCreatorUser.run({
-    id,
-    provider: 'wechat',
-    openId: identity.openid,
-    unionId: identity.unionid,
-    nickname: identity.nickname,
-    avatarUrl: identity.avatarUrl,
-    authorId: existing?.author_id ?? null,
-    createdAt: existing?.created_at || now,
-    updatedAt: now,
-    lastLoginAt: now,
-  })
-  return stmt.creatorUserByProviderOpenId.get('wechat', identity.openid)
-}
-
-function createCreatorToken(userId) {
-  const token = randomBytes(24).toString('hex')
-  validCreatorTokens.set(token, userId)
   return token
+}
+
+function createCreatorApplication(input, now) {
+  const username = normalizeUsername(input.creatorUsername)
+  if (stmt.creatorAccountByUsername.get(username)) {
+    const err = new Error('这个用户名已被占用')
+    err.statusCode = 409
+    throw err
+  }
+
+  const accountId = `ca-${randomBytes(8).toString('hex')}`
+  const authorId = `a-${randomBytes(6).toString('hex')}`
+  stmt.insertCreatorAccount.run({
+    id: accountId,
+    email: `${accountId}@creator.local`,
+    username,
+    passwordHash: hashPassword(input.creatorPassword),
+    status: 'active',
+    authorId: null,
+    contact: input.contact ?? null,
+    createdAt: now,
+    updatedAt: now,
+  })
+  stmt.insertAuthor.run({
+    id: authorId,
+    name: input.submitterName,
+    avatarUrl: input.creatorAvatarUrl ?? null,
+    bio: input.creatorBio ?? null,
+    guildName: input.creatorGuildName ?? null,
+    guildRecruit: input.creatorGuildRecruit ?? null,
+    guildContact: input.creatorGuildContact ?? null,
+    creatorAccountId: accountId,
+    visibility: 'semi_public',
+    moderationStatus: 'clean',
+    updatedAt: now,
+  })
+  stmt.updateCreatorAccountAuthor.run({ id: accountId, authorId, updatedAt: now })
+  const account = stmt.creatorAccountById.get(accountId)
+  const author = stmt.authorById.get(authorId)
+  return {
+    account,
+    author,
+    creatorAuth: {
+      token: createCreatorAccountSession(account.id),
+      user: rowToCreatorAccount(account),
+      author: rowToAuthor(author),
+    },
+  }
 }
 
 function readSubmissionInput(body) {
@@ -706,6 +833,8 @@ function readSubmissionInput(body) {
     submitterName: cleanText(body.submitterName),
     contact: optionalText(body.contact),
     wantsCreatorProfile: body.wantsCreatorProfile === true,
+    creatorUsername: normalizeUsername(body.creatorUsername),
+    creatorPassword: typeof body.creatorPassword === 'string' ? body.creatorPassword : '',
     creatorAvatarUrl: optionalText(body.creatorAvatarUrl ?? body.avatarUrl),
     creatorBio: optionalText(body.creatorBio ?? body.bio),
     creatorGuildName: optionalText(body.creatorGuildName ?? body.guildName),
@@ -714,7 +843,7 @@ function readSubmissionInput(body) {
   }
 }
 
-function validateSubmissionInput(input, reply) {
+function validateSubmissionInput(input, reply, options = {}) {
   const required = [
     ['title', '标题'],
     ['raidId', '团本'],
@@ -736,15 +865,144 @@ function validateSubmissionInput(input, reply) {
   if (input.bossId && !stmt.bossById.get(input.bossId)) {
     return reply.code(400).send({ error: '字段无效：bossId' })
   }
-  if (input.wantsCreatorProfile && !input.contact) {
-    return reply.code(400).send({ error: '字段缺失：contact（申请创作者时必须填写联系方式）' })
+  if (input.wantsCreatorProfile && !options.hasCreatorSession) {
+    const usernameError = validateCreatorUsername(input.creatorUsername)
+    if (usernameError) return reply.code(400).send({ error: usernameError })
+    if (!input.creatorPassword) return reply.code(400).send({ error: '请填写密码' })
+    if (input.creatorPassword.length < 8) {
+      return reply.code(400).send({ error: '密码至少需要 8 位' })
+    }
   }
   return null
+}
+
+function readCreatorProfilePatch(body = {}, current) {
+  const next = {
+    name: optionalText(body.name) ?? current.name,
+    avatarUrl: optionalText(body.avatarUrl) ?? current.avatar_url,
+    bio: optionalText(body.bio) ?? current.bio,
+    guildName: optionalText(body.guildName) ?? current.guild_name,
+    guildRecruit: optionalText(body.guildRecruit) ?? current.guild_recruit,
+    guildContact: optionalText(body.guildContact) ?? current.guild_contact,
+  }
+  const limits = [
+    ['name', next.name, 40],
+    ['avatarUrl', next.avatarUrl, 240],
+    ['bio', next.bio, 120],
+    ['guildName', next.guildName, 40],
+    ['guildRecruit', next.guildRecruit, 120],
+    ['guildContact', next.guildContact, 80],
+  ]
+  for (const [key, value, max] of limits) {
+    if (value && value.length > max) throw new Error(`字段过长：${key}`)
+  }
+  const combined = limits.map(([, value]) => value || '').join('\n').toLowerCase()
+  const blocked = ['黄暴', '博彩', '裸聊', '约炮']
+  if (blocked.some((word) => combined.includes(word))) {
+    throw new Error('作者资料包含暂不支持公开展示的内容')
+  }
+  return next
+}
+
+function readBoardDraft(body = {}, current = null) {
+  return {
+    title: 'title' in body ? cleanText(body.title) : (current?.title ?? ''),
+    raidId: 'raidId' in body ? cleanText(body.raidId) : (current?.raid_id ?? ''),
+    bossId: 'bossId' in body ? optionalText(body.bossId) : (current?.boss_id ?? null),
+    difficulty: 'difficulty' in body ? cleanText(body.difficulty) : (current?.difficulty ?? ''),
+    seasonVersion: 'seasonVersion' in body
+      ? cleanText(body.seasonVersion)
+      : (current?.season_version ?? ''),
+    description: 'description' in body
+      ? cleanText(body.description)
+      : (current?.description ?? ''),
+    contentText: 'contentText' in body
+      ? (typeof body.contentText === 'string' ? body.contentText.trim() : '')
+      : (current?.content_text ?? ''),
+    isHidden: 'isHidden' in body ? body.isHidden === true : current?.is_hidden === 1,
+  }
+}
+
+function validateBoardDraft(input, reply) {
+  const required = [
+    ['title', '标题'],
+    ['raidId', '团本'],
+    ['bossId', 'BOSS'],
+    ['difficulty', '难度'],
+    ['contentText', '战术正文'],
+  ]
+  for (const [key, label] of required) {
+    if (!input[key]) return reply.code(400).send({ error: `字段缺失：${key}（${label}）` })
+  }
+  if (!['heroic', 'mythic'].includes(input.difficulty)) {
+    return reply.code(400).send({ error: '字段无效：difficulty' })
+  }
+  const raid = stmt.raidById.get(input.raidId)
+  if (!raid) return reply.code(400).send({ error: '字段无效：raidId' })
+  if (input.bossId && !stmt.bossById.get(input.bossId)) {
+    return reply.code(400).send({ error: '字段无效：bossId' })
+  }
+  input.seasonVersion = input.seasonVersion || raid.patch
+  return null
+}
+
+function getApprovedCreatorAuthor(account, reply) {
+  if (!account || account.status !== 'active') {
+    reply.code(403).send({ error: '账号已被暂停，请联系管理员' })
+    return null
+  }
+  const author = account.author_id ? stmt.authorById.get(account.author_id) : null
+  if (!author || author.visibility === 'hidden') {
+    reply.code(404).send({ error: '作者主页不存在' })
+    return null
+  }
+  if (author.visibility !== 'approved') {
+    reply.code(403).send({ error: '作者主页通过审核后才能直接发布战术板' })
+    return null
+  }
+  return author
+}
+
+function promoteCreatorAuthor(authorRow) {
+  if (!authorRow?.creator_account_id || authorRow.visibility === 'approved') {
+    return authorRow
+  }
+  stmt.updateAuthorCreatorState.run({
+    id: authorRow.id,
+    creatorAccountId: authorRow.creator_account_id,
+    visibility: 'approved',
+    moderationStatus: authorRow.moderation_status ?? 'clean',
+    updatedAt: new Date().toISOString(),
+  })
+  return stmt.authorById.get(authorRow.id)
 }
 
 function createAuthorFromSubmission(submission, mode, body = {}) {
   const name = cleanText(body.authorName) || submission.submitter_name
   const useProfile = mode === 'createAuthor'
+  const linkedAuthor = submission.author_id ? stmt.authorById.get(submission.author_id) : null
+  if (linkedAuthor?.creator_account_id) {
+    const now = new Date().toISOString()
+    const profile = readCreatorProfilePatch(
+      {
+        name,
+        avatarUrl: useProfile ? (optionalText(body.avatarUrl) ?? submission.creator_avatar_url) : linkedAuthor.avatar_url,
+        bio: useProfile ? (optionalText(body.bio) ?? submission.creator_bio) : linkedAuthor.bio,
+        guildName: useProfile ? (optionalText(body.guildName) ?? submission.creator_guild_name) : linkedAuthor.guild_name,
+        guildRecruit: useProfile ? (optionalText(body.guildRecruit) ?? submission.creator_guild_recruit) : linkedAuthor.guild_recruit,
+        guildContact: useProfile ? (optionalText(body.guildContact) ?? submission.creator_guild_contact) : linkedAuthor.guild_contact,
+      },
+      linkedAuthor
+    )
+    stmt.updateAuthorProfile.run({
+      id: linkedAuthor.id,
+      ...profile,
+      visibility: 'approved',
+      moderationStatus: linkedAuthor.moderation_status ?? 'clean',
+      updatedAt: now,
+    })
+    return stmt.authorById.get(linkedAuthor.id)
+  }
   const id = `a-${randomBytes(6).toString('hex')}`
   stmt.insertAuthor.run({
     id,
@@ -754,6 +1012,10 @@ function createAuthorFromSubmission(submission, mode, body = {}) {
     guildName: useProfile ? (optionalText(body.guildName) ?? submission.creator_guild_name) : null,
     guildRecruit: useProfile ? (optionalText(body.guildRecruit) ?? submission.creator_guild_recruit) : null,
     guildContact: useProfile ? (optionalText(body.guildContact) ?? submission.creator_guild_contact) : null,
+    creatorAccountId: null,
+    visibility: 'approved',
+    moderationStatus: 'clean',
+    updatedAt: new Date().toISOString(),
   })
   return stmt.authorById.get(id)
 }
@@ -817,20 +1079,26 @@ function requireAuth(req, reply, done) {
 }
 
 function requireCreatorAuth(req, reply, done) {
-  const user = getCreatorUserFromRequest(req)
-  if (!user) {
+  const account = getCreatorAccountFromRequest(req)
+  if (!account) {
     reply.code(401).send({ error: '未授权' })
     return
   }
-  req.creatorUser = user
+  req.creatorAccount = account
   done()
 }
 
-function getCreatorUserFromRequest(req) {
+function getCreatorAccountFromRequest(req) {
   const header = req.headers.authorization || ''
   const token = header.startsWith('Bearer ') ? header.slice(7) : ''
-  const userId = token ? validCreatorTokens.get(token) : null
-  return userId ? stmt.creatorUserById.get(userId) : null
+  if (!token) return null
+  const now = new Date().toISOString()
+  const session = stmt.creatorSessionByTokenHash.get(hashSessionToken(token), now)
+  if (!session) return null
+  const account = stmt.creatorAccountById.get(session.creator_account_id)
+  if (!account) return null
+  stmt.touchCreatorSession.run({ id: session.id, lastSeenAt: now })
+  return account
 }
 
 // POST /api/admin/login -> { token }；密码错 401。
@@ -852,51 +1120,187 @@ app.post('/api/admin/login', (req, reply) => {
   return { token }
 })
 
-// GET /api/auth/wechat/start -> 跳转微信开放平台扫码登录。
-app.get('/api/auth/wechat/start', (req, reply) => {
-  if (!requireWechatConfig(reply)) return
+// POST /api/creator/login -> 用户名 + 密码登录。
+app.post('/api/creator/login', (req, reply) => {
+  const clientKey = getClientKey(req)
+  const limit = loginLimiter.hit(`creator-login:${clientKey}`)
+  if (!limit.allowed) {
+    reply.header('Retry-After', String(Math.ceil((limit.resetAt - Date.now()) / 1000)))
+    return reply.code(429).send({ error: '操作太频繁，请稍后再试' })
+  }
 
-  const url = new URL(WECHAT_AUTH_URL)
-  url.searchParams.set('appid', WECHAT_APP_ID)
-  url.searchParams.set('redirect_uri', WECHAT_REDIRECT_URI)
-  url.searchParams.set('response_type', 'code')
-  url.searchParams.set('scope', 'snsapi_login')
-  url.searchParams.set('state', createAuthState(req.query?.returnTo))
-  url.hash = 'wechat_redirect'
-  return reply.redirect(url.toString())
-})
+  const username = normalizeUsername(req.body?.username)
+  const password = typeof req.body?.password === 'string' ? req.body.password : ''
+  const account = username ? stmt.creatorAccountByUsername.get(username) : null
+  if (account?.status === 'suspended') {
+    return reply.code(403).send({ error: '账号已被暂停，请联系管理员' })
+  }
+  if (!account || account.status !== 'active' || !verifyPassword(password, account.password_hash)) {
+    return reply.code(401).send({ error: '用户名或密码错误' })
+  }
 
-// GET /api/auth/wechat/callback -> code 换微信身份，创建创作者会话后回前端。
-app.get('/api/auth/wechat/callback', async (req, reply) => {
-  if (!requireWechatConfig(reply)) return
-
-  const state = verifyAuthState(req.query?.state)
-  if (!state) return reply.code(400).send({ error: '微信登录 state 无效或已过期' })
-
-  const code = cleanText(req.query?.code)
-  if (!code) return reply.code(400).send({ error: '微信登录缺少 code' })
-
-  try {
-    const identity = await exchangeWechatCode(code)
-    const user = upsertWechatUser(identity)
-    const token = createCreatorToken(user.id)
-    const target = new URL(state.returnTo, `${FRONTEND_BASE_URL}/`)
-    target.hash = new URLSearchParams({ creator_token: token }).toString()
-    return reply.redirect(target.toString())
-  } catch (err) {
-    const message = err instanceof Error ? err.message : '微信登录失败'
-    return reply.code(502).send({ error: message })
+  loginLimiter.reset(`creator-login:${clientKey}`)
+  const now = new Date().toISOString()
+  stmt.updateCreatorLogin.run({
+    id: account.id,
+    updatedAt: now,
+    lastLoginAt: now,
+  })
+  const fresh = stmt.creatorAccountById.get(account.id)
+  const author = fresh.author_id ? stmt.authorById.get(fresh.author_id) : null
+  return {
+    token: createCreatorAccountSession(fresh.id),
+    user: rowToCreatorAccount(fresh),
+    author: author ? rowToAuthor(author) : null,
   }
 })
 
 // GET /api/creator/me -> 当前创作者登录态。
 app.get('/api/creator/me', { preHandler: requireCreatorAuth }, (req) => {
-  const user = rowToCreatorUser(req.creatorUser)
-  const authorRow = req.creatorUser.author_id ? stmt.authorById.get(req.creatorUser.author_id) : null
+  const user = rowToCreatorAccount(req.creatorAccount)
+  const authorRow = req.creatorAccount.author_id ? stmt.authorById.get(req.creatorAccount.author_id) : null
   return {
     user,
     author: authorRow ? rowToAuthor(authorRow) : null,
   }
+})
+
+// PUT /api/creator/profile -> 创作者编辑自己的半公开作者资料。
+app.put('/api/creator/profile', { preHandler: requireCreatorAuth }, (req, reply) => {
+  if (!req.creatorAccount) {
+    return reply.code(403).send({ error: '当前创作者身份不可用' })
+  }
+  if (req.creatorAccount.status !== 'active') {
+    return reply.code(403).send({ error: '账号已被暂停，请联系管理员' })
+  }
+  const author = req.creatorAccount.author_id ? stmt.authorById.get(req.creatorAccount.author_id) : null
+  if (!author || author.visibility === 'hidden') {
+    return reply.code(404).send({ error: '作者主页不存在' })
+  }
+
+  let profile
+  try {
+    profile = readCreatorProfilePatch(req.body ?? {}, author)
+  } catch (err) {
+    return reply.code(400).send({ error: err instanceof Error ? err.message : '作者资料无效' })
+  }
+
+  const nextVisibility = author.visibility === 'draft' ? 'semi_public' : author.visibility
+  stmt.updateAuthorProfile.run({
+    id: author.id,
+    ...profile,
+    visibility: nextVisibility,
+    moderationStatus: author.moderation_status ?? 'clean',
+    updatedAt: new Date().toISOString(),
+  })
+  return {
+    user: rowToCreatorAccount(stmt.creatorAccountById.get(req.creatorAccount.id)),
+    author: rowToAuthor(stmt.authorById.get(author.id)),
+  }
+})
+
+// POST /api/creator/logout -> 撤销当前创作者 session。
+app.post('/api/creator/logout', (req) => {
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+  if (token) {
+    stmt.revokeCreatorSessionByTokenHash.run({
+      tokenHash: hashSessionToken(token),
+      revokedAt: new Date().toISOString(),
+    })
+  }
+  return { ok: true }
+})
+
+// GET /api/creator/boards -> 当前正式创作者自己的板（含已下架）
+app.get('/api/creator/boards', { preHandler: requireCreatorAuth }, (req, reply) => {
+  const author = getApprovedCreatorAuthor(req.creatorAccount, reply)
+  if (!author) return reply
+  return stmt.boardsByAuthorAdmin.all(author.id).map(rowToAdminBoard)
+})
+
+// POST /api/creator/boards -> 正式创作者直接发布自己的板，不进入审核队列。
+app.post('/api/creator/boards', { preHandler: requireCreatorAuth }, (req, reply) => {
+  const author = getApprovedCreatorAuthor(req.creatorAccount, reply)
+  if (!author) return reply
+
+  const clientKey = getClientKey(req)
+  const limit = submissionLimiter.hit(`creator-board:${req.creatorAccount.id}:${clientKey}`)
+  if (!limit.allowed) {
+    reply.header('Retry-After', String(Math.ceil((limit.resetAt - Date.now()) / 1000)))
+    return reply.code(429).send({ error: '操作太频繁，请稍后再试' })
+  }
+
+  const input = readBoardDraft(req.body ?? {})
+  const errorReply = validateBoardDraft(input, reply)
+  if (errorReply) return errorReply
+
+  const id = `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+  const today = new Date().toISOString().slice(0, 10)
+  stmt.insertBoard.run({
+    id,
+    title: input.title,
+    raidId: input.raidId,
+    bossId: input.bossId ?? null,
+    difficulty: input.difficulty,
+    seasonVersion: input.seasonVersion,
+    contentText: input.contentText,
+    description: input.description,
+    authorId: author.id,
+    isFeatured: 0,
+    createdAt: today,
+    updatedAt: today,
+  })
+  return reply.code(201).send(rowToAdminBoard(stmt.boardById.get(id)))
+})
+
+// PUT /api/creator/boards/:id -> 正式创作者编辑/恢复自己的板。
+app.put('/api/creator/boards/:id', { preHandler: requireCreatorAuth }, (req, reply) => {
+  const author = getApprovedCreatorAuthor(req.creatorAccount, reply)
+  if (!author) return reply
+  const row = stmt.boardById.get(req.params.id)
+  if (!row || row.author_id !== author.id) return reply.code(404).send({ error: 'board not found' })
+
+  const input = readBoardDraft(req.body ?? {}, row)
+  const errorReply = validateBoardDraft(input, reply)
+  if (errorReply) return errorReply
+
+  const body = req.body ?? {}
+  const fields = [
+    ['title', 'title', input.title],
+    ['raidId', 'raid_id', input.raidId],
+    ['bossId', 'boss_id', input.bossId ?? null],
+    ['difficulty', 'difficulty', input.difficulty],
+    ['seasonVersion', 'season_version', input.seasonVersion],
+    ['contentText', 'content_text', input.contentText],
+    ['description', 'description', input.description],
+    ['isHidden', 'is_hidden', input.isHidden ? 1 : 0],
+  ]
+  const sets = []
+  const params = []
+  for (const [key, col, value] of fields) {
+    if (key in body) {
+      sets.push(`${col} = ?`)
+      params.push(value)
+    }
+  }
+  const today = new Date().toISOString().slice(0, 10)
+  sets.push('updated_at = ?')
+  params.push(today, row.id)
+  db.prepare(`UPDATE boards SET ${sets.join(', ')} WHERE id = ?`).run(...params)
+  return rowToAdminBoard(stmt.boardById.get(row.id))
+})
+
+// DELETE /api/creator/boards/:id -> 创作者自助下架；保留数据，支持恢复发布。
+app.delete('/api/creator/boards/:id', { preHandler: requireCreatorAuth }, (req, reply) => {
+  const author = getApprovedCreatorAuthor(req.creatorAccount, reply)
+  if (!author) return reply
+  const row = stmt.boardById.get(req.params.id)
+  if (!row || row.author_id !== author.id) return reply.code(404).send({ error: 'board not found' })
+
+  db.prepare('UPDATE boards SET is_hidden = 1, updated_at = ? WHERE id = ?')
+    .run(new Date().toISOString().slice(0, 10), row.id)
+  return { ok: true }
 })
 
 // GET /api/raids -> Raid[]（boardCount = 该团本未隐藏板数）
@@ -961,13 +1365,16 @@ app.get('/api/boards/:id', (req, reply) => {
 
 // GET /api/authors -> Author[]
 app.get('/api/authors', () => {
-  return stmt.allAuthors.all().map(rowToAuthor)
+  return stmt.publicAuthors.all().map(rowToAuthor)
 })
 
 // GET /api/authors/:id -> { author, boards }
 app.get('/api/authors/:id', (req, reply) => {
   const row = stmt.authorById.get(req.params.id)
   if (!row) return reply.code(404).send({ error: 'author not found' })
+  if (!['semi_public', 'approved'].includes(row.visibility ?? 'approved')) {
+    return reply.code(404).send({ error: 'author not found' })
+  }
   const author = rowToAuthor(row)
   const boardList = queryBoards({ authorId: row.id })
   return { author, boards: boardList }
@@ -1001,23 +1408,41 @@ app.post('/api/submissions', { bodyLimit: 1024 * 1024 }, (req, reply) => {
   }
 
   const input = readSubmissionInput(req.body ?? {})
-  const errorReply = validateSubmissionInput(input, reply)
+  const creatorAccount = getCreatorAccountFromRequest(req)
+  const errorReply = validateSubmissionInput(input, reply, {
+    hasCreatorSession: !!creatorAccount,
+  })
   if (errorReply) return errorReply
 
-  const creatorUser = getCreatorUserFromRequest(req)
   const id = `s-${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`
   const now = new Date().toISOString()
-  stmt.insertSubmission.run({
-    id,
-    ...input,
-    bossId: input.bossId ?? null,
-    contact: input.contact ?? null,
-    wantsCreatorProfile: input.wantsCreatorProfile ? 1 : 0,
-    sourceKey: clientKey,
-    creatorUserId: creatorUser?.id ?? null,
-    createdAt: now,
-  })
-  return reply.code(201).send(rowToSubmission(stmt.submissionById.get(id)))
+  try {
+    const createSubmission = db.transaction(() => {
+      const application = input.wantsCreatorProfile && !creatorAccount
+        ? createCreatorApplication(input, now)
+        : null
+      stmt.insertSubmission.run({
+        id,
+        ...input,
+        bossId: input.bossId ?? null,
+        contact: input.contact ?? null,
+        wantsCreatorProfile: input.wantsCreatorProfile ? 1 : 0,
+        sourceKey: clientKey,
+        authorId: creatorAccount?.author_id ?? application?.author?.id ?? null,
+        createdAt: now,
+      })
+      const submission = rowToSubmission(stmt.submissionById.get(id))
+      if (application?.creatorAuth) {
+        submission.creatorAuth = application.creatorAuth
+      }
+      return submission
+    })
+    return reply.code(201).send(createSubmission())
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '投稿失败'
+    const status = err?.statusCode || (message.includes('占用') ? 409 : 400)
+    return reply.code(status).send({ error: message })
+  }
 })
 
 // POST /api/boards -> 新建 Board（受保护；后端生成 id；viewCount=0, likeCount=0, isHidden=false）
@@ -1071,6 +1496,11 @@ app.get('/api/admin/submissions', { preHandler: requireAuth }, () => {
   return stmt.allSubmissionsAdmin.all().map(rowToSubmission)
 })
 
+// GET /api/admin/creator-accounts -> 创作者账号列表；不暴露 password_hash。
+app.get('/api/admin/creator-accounts', { preHandler: requireAuth }, () => {
+  return stmt.allCreatorAccounts.all().map(rowToAdminCreatorAccount)
+})
+
 // POST /api/admin/submissions/:id/approve -> 通过投稿并发布正式板。
 app.post('/api/admin/submissions/:id/approve', { preHandler: requireAuth }, (req, reply) => {
   const submission = stmt.submissionById.get(req.params.id)
@@ -1090,6 +1520,7 @@ app.post('/api/admin/submissions/:id/approve', { preHandler: requireAuth }, (req
         if (!authorId) throw new Error('字段缺失：authorId')
         authorRow = stmt.authorById.get(authorId)
         if (!authorRow) throw new Error('author not found')
+        authorRow = promoteCreatorAuthor(authorRow)
       } else if (mode === 'createAuthor' || mode === 'plainAuthor') {
         authorRow = createAuthorFromSubmission(submission, mode, body)
       } else {
@@ -1106,13 +1537,6 @@ app.post('/api/admin/submissions/:id/approve', { preHandler: requireAuth }, (req
         authorId: authorRow.id,
         reviewedAt,
       })
-      if (submission.creator_user_id) {
-        stmt.updateCreatorUserAuthor.run({
-          id: submission.creator_user_id,
-          authorId: authorRow.id,
-          updatedAt: reviewedAt,
-        })
-      }
       return {
         submission: rowToSubmission(stmt.submissionById.get(submission.id)),
         board: rowToBoard(boardRow),
@@ -1156,6 +1580,52 @@ app.post('/api/admin/submissions/:id/spam', { preHandler: requireAuth }, (req, r
   return markSubmissionStatus(req.params.id, 'spam', req.body?.note, reply)
 })
 
+// PUT /api/admin/creator-accounts/:id -> 管理员封禁 / 恢复创作者账号。
+app.put('/api/admin/creator-accounts/:id', { preHandler: requireAuth }, (req, reply) => {
+  const row = stmt.creatorAccountById.get(req.params.id)
+  if (!row) return reply.code(404).send({ error: 'creator account not found' })
+  const status = cleanText(req.body?.status)
+  if (!['active', 'suspended'].includes(status)) {
+    return reply.code(400).send({ error: '字段无效：status' })
+  }
+  stmt.updateCreatorAccountStatus.run({
+    id: row.id,
+    status,
+    updatedAt: new Date().toISOString(),
+  })
+  if (status === 'suspended') {
+    stmt.revokeCreatorSessionsByAccount.run({
+      creatorAccountId: row.id,
+      revokedAt: new Date().toISOString(),
+    })
+  }
+  return rowToCreatorAccount(stmt.creatorAccountById.get(row.id))
+})
+
+// POST /api/admin/creator-accounts/:id/reset-password -> 管理员人工重置密码。
+app.post('/api/admin/creator-accounts/:id/reset-password', { preHandler: requireAuth }, (req, reply) => {
+  const row = stmt.creatorAccountById.get(req.params.id)
+  if (!row) return reply.code(404).send({ error: 'creator account not found' })
+  const password = typeof req.body?.password === 'string' ? req.body.password : ''
+  if (password.length < 8) {
+    return reply.code(400).send({ error: '密码长度至少 8 位' })
+  }
+  const now = new Date().toISOString()
+  stmt.updateCreatorAccountPassword.run({
+    id: row.id,
+    passwordHash: hashPassword(password),
+    updatedAt: now,
+  })
+  stmt.revokeCreatorSessionsByAccount.run({
+    creatorAccountId: row.id,
+    revokedAt: now,
+  })
+  return {
+    user: rowToCreatorAccount(stmt.creatorAccountById.get(row.id)),
+    revokedSessions: true,
+  }
+})
+
 // GET /api/admin/export -> 全量导出当前 SQLite 业务数据，用于部署前备份。
 app.get('/api/admin/export', { preHandler: requireAuth }, () => {
   return {
@@ -1169,7 +1639,7 @@ app.get('/api/admin/export', { preHandler: requireAuth }, () => {
     authors: stmt.allAuthors.all().map(rowToAuthor),
     boards: stmt.allBoardsAdmin.all().map(rowToAdminBoard),
     submissions: stmt.allSubmissionsAdmin.all().map(rowToSubmission),
-    creatorUsers: stmt.allCreatorUsers.all().map(rowToCreatorUser),
+    creatorAccounts: stmt.allCreatorAccounts.all().map(rowToCreatorAccountExport),
   }
 })
 
@@ -1187,10 +1657,32 @@ app.post('/api/admin/import', { preHandler: requireAuth, bodyLimit: 10 * 1024 * 
   const authorRows = requireArray(body.authors, 'authors', reply)
   const boardRows = requireArray(body.boards, 'boards', reply)
   const submissionRows = body.submissions == null ? [] : requireArray(body.submissions, 'submissions', reply)
-  const creatorUserRows = body.creatorUsers == null ? [] : requireArray(body.creatorUsers, 'creatorUsers', reply)
-  if (!raidRows || !bossRows || !authorRows || !boardRows || !submissionRows || !creatorUserRows) return reply
+  const creatorAccountRows = body.creatorAccounts == null ? [] : requireArray(body.creatorAccounts, 'creatorAccounts', reply)
+  if (
+    !raidRows ||
+    !bossRows ||
+    !authorRows ||
+    !boardRows ||
+    !submissionRows ||
+    !creatorAccountRows
+  ) return reply
 
   const importAll = db.transaction(() => {
+    for (const account of creatorAccountRows) {
+      stmt.upsertCreatorAccount.run({
+        id: account.id,
+        email: account.email ?? `${account.id}@creator.local`,
+        username: account.username ?? null,
+        emailVerifiedAt: account.emailVerifiedAt ?? null,
+        passwordHash: account.passwordHash ?? null,
+        status: account.status ?? 'suspended',
+        authorId: account.authorId ?? null,
+        contact: account.contact ?? null,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+        lastLoginAt: account.lastLoginAt ?? null,
+      })
+    }
     for (const r of raidRows) {
       stmt.upsertRaid.run({ id: r.id, name: r.name, patch: r.patch })
     }
@@ -1206,6 +1698,10 @@ app.post('/api/admin/import', { preHandler: requireAuth, bodyLimit: 10 * 1024 * 
         guildName: a.guildName ?? null,
         guildRecruit: a.guildRecruit ?? null,
         guildContact: a.guildContact ?? null,
+        creatorAccountId: a.creatorAccountId ?? null,
+        visibility: a.visibility ?? 'approved',
+        moderationStatus: a.moderationStatus ?? 'clean',
+        updatedAt: a.updatedAt ?? null,
       })
     }
     for (const b of boardRows) {
@@ -1251,23 +1747,8 @@ app.post('/api/admin/import', { preHandler: requireAuth, bodyLimit: 10 * 1024 * 
         reviewNote: s.reviewNote ?? null,
         boardId: s.boardId ?? null,
         authorId: s.authorId ?? null,
-        creatorUserId: s.creatorUserId ?? null,
         createdAt: s.createdAt,
         reviewedAt: s.reviewedAt ?? null,
-      })
-    }
-    for (const u of creatorUserRows) {
-      stmt.upsertCreatorUser.run({
-        id: u.id,
-        provider: u.provider,
-        openId: u.openid,
-        unionId: u.unionid ?? null,
-        nickname: u.nickname ?? null,
-        avatarUrl: u.avatarUrl ?? null,
-        authorId: u.authorId ?? null,
-        createdAt: u.createdAt,
-        updatedAt: u.updatedAt,
-        lastLoginAt: u.lastLoginAt,
       })
     }
   })
@@ -1281,7 +1762,7 @@ app.post('/api/admin/import', { preHandler: requireAuth, bodyLimit: 10 * 1024 * 
       authors: authorRows.length,
       boards: boardRows.length,
       submissions: submissionRows.length,
-      creatorUsers: creatorUserRows.length,
+      creatorAccounts: creatorAccountRows.length,
     },
   }
 })
@@ -1343,6 +1824,10 @@ app.post('/api/authors', { preHandler: requireAuth }, (req, reply) => {
     guildName: a.guildName ?? null,
     guildRecruit: a.guildRecruit ?? null,
     guildContact: a.guildContact ?? null,
+    creatorAccountId: null,
+    visibility: 'approved',
+    moderationStatus: 'clean',
+    updatedAt: new Date().toISOString(),
   })
   return reply.code(201).send(rowToAuthor(stmt.authorById.get(id)))
 })
@@ -1359,11 +1844,16 @@ app.put('/api/authors/:id', { preHandler: requireAuth }, (req, reply) => {
     ['guildName', 'guild_name'],
     ['guildRecruit', 'guild_recruit'],
     ['guildContact', 'guild_contact'],
+    ['visibility', 'visibility'],
+    ['moderationStatus', 'moderation_status'],
   ]
   const sets = []
   const params = []
   for (const [key, col] of fields) {
     if (key in a) {
+      if (key === 'visibility' && !['semi_public', 'approved', 'hidden'].includes(a[key])) {
+        return reply.code(400).send({ error: '字段无效：visibility' })
+      }
       sets.push(`${col} = ?`)
       params.push(a[key] ?? null)
     }

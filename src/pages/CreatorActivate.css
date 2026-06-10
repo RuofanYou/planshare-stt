@@ -1,0 +1,72 @@
+.ps-creator-activate {
+  display: flex;
+  min-height: min(680px, calc(100vh - 160px));
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--space-12) var(--space-16);
+}
+
+.ps-creator-activate__wrap {
+  width: min(100%, 560px);
+}
+
+.ps-creator-activate__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-8);
+}
+
+.ps-creator-activate__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ps-creator-activate__label {
+  color: var(--color-gold-cream);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+}
+
+.ps-creator-activate__input {
+  min-height: 44px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink);
+  padding: 0 var(--space-4);
+  font: inherit;
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease-epic), box-shadow var(--dur-fast) var(--ease-epic);
+}
+
+.ps-creator-activate__input:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px var(--color-gold-glow);
+}
+
+.ps-creator-activate__error {
+  margin: 0;
+  color: var(--color-ember-bright);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-creator-activate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 480px) {
+  .ps-creator-activate {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .ps-creator-activate__card {
+    padding: var(--space-5);
+  }
+}

@@ -15,6 +15,7 @@ import type {
   CreateBoardInput,
   AdminBoard,
   AdminAuthor,
+  AdminCreatorAccount,
   UpdateBoardInput,
   AuthorInput,
   UpdateAuthorInput,
@@ -24,6 +25,12 @@ import type {
   ApproveSubmissionInput,
   ApproveSubmissionResult,
   CreatorMeResult,
+  CreatorAuthResult,
+  CreatorProfileInput,
+  CreatorBoard,
+  CreatorBoardInput,
+  UpdateCreatorBoardInput,
+  ResetCreatorPasswordResult,
 } from '../data/types'
 import { getToken, clearToken, UnauthorizedError } from './adminAuth'
 import {
@@ -222,14 +229,56 @@ export function adminLogin(password: string): Promise<AdminLoginResult> {
 
 /* ============================ 创作者登录 ============================ */
 
-/** 微信扫码登录起跳地址。 */
-export function getWechatLoginUrl(returnTo = '/creator'): string {
-  return apiUrl(`/api/auth/wechat/start${buildQuery({ returnTo })}`)
+export function creatorLogin(username: string, password: string): Promise<CreatorAuthResult> {
+  return request<CreatorAuthResult>('/api/creator/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  })
 }
 
 /** GET /api/creator/me -> 当前创作者身份与绑定作者。 */
 export function getCreatorMe(): Promise<CreatorMeResult> {
   return creatorRequest<CreatorMeResult>('/api/creator/me')
+}
+
+export function updateCreatorProfile(input: CreatorProfileInput): Promise<CreatorMeResult> {
+  return creatorRequest<CreatorMeResult>('/api/creator/profile', {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export function creatorLogout(): Promise<{ ok: true }> {
+  return creatorRequest<{ ok: true }>('/api/creator/logout', {
+    method: 'POST',
+  })
+}
+
+export function getCreatorBoards(): Promise<CreatorBoard[]> {
+  return creatorRequest<CreatorBoard[]>('/api/creator/boards')
+}
+
+export function createCreatorBoard(input: CreatorBoardInput): Promise<CreatorBoard> {
+  return creatorRequest<CreatorBoard>('/api/creator/boards', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateCreatorBoard(
+  id: string,
+  patch: UpdateCreatorBoardInput,
+): Promise<CreatorBoard> {
+  return creatorRequest<CreatorBoard>(`/api/creator/boards/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteCreatorBoard(id: string): Promise<{ ok: true }> {
+  return creatorRequest<{ ok: true }>(`/api/creator/boards/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
 }
 
 /** GET /api/admin/boards -> AdminBoard[]（全部，含隐藏；按 updatedAt 倒序） */
@@ -245,6 +294,25 @@ export function getAdminAuthors(): Promise<AdminAuthor[]> {
 /** GET /api/admin/submissions -> 投稿审核队列。 */
 export function getAdminSubmissions(): Promise<AdminSubmission[]> {
   return adminRequest<AdminSubmission[]>('/api/admin/submissions')
+}
+
+/** GET /api/admin/creator-accounts -> 创作者账号列表。 */
+export function getAdminCreatorAccounts(): Promise<AdminCreatorAccount[]> {
+  return adminRequest<AdminCreatorAccount[]>('/api/admin/creator-accounts')
+}
+
+/** POST /api/admin/creator-accounts/:id/reset-password -> 管理员重置创作者密码。 */
+export function resetCreatorPassword(
+  id: string,
+  password: string,
+): Promise<ResetCreatorPasswordResult> {
+  return adminRequest<ResetCreatorPasswordResult>(
+    `/api/admin/creator-accounts/${encodeURIComponent(id)}/reset-password`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    },
+  )
 }
 
 /** POST /api/admin/submissions/:id/approve -> 通过投稿并发布正式板。 */

@@ -1,6 +1,6 @@
 /**
  * 创作者 token 的本地存储工具：单一权威地读写 localStorage。
- * 微信回调把 token 放在 URL fragment，Creator 页面读取后只写这里。
+ * 创作者登录 token 的本地存储工具；页面只通过这里读写。
  */
 export const CREATOR_TOKEN_KEY = 'planshare_creator_token'
 
