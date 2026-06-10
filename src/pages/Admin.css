@@ -83,6 +83,9 @@
 }
 
 .ps-admin__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-6);
   border-radius: var(--radius-sm);
   color: var(--color-ink-soft);
@@ -106,6 +109,17 @@
   box-shadow:
     inset 0 1px 0 0 var(--glass-highlight),
     inset 0 -1px 0 0 var(--color-gold-glow);
+}
+
+.ps-admin__tab-badge {
+  min-width: 1.5em;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-ember);
+  color: var(--ember-text);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  text-align: center;
 }
 
 /* ============================================================
@@ -165,6 +179,44 @@
   background: var(--glass);
 }
 
+.ps-admin__bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.ps-admin__bulk-check,
+.ps-admin__row-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  cursor: pointer;
+}
+
+.ps-admin__bulk-check input,
+.ps-admin__row-check input {
+  accent-color: var(--color-gold);
+}
+
+.ps-admin__bulk-count {
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-admin__bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
 /* 列表：纵向卡片堆叠 */
 .ps-admin__rows {
   display: flex;
@@ -202,6 +254,11 @@
   gap: var(--space-2);
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.ps-admin__row-check {
+  flex: 0 0 auto;
+  padding-top: var(--space-1);
 }
 
 /* 标记行（精选 / 已下架 Tag） */
@@ -707,6 +764,11 @@
 
   .ps-admin__toolbar-stats {
     justify-content: flex-start;
+  }
+
+  .ps-admin__bulk-actions {
+    width: 100%;
+    margin-left: 0;
   }
 
   .ps-admin__form {
