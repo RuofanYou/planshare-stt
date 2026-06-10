@@ -139,6 +139,9 @@
 
 /* ---------- 主复制按钮条 ---------- */
 .ps-detail__copybar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 

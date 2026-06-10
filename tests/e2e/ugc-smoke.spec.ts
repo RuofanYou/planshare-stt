@@ -52,6 +52,9 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await expect(firstBoard).toBeVisible()
   await firstBoard.click()
   await expect(page.getByRole('button', { name: /复制战术/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: '复制链接' })).toBeVisible()
+  await page.getByRole('button', { name: '复制链接' }).click()
+  await expect(page.getByText('链接已复制')).toBeVisible()
   await page.getByRole('button', { name: /复制战术/ }).click()
   await expect(page.getByText('已复制到剪贴板')).toBeVisible()
 

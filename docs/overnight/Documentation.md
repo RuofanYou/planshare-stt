@@ -25,6 +25,7 @@
 - UGC 生态补缺口：创作者需要看到自己的投稿进度，否则投稿后只能等管理员，无法知道待审、通过、驳回或被拦截。已新增 `GET /api/creator/submissions` 与创作者后台“投稿进度”。
 - 管理员驳回或标记 spam 时保留投稿的 `author_id`；不发布板子，但让创作者仍能在自己的进度列表看到失败原因和管理员备注。
 - 创作者投稿列表按 `created_at DESC, id DESC` 排序，避免同秒提交时“最新投稿”顺序不稳定。
+- 浏览用户补缺口：详情页新增“复制链接”，让用户可以把战术板发给队友；“复制战术”仍保留为主按钮。
 
 ## 验证输出
 
@@ -216,6 +217,46 @@ vite v5.4.21 building for production...
 ```text
 in-app browser:
 /creator 使用本地预览创作者登录后显示“投稿进度”和待审核投稿“预览投稿进度 ...”，无 Application error。
+```
+
+### UGC 生态补缺口：浏览用户分享
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 3.05s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 2 tests using 1 worker
+··
+  2 passed (9.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.10s
+
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (4.1s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:130:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+2 passed (7.9s)
+```
+
+```text
+in-app browser:
+/board/p-midnight-m9 显示“复制战术”和“复制链接”，无 Application error。
 ```
 
 ## 已知问题

@@ -242,14 +242,14 @@ export default function BoardDetail() {
   const collapsible = lineCount > COLLAPSE_LINE_THRESHOLD
 
   // 复制成功玻璃 Toast：CopyButton 内部已处理剪贴板，这里只负责站点级浮层提示
-  const [toastOn, setToastOn] = useState(false)
+  const [toastText, setToastText] = useState('')
   const [reportOpen, setReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState<(typeof REPORT_REASONS)[number]['value']>('wrong-info')
   const [reportDetail, setReportDetail] = useState('')
   const [reportDone, setReportDone] = useState(false)
-  function flashToast() {
-    setToastOn(true)
-    window.setTimeout(() => setToastOn(false), TOAST_DURATION)
+  function flashToast(message = '已复制到剪贴板') {
+    setToastText(message)
+    window.setTimeout(() => setToastText(''), TOAST_DURATION)
   }
 
   // 同一 BOSS 其它板：异步拉 useBoards({ bossId })（后端已排序、已排除隐藏），去掉本板
@@ -286,7 +286,7 @@ export default function BoardDetail() {
   const diffLabel = difficultyLabel(board.difficulty)
 
   /** 复制文本到剪贴板（带非安全上下文降级），成功后弹站点级玻璃 Toast。 */
-  async function copyText(text: string) {
+  async function copyText(text: string, message = '已复制到剪贴板') {
     try {
       await navigator.clipboard.writeText(text)
     } catch {
@@ -301,11 +301,16 @@ export default function BoardDetail() {
         document.execCommand('copy')
       } catch {
         document.body.removeChild(ta)
-        return
+        return false
       }
       document.body.removeChild(ta)
     }
-    flashToast()
+    flashToast(message)
+    return true
+  }
+
+  function copyShareLink() {
+    void copyText(window.location.href, '链接已复制')
   }
 
   function submitReport(e: React.FormEvent) {
@@ -412,6 +417,13 @@ export default function BoardDetail() {
             >
               复制战术
             </Button>
+            <Button
+              variant="secondary"
+              leadingIcon="copy"
+              onClick={copyShareLink}
+            >
+              复制链接
+            </Button>
           </motion.div>
 
           {/* 战术正文块：深玻璃底、mono、保留换行、长文可折叠、右上角 icon 复制 */}
@@ -420,7 +432,7 @@ export default function BoardDetail() {
             aria-label="战术正文"
             variants={reduce ? undefined : staggerItem}
           >
-            <div className="ps-detail__plan-tools" onClick={flashToast}>
+            <div className="ps-detail__plan-tools" onClick={() => flashToast()}>
               <CopyButton text={board.contentText} variant="icon" />
             </div>
             <pre
@@ -583,9 +595,9 @@ export default function BoardDetail() {
       {/* ---------------- 复制成功玻璃 Toast（站点级浮层，不阻塞操作） ----------------
           外层 fixed 容器负责水平居中，内层 motion 只动 opacity + y，
           避免 Framer 的 transform 覆盖掉 CSS 的 translateX 居中。 */}
-      <div className="ps-detail__toast-anchor" aria-hidden={!toastOn}>
+      <div className="ps-detail__toast-anchor" aria-hidden={!toastText}>
         <AnimatePresence>
-          {toastOn && (
+          {toastText && (
             <motion.div
               className="ps-detail__toast glass-strong"
               role="status"
@@ -597,7 +609,7 @@ export default function BoardDetail() {
               <span className="ps-detail__toast-icon" aria-hidden="true">
                 <Icon name="check" size={18} />
               </span>
-              <span className="ps-detail__toast-text">已复制到剪贴板</span>
+              <span className="ps-detail__toast-text">{toastText}</span>
             </motion.div>
           )}
         </AnimatePresence>

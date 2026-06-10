@@ -12,6 +12,7 @@
 - M6 双后端契约对齐：`worker/schema.sql` 同步 `trust_level`、`approved_submission_count`、`rate_limits`、`audit_logs`、`reports`；`worker/index.js` 同步信任等级、举报、审计、团本/BOSS 管理与核心 worker 响应结构；新增 `server/worker-contract.test.mjs` 对 Fastify 与 wrangler dev --local 做核心读接口契约测试。
 - 普通用户防呆补测：修正创作者后台过早开放直发入口的问题；审核期只显示“还需 N 次审核通过”，第三次通过后才显示“我的战术板”和“直接发布”。补测空表单、缺密码、非法用户名、重复用户名、三次审核晋升和直发。
 - UGC 生态补缺口：新增创作者后台“投稿进度”，创作者能看到自己的待审、已通过、未通过、被拦截投稿；审核通过可跳公开板，驳回可修改后重投。
+- 浏览用户补缺口：战术详情页新增“复制链接”，方便把 UGC 板子发给队友；“复制战术”仍是主操作。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -176,6 +177,46 @@ vite v5.4.21 building for production...
 ```text
 in-app browser:
 /creator 使用本地预览创作者登录后显示“投稿进度”和待审核投稿“预览投稿进度 ...”，无 Application error。
+```
+
+### 浏览用户分享验证
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 3.05s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 2 tests using 1 worker
+··
+  2 passed (9.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.10s
+
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (4.1s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:130:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+2 passed (7.9s)
+```
+
+```text
+in-app browser:
+/board/p-midnight-m9 显示“复制战术”和“复制链接”，无 Application error。
 ```
 
 ## 高风险 diff
