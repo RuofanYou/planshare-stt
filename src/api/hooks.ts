@@ -10,6 +10,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
   useQuery,
+  useQueries,
   useMutation,
   useQueryClient,
   type UseQueryResult,
@@ -590,6 +591,33 @@ export function useBossName(
   if (!bossId) return undefined
   const list: Boss[] = data?.bosses ?? []
   return list.find((b) => b.id === bossId)?.name
+}
+
+/** 多团本 BOSS id -> Boss 映射；首页搜索等全局入口复用。 */
+export function useBossesMap(raidIds: string[]): { bossById: Map<string, Boss>; isLoading: boolean } {
+  const uniqueRaidIds = useMemo(() => Array.from(new Set(raidIds)).sort(), [raidIds])
+  const results = useQueries({
+    queries: uniqueRaidIds.map((raidId) => ({
+      queryKey: ['raid', raidId],
+      queryFn: () => api.getRaid(raidId),
+      enabled: uniqueRaidIds.length > 0,
+    })),
+  })
+
+  const bossById = useMemo(() => {
+    const map = new Map<string, Boss>()
+    for (const result of results) {
+      for (const boss of result.data?.bosses ?? []) {
+        map.set(boss.id, boss)
+      }
+    }
+    return map
+  }, [results])
+
+  return {
+    bossById,
+    isLoading: results.some((result) => result.isLoading),
+  }
 }
 
 export type { UseQueryResult }

@@ -5,6 +5,8 @@ import {
   useFeaturedBoards,
   useRaids,
   useBoards,
+  useAuthors,
+  useBossesMap,
 } from '../api/hooks'
 import {
   staggerContainer,
@@ -44,10 +46,18 @@ export default function Home() {
   const featuredQuery = useFeaturedBoards()
   const raidsQuery = useRaids()
   const boardsQuery = useBoards()
+  const authorsQuery = useAuthors()
 
   const featured = featuredQuery.data ?? []
   const raids = raidsQuery.data ?? []
   const boards = boardsQuery.data ?? []
+  const authors = authorsQuery.data ?? []
+  const raidIds = useMemo(() => raids.map((raid) => raid.id), [raids])
+  const { bossById, isLoading: bossesLoading } = useBossesMap(raidIds)
+  const authorById = useMemo(
+    () => new Map(authors.map((author) => [author.id, author])),
+    [authors],
+  )
 
   const [query, setQuery] = useState('')
   const [searchHint, setSearchHint] = useState('')
@@ -71,11 +81,15 @@ export default function Home() {
       return
     }
 
-    const matched = boards.find((board) =>
-      [board.title, board.description, board.contentText]
+    const matched = boards.find((board) => {
+      const raid = raids.find((item) => item.id === board.raidId)
+      const boss = board.bossId ? bossById.get(board.bossId) : undefined
+      const author = authorById.get(board.authorId)
+
+      return [board.title, board.description, board.contentText, raid?.name, boss?.name, author?.name]
         .filter(Boolean)
-        .some((text) => text.toLowerCase().includes(keyword)),
-    )
+        .some((text) => String(text).toLowerCase().includes(keyword))
+    })
 
     if (matched) {
       navigate(`/board/${matched.id}`)
@@ -154,7 +168,7 @@ export default function Home() {
               type="submit"
               variant="primary"
               size="sm"
-              disabled={boardsQuery.isLoading}
+              disabled={boardsQuery.isLoading || raidsQuery.isLoading || authorsQuery.isLoading || bossesLoading}
             >
               搜索
             </Button>

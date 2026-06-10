@@ -13,6 +13,7 @@
 - 普通用户防呆补测：修正创作者后台过早开放直发入口的问题；审核期只显示“还需 N 次审核通过”，第三次通过后才显示“我的战术板”和“直接发布”。补测空表单、缺密码、非法用户名、重复用户名、三次审核晋升和直发。
 - UGC 生态补缺口：新增创作者后台“投稿进度”，创作者能看到自己的待审、已通过、未通过、被拦截投稿；审核通过可跳公开板，驳回可修改后重投。
 - 浏览用户补缺口：战术详情页新增“复制链接”，方便把 UGC 板子发给队友；“复制战术”仍是主操作。
+- 浏览用户发现补缺口：首页搜索现在匹配标题、正文、团本名、BOSS 名、作者名，解决“文案说能搜 BOSS/作者但实际搜不到”的断点。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -217,6 +218,48 @@ vite v5.4.21 building for production...
 ```text
 in-app browser:
 /board/p-midnight-m9 显示“复制战术”和“复制链接”，无 Application error。
+```
+
+### 首页搜索发现验证
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.05s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 3 tests using 1 worker
+···
+  3 passed (11.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 570 modules transformed.
+✓ built in 2.04s
+
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:42:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (4.0s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:130:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.8s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:173:1 › home search finds boards by boss and author names (2.7s)
+3 passed (10.4s)
+```
+
+```text
+in-app browser:
+/ 首页显示搜索框 placeholder="搜索 BOSS、作者、技能名或关键词"，无 Application error。
+注：Browser 插件本轮无法向 input 填字，报 virtual clipboard 缺失；实际搜索行为已由 Playwright 真实浏览器用例覆盖。
 ```
 
 ## 高风险 diff

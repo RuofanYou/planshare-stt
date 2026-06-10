@@ -169,3 +169,22 @@ test('creator application guardrails handle missing fields, invalid usernames, a
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText('这个用户名已被占用')).toBeVisible()
 })
+
+test('home search finds boards by boss and author names', async ({ page }) => {
+  await page.goto('/')
+  const search = page.getByPlaceholder('搜索 BOSS、作者、技能名或关键词')
+  const button = page.getByRole('button', { name: '搜索' })
+  await expect(button).toBeEnabled()
+
+  await search.fill('元首阿福扎恩')
+  await button.click()
+  await expect(page).toHaveURL(/\/board\/p-averzian-m1$/)
+  await expect(page.getByRole('heading', { name: '元首阿福扎恩 · M' })).toBeVisible()
+
+  await page.goto('/')
+  await expect(button).toBeEnabled()
+  await search.fill('妮可')
+  await button.click()
+  await expect(page).toHaveURL(/\/board\/p-beloren-nike$/)
+  await expect(page.locator('.ps-detail__author', { hasText: '妮可' })).toBeVisible()
+})
