@@ -475,31 +475,119 @@ function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }
   )
 }
 
+const CREATOR_PROFILE_DRAFT_KEY_PREFIX = 'planshare_creator_profile_draft_v1'
+
+interface CreatorProfileDraft {
+  name: string
+  bio: string
+  guildName: string
+  guildRecruit: string
+  guildContact: string
+}
+
+function creatorProfileDraftKey(authorId: string) {
+  return `${CREATOR_PROFILE_DRAFT_KEY_PREFIX}:${authorId}`
+}
+
+function currentAuthorProfileDraft(author: Author): CreatorProfileDraft {
+  return {
+    name: author.name,
+    bio: author.bio ?? '',
+    guildName: author.guildName ?? '',
+    guildRecruit: author.guildRecruit ?? '',
+    guildContact: author.guildContact ?? '',
+  }
+}
+
+function readCreatorProfileDraft(author: Author): CreatorProfileDraft {
+  const current = currentAuthorProfileDraft(author)
+  if (typeof window === 'undefined') return current
+  try {
+    const raw = window.localStorage.getItem(creatorProfileDraftKey(author.id))
+    if (!raw) return current
+    const parsed = JSON.parse(raw) as Partial<CreatorProfileDraft>
+    return {
+      name: typeof parsed.name === 'string' ? parsed.name : current.name,
+      bio: typeof parsed.bio === 'string' ? parsed.bio : current.bio,
+      guildName: typeof parsed.guildName === 'string' ? parsed.guildName : current.guildName,
+      guildRecruit: typeof parsed.guildRecruit === 'string' ? parsed.guildRecruit : current.guildRecruit,
+      guildContact: typeof parsed.guildContact === 'string' ? parsed.guildContact : current.guildContact,
+    }
+  } catch {
+    return current
+  }
+}
+
+function hasCreatorProfileDraftContent(author: Author, draft: CreatorProfileDraft) {
+  const current = currentAuthorProfileDraft(author)
+  return (
+    draft.name !== current.name ||
+    draft.bio !== current.bio ||
+    draft.guildName !== current.guildName ||
+    draft.guildRecruit !== current.guildRecruit ||
+    draft.guildContact !== current.guildContact
+  )
+}
+
+function writeCreatorProfileDraft(author: Author, draft: CreatorProfileDraft) {
+  if (typeof window === 'undefined') return
+  try {
+    const key = creatorProfileDraftKey(author.id)
+    if (hasCreatorProfileDraftContent(author, draft)) {
+      window.localStorage.setItem(key, JSON.stringify(draft))
+    } else {
+      window.localStorage.removeItem(key)
+    }
+  } catch {
+    // localStorage 不可用时忽略；资料保存本身不依赖草稿。
+  }
+}
+
+function clearCreatorProfileDraft(authorId: string) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(creatorProfileDraftKey(authorId))
+  } catch {
+    // 忽略本地存储异常。
+  }
+}
+
 function CreatorProfileEditor({ author }: { author: Author }) {
   const updateProfile = useUpdateCreatorProfile()
-  const [name, setName] = useState(author.name)
-  const [bio, setBio] = useState(author.bio ?? '')
-  const [guildName, setGuildName] = useState(author.guildName ?? '')
-  const [guildRecruit, setGuildRecruit] = useState(author.guildRecruit ?? '')
-  const [guildContact, setGuildContact] = useState(author.guildContact ?? '')
+  const [initialDraft] = useState(() => readCreatorProfileDraft(author))
+  const [name, setName] = useState(initialDraft.name)
+  const [bio, setBio] = useState(initialDraft.bio)
+  const [guildName, setGuildName] = useState(initialDraft.guildName)
+  const [guildRecruit, setGuildRecruit] = useState(initialDraft.guildRecruit)
+  const [guildContact, setGuildContact] = useState(initialDraft.guildContact)
 
   useEffect(() => {
-    setName(author.name)
-    setBio(author.bio ?? '')
-    setGuildName(author.guildName ?? '')
-    setGuildRecruit(author.guildRecruit ?? '')
-    setGuildContact(author.guildContact ?? '')
+    const draft = readCreatorProfileDraft(author)
+    setName(draft.name)
+    setBio(draft.bio)
+    setGuildName(draft.guildName)
+    setGuildRecruit(draft.guildRecruit)
+    setGuildContact(draft.guildContact)
   }, [author])
+
+  useEffect(() => {
+    writeCreatorProfileDraft(author, { name, bio, guildName, guildRecruit, guildContact })
+  }, [author, bio, guildContact, guildName, guildRecruit, name])
 
   function submitProfile(e: React.FormEvent) {
     e.preventDefault()
-    updateProfile.mutate({
-      name: name.trim(),
-      bio: bio.trim() || undefined,
-      guildName: guildName.trim() || undefined,
-      guildRecruit: guildRecruit.trim() || undefined,
-      guildContact: guildContact.trim() || undefined,
-    })
+    updateProfile.mutate(
+      {
+        name: name.trim(),
+        bio: bio.trim() || undefined,
+        guildName: guildName.trim() || undefined,
+        guildRecruit: guildRecruit.trim() || undefined,
+        guildContact: guildContact.trim() || undefined,
+      },
+      {
+        onSuccess: () => clearCreatorProfileDraft(author.id),
+      },
+    )
   }
 
   return (
@@ -511,6 +599,7 @@ function CreatorProfileEditor({ author }: { author: Author }) {
           ? '资料会展示在作者主页；上方可直接发布和维护你的战术板。'
           : '资料可半公开展示；首个战术板通过审核后会开放直接发布。'}
       </p>
+      <p className="ps-creator__notice">资料草稿会自动保存在本机；保存成功后清空。</p>
       <form className="ps-creator__form" onSubmit={submitProfile}>
         <label className="ps-creator__label" htmlFor="creator-name">作者名</label>
         <input id="creator-name" className="ps-creator__input" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />

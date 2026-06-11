@@ -138,6 +138,26 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await expect(page.getByText(firstTitle)).toBeVisible()
   await expect(page.getByText('已通过')).toBeVisible()
   await expect(page.getByRole('link', { name: '查看公开板' })).toBeVisible()
+  await expect(page.getByText('资料草稿会自动保存在本机；保存成功后清空。')).toBeVisible()
+
+  await page.getByLabel('简介').fill(`E2E 资料草稿 ${runId}`)
+  await page.getByLabel('公会名').fill(`E2E 公会 ${runId}`)
+  await page.getByLabel('公会联系方式').fill(`E2E 联系 ${runId}`)
+  await page.getByLabel('招募说明').fill(`E2E 招募 ${runId}`)
+
+  await page.reload()
+  await expect(page.getByText('资料草稿会自动保存在本机；保存成功后清空。')).toBeVisible()
+  await expect(page.getByLabel('简介')).toHaveValue(`E2E 资料草稿 ${runId}`)
+  await expect(page.getByLabel('公会名')).toHaveValue(`E2E 公会 ${runId}`)
+  await expect(page.getByLabel('公会联系方式')).toHaveValue(`E2E 联系 ${runId}`)
+  await expect(page.getByLabel('招募说明')).toHaveValue(`E2E 招募 ${runId}`)
+  await page.getByRole('button', { name: '保存资料' }).click()
+  await expect(page.getByText('资料已保存。')).toBeVisible()
+  await expect(
+    page.evaluate(() =>
+      Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_profile_draft_v1')).length,
+    ),
+  ).resolves.toBe(0)
 
   const second = await submitCreatorReview(request, creatorToken!, `${runId}-two`)
   await approvePending(request, admin, second.id, published.authorId)
