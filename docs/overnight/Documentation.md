@@ -2804,6 +2804,49 @@ vite v5.4.21 building for production...
 19 passed (1.0m)
 ```
 
+### UGC 生态补缺口：创作者日常操作成功提示不误导下一次编辑
+```text
+普通创作者探索:
+创作者保存资料后，如果继续改资料，旧的“资料已保存。”还留着，会让人误以为新改动也已经保存。
+直发一块板成功后，如果开始写下一块板，旧的“战术板已发布。”也不该继续显示。
+
+已修复：
+- 作者主页资料任一字段变化后，清掉上一次保存成功/失败状态
+- 直发表单任一字段变化后，清掉上一次发布成功/失败状态
+- 编辑战术板时任一字段变化后，清掉上一次保存失败状态
+- 成功提交后的表单清空仍保留成功提示；只有用户继续输入下一份内容时才清理
+- 浏览器主链覆盖“资料保存成功 -> 二次编辑 -> 旧成功提示消失”和“直发成功 -> 开始下一块草稿 -> 旧成功提示消失”
+
+修复记录：
+- 首次实现时把带参数的 resetCreateForm 直接传给按钮，TypeScript 报错：
+  `Type '(clearStatus?: boolean) => void' is not assignable to type 'MouseEventHandler<HTMLButtonElement>'`
+- 已改为 `onClick={() => resetCreateForm()}` 后重新验证通过。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (12.9s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.9s)
+19 passed (1.0m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

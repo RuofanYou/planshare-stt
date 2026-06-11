@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.96s
+✓ built in 1.90s
 
 1..47
 # tests 47
@@ -1261,11 +1261,11 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.5s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.4s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:456:1 › creator can change password from dashboard and log in with the new password (1.7s)
-✓  14 [chromium] › tests/e2e/ugc-smoke.spec.ts:864:1 › submit draft survives reload without saving password or contact (2.4s)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1082:1 › creator direct publish screens unsafe content in dashboard (792ms)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.9s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.9s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:456:1 › creator can change password from dashboard and log in with the new password (1.8s)
+✓  14 [chromium] › tests/e2e/ugc-smoke.spec.ts:873:1 › submit draft survives reload without saving password or contact (2.5s)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1091:1 › creator direct publish screens unsafe content in dashboard (801ms)
 19 passed (1.0m)
 ```
 
@@ -1284,6 +1284,7 @@ vite v5.4.21 building for production...
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者登录页新增“还差”状态提示；需人工确认登录页信息密度仍然简洁。
 - `src/pages/Creator.tsx`：创作者登录/修改密码错误会在继续输入后清理；需人工确认错误消失时机足够符合直觉。
+- `src/pages/Creator.tsx`：资料保存、直发发布和编辑保存的旧状态会在继续输入后清理；需人工确认成功提示保留/消失时机足够符合直觉。
 - `src/pages/Creator.tsx`：修改密码时两次新密码不一致改为提前禁用提交；需人工确认这个交互比“点击后报错”更符合运营预期。
 - `src/pages/Creator.tsx`：修改密码区新增“还差”状态提示；需人工确认账号安全区信息密度仍然简洁。
 - `src/pages/Creator.tsx`：创作者直发表单“简介”改为“战术简介”；需人工确认用词与后台/详情页展示一致。

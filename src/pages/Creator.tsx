@@ -671,9 +671,14 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
     )
   }
 
+  function clearProfileStatus() {
+    if (updateProfile.error || updateProfile.isSuccess) updateProfile.reset()
+  }
+
   function resetProfileDraft() {
     const current = currentAuthorProfileDraft(author)
     clearCreatorProfileDraft(author.id)
+    clearProfileStatus()
     setName(current.name)
     setBio(current.bio)
     setGuildName(current.guildName)
@@ -702,15 +707,60 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
       </div>
       <form className="ps-creator__form" onSubmit={submitProfile}>
         <label className="ps-creator__label" htmlFor="creator-name">作者名</label>
-        <input id="creator-name" className="ps-creator__input" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
+        <input
+          id="creator-name"
+          className="ps-creator__input"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value)
+            clearProfileStatus()
+          }}
+          maxLength={40}
+        />
         <label className="ps-creator__label" htmlFor="creator-bio">简介</label>
-        <input id="creator-bio" className="ps-creator__input" value={bio} onChange={(e) => setBio(e.target.value)} maxLength={120} />
+        <input
+          id="creator-bio"
+          className="ps-creator__input"
+          value={bio}
+          onChange={(e) => {
+            setBio(e.target.value)
+            clearProfileStatus()
+          }}
+          maxLength={120}
+        />
         <label className="ps-creator__label" htmlFor="creator-guild">公会名</label>
-        <input id="creator-guild" className="ps-creator__input" value={guildName} onChange={(e) => setGuildName(e.target.value)} maxLength={40} />
+        <input
+          id="creator-guild"
+          className="ps-creator__input"
+          value={guildName}
+          onChange={(e) => {
+            setGuildName(e.target.value)
+            clearProfileStatus()
+          }}
+          maxLength={40}
+        />
         <label className="ps-creator__label" htmlFor="creator-contact">公会联系方式</label>
-        <input id="creator-contact" className="ps-creator__input" value={guildContact} onChange={(e) => setGuildContact(e.target.value)} maxLength={80} />
+        <input
+          id="creator-contact"
+          className="ps-creator__input"
+          value={guildContact}
+          onChange={(e) => {
+            setGuildContact(e.target.value)
+            clearProfileStatus()
+          }}
+          maxLength={80}
+        />
         <label className="ps-creator__label" htmlFor="creator-recruit">招募说明</label>
-        <input id="creator-recruit" className="ps-creator__input" value={guildRecruit} onChange={(e) => setGuildRecruit(e.target.value)} maxLength={120} />
+        <input
+          id="creator-recruit"
+          className="ps-creator__input"
+          value={guildRecruit}
+          onChange={(e) => {
+            setGuildRecruit(e.target.value)
+            clearProfileStatus()
+          }}
+          maxLength={120}
+        />
         {updateProfile.error && (
           <p className="ps-creator__error" role="alert">
             {(updateProfile.error as Error).message}
@@ -920,12 +970,18 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
   }, [bossId, contentText, creatorId, description, difficulty, raidId, title])
 
   function handleRaidChange(nextRaidId: string) {
+    if (createBoard.error || createBoard.isSuccess) createBoard.reset()
     setRaidId(nextRaidId)
     setBossId('')
   }
 
-  function resetCreateForm() {
+  function clearCreateStatus() {
+    if (createBoard.error || createBoard.isSuccess) createBoard.reset()
+  }
+
+  function resetCreateForm(clearStatus = true) {
     clearCreatorBoardDraft(creatorId)
+    if (clearStatus) clearCreateStatus()
     setTitle('')
     setRaidId('')
     setBossId('')
@@ -947,7 +1003,7 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
         description: description.trim(),
         contentText,
       },
-      { onSuccess: resetCreateForm },
+      { onSuccess: () => resetCreateForm(false) },
     )
   }
 
@@ -960,7 +1016,7 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
           <div className="ps-creator__draft-bar">
             <p className="ps-creator__panel-copy">直发草稿会自动保存在本机；成功发布后清空。</p>
             {hasCreateFormContent && !createBoard.isSuccess && (
-              <button type="button" className="ps-creator__draft-clear" onClick={resetCreateForm}>
+              <button type="button" className="ps-creator__draft-clear" onClick={() => resetCreateForm()}>
                 清空直发草稿
               </button>
             )}
@@ -979,7 +1035,10 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
               id="creator-board-title"
               className="ps-creator__input"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                clearCreateStatus()
+              }}
               maxLength={80}
             />
           </div>
@@ -1006,7 +1065,10 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
               id="creator-board-boss"
               className="ps-creator__input"
               value={bossId}
-              onChange={(e) => setBossId(e.target.value)}
+              onChange={(e) => {
+                setBossId(e.target.value)
+                clearCreateStatus()
+              }}
               disabled={!raidId || raidDetailQuery.isLoading}
             >
               <option value="">{!raidId ? '先选团本' : '选择 BOSS'}</option>
@@ -1023,7 +1085,10 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
               id="creator-board-difficulty"
               className="ps-creator__input"
               value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+              onChange={(e) => {
+                setDifficulty(e.target.value as Difficulty)
+                clearCreateStatus()
+              }}
             >
               {DIFFICULTY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -1039,7 +1104,10 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
             id="creator-board-description"
             className="ps-creator__input"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value)
+              clearCreateStatus()
+            }}
             maxLength={120}
           />
         </div>
@@ -1049,7 +1117,10 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
             id="creator-board-content"
             className="ps-creator__input ps-creator__textarea"
             value={contentText}
-            onChange={(e) => setContentText(e.target.value)}
+            onChange={(e) => {
+              setContentText(e.target.value)
+              clearCreateStatus()
+            }}
             rows={8}
           />
         </div>
@@ -1153,6 +1224,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
 
   function discardEditDraft() {
     clearCreatorBoardEditDraft(board.id)
+    if (updateBoard.error) updateBoard.reset()
     setTitle(board.title)
     setDescription(board.description)
     setContentText(board.contentText)
@@ -1201,7 +1273,10 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
               id={`creator-edit-title-${board.id}`}
               className="ps-creator__input"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                if (updateBoard.error) updateBoard.reset()
+              }}
             />
           </div>
           <div className="ps-creator__field">
@@ -1210,7 +1285,10 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
               id={`creator-edit-description-${board.id}`}
               className="ps-creator__input"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value)
+                if (updateBoard.error) updateBoard.reset()
+              }}
             />
           </div>
           <div className="ps-creator__field">
@@ -1219,7 +1297,10 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
               id={`creator-edit-content-${board.id}`}
               className="ps-creator__input ps-creator__textarea"
               value={contentText}
-              onChange={(e) => setContentText(e.target.value)}
+              onChange={(e) => {
+                setContentText(e.target.value)
+                if (updateBoard.error) updateBoard.reset()
+              }}
               rows={8}
             />
           </div>

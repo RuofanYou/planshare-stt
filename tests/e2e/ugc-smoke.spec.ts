@@ -272,6 +272,11 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
       Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_profile_draft_v1')).length,
     ),
   ).resolves.toBe(0)
+  await page.getByLabel('简介').fill(`E2E 二次资料草稿 ${runId}`)
+  await expect(page.getByText('资料已保存。')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '清空资料草稿' })).toBeVisible()
+  await page.getByRole('button', { name: '清空资料草稿' }).click()
+  await expect(page.getByLabel('简介')).toHaveValue(`E2E 资料草稿 ${runId}`)
   await page.getByRole('link', { name: '查看主页' }).click()
   await expect(page.getByRole('heading', { name: `E2E 公会 ${runId}` })).toBeVisible()
   await expect(page.getByText(`E2E 招募 ${runId}`)).toBeVisible()
@@ -328,6 +333,10 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await page.getByRole('button', { name: '直接发布' }).click()
   await expect(page.getByText('战术板已发布。')).toBeVisible()
+  await page.getByLabel('标题').fill(`E2E 下一块直发草稿 ${runId}`)
+  await expect(page.getByText('战术板已发布。')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '清空直发草稿' })).toBeVisible()
+  await page.getByRole('button', { name: '清空直发草稿' }).click()
   const directBoardRow = page.locator('.ps-creator__board', { hasText: directTitle })
   await expect(directBoardRow.getByRole('link', { name: '查看公开板' })).toBeVisible()
   await expect(directBoardRow.getByRole('button', { name: '复制链接' })).toBeVisible()
