@@ -70,6 +70,7 @@ async function createCreatorApplication(request: APIRequestContext, suffix: stri
     title,
     contentText,
     token: body.creatorAuth?.token as string | undefined,
+    accountId: body.creatorAuth?.user?.id as string | undefined,
     authorId: body.creatorAuth?.author?.id as string | undefined,
   }
 }
@@ -662,6 +663,37 @@ test('admin can reset a creator password and the creator can log in again', asyn
   await page.getByLabel('密码').fill(resetPassword)
   await page.getByRole('button', { name: '登录' }).click()
   await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+})
+
+test('creator active session is cleared on focus after admin password reset', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `focusreset_${runId}`)
+  expect(creator.accountId).toBeTruthy()
+  const resetPassword = `creator-reset-${runId}`
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+  await expect(page.evaluate(() => localStorage.getItem('planshare_creator_token'))).resolves.toBeTruthy()
+
+  const admin = await adminToken(request)
+  const reset = await request.post(`/api/admin/creator-accounts/${creator.accountId}/reset-password`, {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { password: resetPassword },
+  })
+  expect(reset.status()).toBe(200)
+
+  const otherPage = await page.context().newPage()
+  await otherPage.goto('/')
+  await otherPage.bringToFront()
+  await page.bringToFront()
+
+  await expect(page.getByText('还差：用户名、密码')).toBeVisible()
+  await expect(page.getByRole('link', { name: '没有账号？去投稿申请创作者' })).toBeVisible()
+  await expect(page.evaluate(() => localStorage.getItem('planshare_creator_token'))).resolves.toBeNull()
+  await otherPage.close()
 })
 
 test('admin can suspend and restore a creator account', async ({ page, request }) => {

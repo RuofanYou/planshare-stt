@@ -246,6 +246,9 @@ export function useCreatorMe(enabled: boolean) {
     enabled,
     staleTime: 0,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: enabled ? 5_000 : false,
+    retry: false,
   })
 }
 
@@ -256,6 +259,9 @@ export function useCreatorSubmissions(enabled: boolean) {
     enabled,
     staleTime: 0,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: enabled ? 5_000 : false,
+    retry: false,
   })
 }
 
@@ -309,6 +315,9 @@ export function useCreatorBoards(enabled: boolean) {
     enabled,
     staleTime: 0,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: enabled ? 5_000 : false,
+    retry: false,
   })
 }
 

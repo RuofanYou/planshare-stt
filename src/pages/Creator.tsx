@@ -33,12 +33,27 @@ export default function Creator() {
   const reduce = useReducedMotion()
   const session = useCreatorSession()
   const meQuery = useCreatorMe(session.isAuthed)
+  const refetchCreatorMe = meQuery.refetch
 
   useEffect(() => {
     if (meQuery.isError && session.isUnauthorized(meQuery.error)) {
       session.logout()
     }
   }, [meQuery.error, meQuery.isError, session])
+
+  useEffect(() => {
+    if (!session.isAuthed) return undefined
+    const refreshCreatorIdentity = () => {
+      if (document.visibilityState === 'hidden') return
+      void refetchCreatorMe()
+    }
+    window.addEventListener('focus', refreshCreatorIdentity)
+    document.addEventListener('visibilitychange', refreshCreatorIdentity)
+    return () => {
+      window.removeEventListener('focus', refreshCreatorIdentity)
+      document.removeEventListener('visibilitychange', refreshCreatorIdentity)
+    }
+  }, [refetchCreatorMe, session.isAuthed])
 
   if (!session.isAuthed) {
     return <CreatorLogin reduce={!!reduce} onLogin={session.login} />

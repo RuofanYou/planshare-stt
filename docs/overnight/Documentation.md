@@ -3498,6 +3498,54 @@ vite v5.4.21 building for production...
 30 passed (1.3m)
 ```
 
+### UGC 生态补缺口：管理员重置后旧创作者会话必须自动失效
+```text
+创作者用户 / 管理员救援探索:
+真实运营里管理员会给忘记密码的创作者重置密码。后端已撤销旧 session，但如果创作者后台页面一直开着，
+用户可能继续看到旧后台，以为自己还能操作，直到下一次请求失败才知道登录已失效。
+
+首次回归失败：
+- 创作者登录并停在后台
+- 管理员重置该创作者密码
+- 创作者切回旧标签页后仍停在后台，未回到登录页
+
+已修复：
+- 创作者私有查询 `me/submissions/boards` 进入页面必刷新、窗口聚焦刷新，并在后台打开时每 5 秒轻量刷新。
+- 创作者私有查询 `retry: false`，401 不再走默认失败重试，立即触发现有 logout 逻辑。
+- 创作者页增加窗口聚焦 / 可见性变化监听，切回后台时主动刷新身份。
+- 新增双标签 Playwright 回归：管理员重置密码后，旧创作者标签页自动清 token 并回到登录。
+
+决策记录：
+- 公开浏览数据继续按全局 5 分钟缓存，避免增加普通浏览成本。
+- 只有登录后的创作者后台启用 5 秒刷新；这是 UGC 开放后“审核进度、账号状态、管理员隐藏”等动态状态的必要成本。
+- 不修改后端 session 语义；后端撤销仍是唯一权威，前端只是更快发现撤销。
+```
+
+```text
+CI=1 npx playwright test --grep "creator active session is cleared"
+
+Running 1 test using 1 worker
+·
+1 passed (7.6s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:668:1 › creator active session is cleared on focus after admin password reset (5.7s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1639:1 › creator direct publish screens unsafe content in dashboard (800ms)
+31 passed (1.4m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
