@@ -897,6 +897,28 @@ test('submit draft survives reload without saving password or contact', async ({
   await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()
 })
 
+test('spam-screened visitor submission stays editable and is not described as queued', async ({ page }) => {
+  const runId = Date.now().toString(36)
+  const spamTitle = `游客拦截提示 ${runId}`
+  const spamContent = `这是一条博 彩广告 ${runId}`
+
+  await page.goto('/submit')
+  await page.getByLabel('标题').fill(spamTitle)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await page.getByLabel('投稿署名').fill(`拦截游客 ${runId}`)
+  await page.getByLabel('战术正文').fill(spamContent)
+  await page.getByRole('button', { name: '提交审核' }).click()
+
+  await expect(page.getByRole('alert')).toContainText('投稿已被系统拦截，未进入人工审核：内容风险。请修改后重新提交。')
+  await expect(page.getByText('投稿已进入审核，不会立刻公开')).toHaveCount(0)
+  await expect(page.getByLabel('标题')).toHaveValue(spamTitle)
+  await expect(page.getByLabel('战术正文')).toHaveValue(spamContent)
+  await page.getByLabel('战术正文').fill(`P1 已移除风险内容 ${runId}\nP2 集合`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
+})
+
 test('report rate limit shows a visible visitor-facing error', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const { board } = await createAdminBoard(request, `limit_${runId}`)

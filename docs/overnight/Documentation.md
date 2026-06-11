@@ -2576,6 +2576,43 @@ vite v5.4.21 building for production...
 18 passed (1.0m)
 ```
 
+### UGC 生态补缺口：投稿被系统拦截时不再误报进入审核
+```text
+普通浏览用户探索:
+游客投稿如果命中内容筛查，后端会返回 `status: spam`，不会进入人工审核。
+原页面只要接口返回 201 就统一显示“投稿已进入审核”，这会让用户误以为管理员会处理。
+
+已修复：
+- 投稿页保存后端返回的 submission.status 和 spamReason
+- status=spam 时显示“投稿已被系统拦截，未进入人工审核：内容风险。请修改后重新提交。”
+- 被拦截后不清空表单，用户可以直接改正文重新提交
+- 正常 pending 投稿仍保持原来的成功提示和清空草稿行为
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "spam-screened visitor"
+
+Running 1 test using 1 worker
+·
+1 passed (3.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.89s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:900:1 › spam-screened visitor submission stays editable and is not described as queued (824ms)
+19 passed (55.6s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

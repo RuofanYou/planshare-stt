@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import type { Difficulty } from '../data/types'
+import type { Difficulty, SubmissionStatus } from '../data/types'
 import { useBoard, useCreateSubmission, useCreatorMe, useCreatorSession, useRaid, useRaids } from '../api/hooks'
 import { Button, SectionHeading, Tag } from '../components/ui'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
@@ -14,6 +14,13 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
 
 const SUBMIT_DRAFT_KEY = 'planshare_submit_draft_v1'
 const CREATOR_USERNAME_PATTERN = /^[a-z0-9_-]{3,24}$/
+
+function spamReasonLabel(reason: string) {
+  if (reason === 'honeypot') return '表单异常'
+  if (reason === 'duplicate_content') return '同一网络下重复正文'
+  if (reason === 'content_blacklist') return '内容风险'
+  return reason || '内容风险'
+}
 
 interface SubmitDraft {
   title: string
@@ -129,6 +136,8 @@ export default function Submit() {
   const [localError, setLocalError] = useState('')
   const [submittedId, setSubmittedId] = useState('')
   const [submittedKind, setSubmittedKind] = useState<'regular' | 'creator' | 'creatorSubmission' | ''>('')
+  const [submittedStatus, setSubmittedStatus] = useState<SubmissionStatus | ''>('')
+  const [submittedSpamReason, setSubmittedSpamReason] = useState('')
   const creatorNamePrefilled = useRef(false)
 
   const raidDetailQuery = useRaid(raidId || undefined)
@@ -301,6 +310,8 @@ export default function Submit() {
     setLocalError('')
     setSubmittedId('')
     setSubmittedKind('')
+    setSubmittedStatus('')
+    setSubmittedSpamReason('')
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -308,6 +319,8 @@ export default function Submit() {
     setLocalError('')
     setSubmittedId('')
     setSubmittedKind('')
+    setSubmittedStatus('')
+    setSubmittedSpamReason('')
     if (!canSubmit) {
       setLocalError(
         wantsCreatorProfile
@@ -343,6 +356,8 @@ export default function Submit() {
       {
         onSuccess: (submission) => {
           setSubmittedId(submission.id)
+          setSubmittedStatus(submission.status)
+          setSubmittedSpamReason(submission.spamReason ?? '')
           setSubmittedKind(
             requestedCreator && submission.creatorAuth?.token
               ? 'creator'
@@ -353,8 +368,10 @@ export default function Submit() {
           if (submission.creatorAuth?.token) {
             creatorSession.login(submission.creatorAuth.token)
           }
-          writeSubmitDraft(EMPTY_DRAFT)
-          resetForm()
+          if (submission.status !== 'spam') {
+            writeSubmitDraft(EMPTY_DRAFT)
+            resetForm()
+          }
         },
       },
     )
@@ -746,24 +763,32 @@ export default function Submit() {
         )}
 
         {submittedId && (
-          <motion.div className="ps-submit__success" role="status" variants={reduce ? undefined : staggerItem}>
+          <motion.div
+            className={submittedStatus === 'spam' ? 'ps-submit__error' : 'ps-submit__success'}
+            role={submittedStatus === 'spam' ? 'alert' : 'status'}
+            variants={reduce ? undefined : staggerItem}
+          >
             <p>
-              {submittedKind === 'creator'
-                ? `账号已创建，投稿已进入审核：${submittedId}。`
-                : submittedKind === 'creatorSubmission'
-                  ? `投稿已进入你的创作者审核进度：${submittedId}。`
-                : `投稿已进入审核，不会立刻公开：${submittedId}`}
+              {submittedStatus === 'spam'
+                ? `投稿已被系统拦截，未进入人工审核：${spamReasonLabel(submittedSpamReason)}。请修改后重新提交。`
+                : submittedKind === 'creator'
+                  ? `账号已创建，投稿已进入审核：${submittedId}。`
+                  : submittedKind === 'creatorSubmission'
+                    ? `投稿已进入你的创作者审核进度：${submittedId}。`
+                    : `投稿已进入审核，不会立刻公开：${submittedId}`}
             </p>
-            <div className="ps-submit__success-actions">
-              {(submittedKind === 'creator' || submittedKind === 'creatorSubmission') && (
-                <Button variant="secondary" to="/creator">
-                  进入创作者后台
+            {submittedStatus !== 'spam' && (
+              <div className="ps-submit__success-actions">
+                {(submittedKind === 'creator' || submittedKind === 'creatorSubmission') && (
+                  <Button variant="secondary" to="/creator">
+                    进入创作者后台
+                  </Button>
+                )}
+                <Button variant="secondary" to="/">
+                  回首页浏览
                 </Button>
-              )}
-              <Button variant="secondary" to="/">
-                回首页浏览
-              </Button>
-            </div>
+              </div>
+            )}
           </motion.div>
         )}
 
