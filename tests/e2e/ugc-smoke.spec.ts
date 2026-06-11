@@ -533,6 +533,7 @@ test('visitor can report a board and admin can hide it from public pages', async
   const runId = Date.now().toString(36)
   const { board } = await createAdminBoard(request, runId)
   const detail = `E2E 举报说明 ${runId}`
+  const snapshotContent = `P1 举报测试 ${runId}`
 
   await page.goto(`/board/${board.id}`)
   await expect(page.getByRole('heading', { name: board.title })).toBeVisible()
@@ -542,12 +543,21 @@ test('visitor can report a board and admin can hide it from public pages', async
   await page.getByRole('button', { name: '提交举报' }).click()
   await expect(page.getByText('举报已提交')).toBeVisible()
 
+  const admin = await adminToken(request)
+  const updateBoard = await request.put(`/api/boards/${board.id}`, {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { contentText: `P1 已被后续编辑 ${runId}\nP2 集合` },
+  })
+  expect(updateBoard.status()).toBe(200)
+
   await page.goto('/admin')
   await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: '登录' }).click()
   await page.getByRole('tab', { name: '举报' }).click()
   const reportRow = page.locator('.ps-admin__row-card', { hasText: board.id })
   await expect(reportRow.getByText(detail)).toBeVisible()
+  await expect(reportRow.getByText(`举报时正文：${snapshotContent}`, { exact: false })).toBeVisible()
+  await expect(reportRow.getByText(`已被后续编辑 ${runId}`)).toHaveCount(0)
   await reportRow.getByRole('button', { name: '隐藏板' }).click()
   await expect(reportRow.getByText('已隐藏')).toBeVisible()
 

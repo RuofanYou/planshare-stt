@@ -221,6 +221,11 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS reports (
     id              TEXT PRIMARY KEY,
     board_id        TEXT NOT NULL,
+    board_title_snapshot TEXT,
+    board_description_snapshot TEXT,
+    board_content_snapshot TEXT,
+    board_author_id_snapshot TEXT,
+    board_updated_at_snapshot TEXT,
     reason          TEXT NOT NULL,
     detail          TEXT,
     source_key      TEXT NOT NULL,
@@ -248,6 +253,11 @@ ensureColumn('creator_accounts', 'approved_submission_count', 'approved_submissi
 ensureColumn('submissions', 'content_hash', 'content_hash TEXT')
 ensureColumn('submissions', 'spam_reason', 'spam_reason TEXT')
 ensureColumn('boards', 'hidden_by', 'hidden_by TEXT')
+ensureColumn('reports', 'board_title_snapshot', 'board_title_snapshot TEXT')
+ensureColumn('reports', 'board_description_snapshot', 'board_description_snapshot TEXT')
+ensureColumn('reports', 'board_content_snapshot', 'board_content_snapshot TEXT')
+ensureColumn('reports', 'board_author_id_snapshot', 'board_author_id_snapshot TEXT')
+ensureColumn('reports', 'board_updated_at_snapshot', 'board_updated_at_snapshot TEXT')
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_creator_accounts_username_unique ON creator_accounts(username)')
 db.exec('CREATE INDEX IF NOT EXISTS idx_creator_sessions_account_id ON creator_sessions(creator_account_id)')
 db.exec('CREATE INDEX IF NOT EXISTS idx_rate_limits_reset_at ON rate_limits(reset_at)')
@@ -446,6 +456,11 @@ function rowToReport(row) {
   return {
     id: row.id,
     boardId: row.board_id,
+    boardTitle: row.board_title_snapshot ?? undefined,
+    boardDescription: row.board_description_snapshot ?? undefined,
+    boardContent: row.board_content_snapshot ?? undefined,
+    boardAuthorId: row.board_author_id_snapshot ?? undefined,
+    boardUpdatedAt: row.board_updated_at_snapshot ?? undefined,
     reason: row.reason,
     detail: row.detail ?? undefined,
     status: row.status,
@@ -839,9 +854,13 @@ const stmt = {
   auditLogsAdmin: db.prepare('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 200'),
   insertReport: db.prepare(`
     INSERT INTO reports (
-      id, board_id, reason, detail, source_key, status, created_at
+      id, board_id, board_title_snapshot, board_description_snapshot,
+      board_content_snapshot, board_author_id_snapshot, board_updated_at_snapshot,
+      reason, detail, source_key, status, created_at
     ) VALUES (
-      @id, @boardId, @reason, @detail, @sourceKey, 'pending', @createdAt
+      @id, @boardId, @boardTitle, @boardDescription,
+      @boardContent, @boardAuthorId, @boardUpdatedAt,
+      @reason, @detail, @sourceKey, 'pending', @createdAt
     )
   `),
   allReportsAdmin: db.prepare(`
@@ -1791,6 +1810,11 @@ app.post('/api/boards/:id/reports', (req, reply) => {
   stmt.insertReport.run({
     id,
     boardId: row.id,
+    boardTitle: row.title,
+    boardDescription: row.description,
+    boardContent: row.content_text,
+    boardAuthorId: row.author_id,
+    boardUpdatedAt: row.updated_at,
     reason,
     detail,
     sourceKey: clientKey,

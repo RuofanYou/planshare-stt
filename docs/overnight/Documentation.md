@@ -44,6 +44,7 @@
 - 创作者治理闭环补缺口：后端已有暂停/恢复创作者账号能力，后台账号区补“暂停账号/恢复账号”按钮；暂停会撤销会话并阻止登录，恢复后可重新登录。
 - 管理员治理追溯补缺口：后台新增“审计”页展示最近审计日志，能看到账号状态、重置密码、举报处理、审核等治理动作。
 - 举报治理防绕过补缺口：创作者自助下架仍可自助恢复，但管理员因举报隐藏的板会记录 `hidden_by=admin`，创作者后台只显示“管理员隐藏”，不提供恢复发布，后端也拒绝 `isHidden:false` 绕过。
+- 举报证据保全补缺口：举报创建时把当时的板标题、简介、正文、作者和更新时间快照写入 `reports`，后台举报队列直接显示举报时内容摘录，避免创作者或管理员后续编辑导致治理证据漂移。
 
 ## 验证输出
 
@@ -1178,6 +1179,58 @@ Playwright:
 正式创作者直发战术板后，游客举报，管理员处理为隐藏。
 创作者登录后台后，该板显示“管理员隐藏”和“该战术板已被管理员隐藏，不能自行恢复发布。”。
 页面没有“恢复发布”按钮；直接打创作者恢复接口返回 403，公开详情页仍为 404。
+```
+
+### UGC 生态补缺口：举报时内容快照
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.06s
+```
+
+```text
+node --test server/ugc-ready.test.mjs --test-name-pattern "reports flow"
+
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor can report"
+
+Running 1 test using 1 worker
+·
+1 passed (11.1s)
+```
+
+```text
+Playwright:
+访客举报后，测试用管理员 API 修改原板正文。
+管理员打开举报队列时仍能看到“举报时正文：P1 举报测试 ...”，且看不到后续编辑文本。
+随后管理员隐藏板，公开详情页返回不可见。
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.08s
+
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:532:1 › visitor can report a board and admin can hide it from public pages (8.9s)
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (655ms)
+10 passed (31.7s)
 ```
 
 ## 已知问题

@@ -200,6 +200,11 @@ export type ReportStatus = 'pending' | 'hidden' | 'dismissed'
 export interface BoardReport {
   id: string
   boardId: string
+  boardTitle?: string
+  boardDescription?: string
+  boardContent?: string
+  boardAuthorId?: string
+  boardUpdatedAt?: string
   reason: ReportReason
   detail?: string
   status: ReportStatus

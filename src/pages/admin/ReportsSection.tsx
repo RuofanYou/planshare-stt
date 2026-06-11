@@ -54,6 +54,8 @@ export function ReportsSection({
           >
             {reports.map((report) => {
               const isPending = report.status === 'pending'
+              const boardTitle = report.boardTitle ?? `战术板 ${report.boardId}`
+              const boardContent = report.boardContent?.trim()
               const busy =
                 (hideBoard.isPending && hideBoard.variables?.id === report.id) ||
                 (dismissReport.isPending && dismissReport.variables?.id === report.id)
@@ -67,11 +69,21 @@ export function ReportsSection({
                         </Tag>
                         <Tag variant="neutral">{reportReasonLabel(report.reason)}</Tag>
                       </div>
-                      <p className="ps-admin__row-title">战术板 {report.boardId}</p>
+                      <p className="ps-admin__row-title">{boardTitle}</p>
+                      <p className="ps-admin__row-path">
+                        {report.boardId}
+                        {report.boardUpdatedAt ? ` · 举报时更新于 ${formatDate(report.boardUpdatedAt)}` : ''}
+                      </p>
                       <p className="ps-admin__row-meta">
                         提交于 {formatDate(report.createdAt)}
                         {report.detail ? ` · ${report.detail}` : ''}
                       </p>
+                      {report.boardDescription && (
+                        <p className="ps-admin__row-meta">举报时简介：{report.boardDescription}</p>
+                      )}
+                      {boardContent && (
+                        <p className="ps-admin__row-meta">举报时正文：{compactReportContent(boardContent)}</p>
+                      )}
                     </div>
                     <div className="ps-admin__row-actions">
                       <Button to={`/board/${report.boardId}`} variant="secondary" size="sm">
@@ -117,6 +129,11 @@ export function ReportsSection({
       </section>
     </div>
   )
+}
+
+function compactReportContent(content: string) {
+  const singleLine = content.replace(/\s+/g, ' ').trim()
+  return singleLine.length > 140 ? `${singleLine.slice(0, 140)}...` : singleLine
 }
 
 function reportStatusLabel(status: string) {

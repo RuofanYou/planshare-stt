@@ -222,6 +222,8 @@ test('reports flow through admin queue, can hide boards, and admin actions are a
   })
   assert.equal(report.res.status, 201)
   assert.equal(report.body.status, 'pending')
+  assert.equal(report.body.boardTitle, board.title)
+  assert.equal(report.body.boardContent, board.contentText)
 
   const admin = await adminToken(server.baseUrl)
   const reports = await requestJson(server.baseUrl, '/api/admin/reports', {
@@ -229,6 +231,9 @@ test('reports flow through admin queue, can hide boards, and admin actions are a
   })
   assert.equal(reports.res.status, 200)
   assert.equal(reports.body.some((item) => item.id === report.body.id), true)
+  const queuedReport = reports.body.find((item) => item.id === report.body.id)
+  assert.equal(queuedReport.boardTitle, board.title)
+  assert.equal(queuedReport.boardContent, board.contentText)
 
   const hidden = await requestJson(server.baseUrl, `/api/admin/reports/${report.body.id}/hide-board`, {
     method: 'POST',
