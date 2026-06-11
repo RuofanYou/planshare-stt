@@ -249,6 +249,12 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
       Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_profile_draft_v1')).length,
     ),
   ).resolves.toBe(0)
+  await page.getByRole('link', { name: '查看主页' }).click()
+  await expect(page.getByRole('heading', { name: `E2E 公会 ${runId}` })).toBeVisible()
+  await expect(page.getByText(`E2E 招募 ${runId}`)).toBeVisible()
+  await expect(page.getByText(`E2E 联系 ${runId}`)).toBeVisible()
+  await page.getByRole('button', { name: '复制联系方式' }).click()
+  await expect(page.getByRole('button', { name: /已复制/ })).toBeVisible()
 
   const second = await submitCreatorReview(request, creatorToken!, `${runId}-two`)
   await approvePending(request, admin, second.id, published.authorId)

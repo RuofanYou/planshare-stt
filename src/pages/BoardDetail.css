@@ -441,9 +441,7 @@
   font-weight: var(--weight-medium);
 }
 
-/* ---------- 侧栏点赞（服务端持久化版，造型沿用全站点赞语言） ----------
-   共享 LikeButton 是 mock 本地态、其样式随组件文件加载；本页改用页面级
-   持久化点赞，故在此自带等价造型，保证不依赖未加载的 LikeButton.css。 */
+/* ---------- 侧栏点赞（服务端持久化版，造型沿用全站点赞语言） ---------- */
 .ps-like {
   display: inline-flex;
   align-items: center;

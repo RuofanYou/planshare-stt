@@ -81,9 +81,7 @@ function ViewCountUp({ value }: { value: number }) {
 
 /**
  * 详情页侧栏点赞（服务端持久化版）。
- * 共享 LikeButton 是 mock 本地态（仅展示），本页需要真持久化，故页面级实现：
- * 点击调 useLikeBoard() 写后端 +1，乐观更新本地显示数；后端返回后以真值为准，
- * 避免 query 刷新后把「后端新计数」再次本地 +1。
+ * 点击调 useLikeBoard() 写后端 +1，乐观更新本地显示数；后端返回后以真值为准。
  * 造型沿用共享 LikeButton 的心形 + 金色语言，保持全站一致。
  */
 function PersistedLike({
