@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.88s
+✓ built in 1.92s
 
 1..47
 # tests 47
@@ -1262,10 +1262,11 @@ vite v5.4.21 building for production...
 # fail 0
 
 ✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (10.7s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:453:1 › creator can change password from dashboard and log in with the new password (1.7s)
-✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:914:1 › spam-screened visitor submission stays editable and is not described as queued (930ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1073:1 › creator direct publish screens unsafe content in dashboard (757ms)
-19 passed (54.2s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.6s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:456:1 › creator can change password from dashboard and log in with the new password (1.8s)
+✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:917:1 › spam-screened visitor submission stays editable and is not described as queued (1.1s)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1076:1 › creator direct publish screens unsafe content in dashboard (752ms)
+19 passed (54.9s)
 ```
 
 ## 高风险 diff
@@ -1299,6 +1300,7 @@ vite v5.4.21 building for production...
 - `src/pages/Submit.tsx` 与 `tests/e2e/ugc-smoke.spec.ts`：投稿返回 spam 时改为系统拦截提示且保留表单内容；需人工确认“未进入人工审核”的措辞足够清楚。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：申请创作者新增“确认密码”并阻止两次密码不一致提交；需人工确认多一个必填框不会明显提高首次投稿阻力。
 - `src/pages/Submit.tsx` 与 `tests/e2e/ugc-smoke.spec.ts`：创作者用户名格式改为提交前拦截；需人工确认“登录用户名格式”文案足够直观。
+- `src/pages/Submit.tsx`：投稿表单现在会在用户修改内容后清掉过期错误；需人工确认“错误消失时机”不会让用户错过刚返回的服务端原因。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：登录创作者进入投稿页时隐藏重复申请入口并提示会进入本人审核进度；需人工确认“游客投稿”和“创作者继续投稿”的文案边界足够清楚。
 - `src/pages/BoardDetail.tsx`：举报成功提示改为“已进入管理员处理队列”；需人工确认治理流程说明足够清楚。
 - `src/pages/BoardDetail.tsx` 与 `server/index.mjs`：举报理由为“其它”时必须补充说明；需人工确认该门槛不会挡住有价值的简短举报。

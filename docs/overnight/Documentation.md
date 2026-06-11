@@ -2689,6 +2689,46 @@ vite v5.4.21 building for production...
 19 passed (54.2s)
 ```
 
+### UGC 生态补缺口：用户修正表单后旧错误自动消失
+```text
+普通创作者探索:
+申请创作者时，如果第一次提交撞到“用户名已被占用”，用户改了用户名以后，旧错误还留在页面上会让人误以为“改了也没用”。
+
+已修复：
+- 投稿表单记录用户当前填写内容的指纹
+- 只有用户真的修改了表单后，才清掉本地错误和上一次接口错误
+- 接口刚返回错误时不会被立刻清掉，用户仍能看见真正原因
+- 防呆测试新增“重复用户名 -> 改用户名 -> 旧错误消失 -> 表单重新显示可提交”
+
+决策记录：
+- 曾尝试覆盖“禁用提交按钮时按 Enter 触发表单错误”，实际浏览器不会提交禁用按钮对应的表单。
+- 该路径不是普通用户可触达路径，改为覆盖真实可触达的重复用户名服务端错误清除。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator application guardrails"
+
+Running 1 test using 1 worker
+·
+1 passed (3.5s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.6s)
+19 passed (54.9s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

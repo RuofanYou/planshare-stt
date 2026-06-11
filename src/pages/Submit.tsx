@@ -200,6 +200,25 @@ export default function Submit() {
     creatorGuildRecruit,
     creatorGuildContact,
   })
+  const editableFingerprint = [
+    title,
+    raidId,
+    bossId,
+    difficulty,
+    description,
+    contentText,
+    submitterName,
+    wantsCreatorProfile ? 'creator' : 'regular',
+    creatorUsername,
+    creatorPassword,
+    creatorPasswordConfirm,
+    contact,
+    creatorBio,
+    creatorGuildName,
+    creatorGuildRecruit,
+    creatorGuildContact,
+  ].join('\u001f')
+  const previousEditableFingerprint = useRef(editableFingerprint)
 
   useEffect(() => {
     draftHydrated.current = true
@@ -277,6 +296,19 @@ export default function Submit() {
     creatorGuildName,
     creatorGuildRecruit,
     creatorGuildContact,
+  ])
+
+  useEffect(() => {
+    if (pending) return
+    if (previousEditableFingerprint.current === editableFingerprint) return
+    previousEditableFingerprint.current = editableFingerprint
+    if (localError) setLocalError('')
+    if (createSubmission.error) createSubmission.reset()
+  }, [
+    editableFingerprint,
+    pending,
+    localError,
+    createSubmission,
   ])
 
   function handleRaidChange(next: string) {

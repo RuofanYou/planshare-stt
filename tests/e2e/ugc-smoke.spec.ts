@@ -448,6 +448,9 @@ test('creator application guardrails handle missing fields, invalid usernames, a
   await fillCreatorApplication(`重复用户名防呆 ${runId}`, creatorUsername.toUpperCase())
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText('这个用户名已被占用')).toBeVisible()
+  await page.getByLabel('用户名').fill(`${creatorUsername}_ok`)
+  await expect(page.getByText('这个用户名已被占用')).toHaveCount(0)
+  await expect(page.getByText('信息已补齐，可以提交审核。')).toBeVisible()
 })
 
 test('creator can change password from dashboard and log in with the new password', async ({ page, request }) => {
