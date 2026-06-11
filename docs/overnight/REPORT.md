@@ -1262,10 +1262,10 @@ vite v5.4.21 building for production...
 # fail 0
 
 ✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.2s)
-✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:557:1 › creator can withdraw a pending submission from dashboard (4.3s)
-✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:900:1 › spam-screened visitor submission stays editable and is not described as queued (824ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1059:1 › creator direct publish screens unsafe content in dashboard (757ms)
-19 passed (55.6s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:453:1 › creator can change password from dashboard and log in with the new password (1.7s)
+✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:905:1 › spam-screened visitor submission stays editable and is not described as queued (950ms)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1064:1 › creator direct publish screens unsafe content in dashboard (765ms)
+19 passed (54.4s)
 ```
 
 ## 高风险 diff
@@ -1281,6 +1281,7 @@ vite v5.4.21 building for production...
 - `server/index.mjs`：新增 raid/boss 关系校验，并禁止管理员把板关联到不存在的作者；需人工确认历史数据里是否存在旧的 boss 为空、错配或孤儿作者记录，必要时做一次只读巡检。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
+- `src/pages/Creator.tsx`：创作者登录页新增“还差”状态提示；需人工确认登录页信息密度仍然简洁。
 - `src/pages/Creator.tsx`：修改密码时两次新密码不一致改为提前禁用提交；需人工确认这个交互比“点击后报错”更符合运营预期。
 - `src/pages/Creator.tsx`：创作者直发表单“简介”改为“战术简介”；需人工确认用词与后台/详情页展示一致。
 - `src/pages/BoardDetail.tsx`：访客点赞显示改为以后端返回 likeCount 真值收敛；需人工确认乐观反馈和刷新后计数一致。

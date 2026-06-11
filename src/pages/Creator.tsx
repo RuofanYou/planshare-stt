@@ -77,9 +77,21 @@ function CreatorLogin({ reduce, onLogin }: { reduce: boolean; onLogin: (token: s
   const [password, setPassword] = useState('')
 
   const busy = loginMutation.isPending
+  const missingLoginItems = [
+    username.trim() === '' ? '用户名' : '',
+    password === '' ? '密码' : '',
+  ].filter(Boolean)
+  const canLogin = missingLoginItems.length === 0 && !busy
+  const loginReadinessText =
+    missingLoginItems.length > 0
+      ? `还差：${missingLoginItems.join('、')}`
+      : busy
+        ? '正在登录，请稍候。'
+        : '信息已补齐，可以登录。'
 
   function submitLogin(e: React.FormEvent) {
     e.preventDefault()
+    if (!canLogin) return
     loginMutation.mutate(
       { username: username.trim().toLowerCase(), password },
       {
@@ -130,8 +142,11 @@ function CreatorLogin({ reduce, onLogin }: { reduce: boolean; onLogin: (token: s
             <p className="ps-creator__notice">
               首次投稿需要审核；成为正式创作者后可直接发布和维护自己的战术板。
             </p>
+            <p className={canLogin ? 'ps-creator__ready is-ready' : 'ps-creator__ready'} role="status">
+              {loginReadinessText}
+            </p>
             <div className="ps-creator__actions">
-              <Button type="submit" variant="primary" disabled={busy || !username.trim() || !password}>
+              <Button type="submit" variant="primary" disabled={!canLogin}>
                 {loginMutation.isPending ? '登录中…' : '登录'}
               </Button>
               <Button variant="secondary" to="/submit">

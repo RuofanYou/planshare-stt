@@ -456,8 +456,13 @@ test('creator can change password from dashboard and log in with the new passwor
   const nextPassword = 'creator-password-456'
 
   await page.goto('/creator')
+  await expect(page.getByText('还差：用户名、密码')).toBeVisible()
+  await expect(page.getByRole('button', { name: '登录' })).toBeDisabled()
   await page.getByLabel('用户名').fill(creator.username)
+  await expect(page.getByText('还差：密码')).toBeVisible()
+  await expect(page.getByRole('button', { name: '登录' })).toBeDisabled()
   await page.getByLabel('密码').fill(creator.password)
+  await expect(page.getByText('信息已补齐，可以登录。')).toBeVisible()
   await page.getByRole('button', { name: '登录' }).click()
   await expect(page.getByRole('heading', { name: '修改密码' })).toBeVisible()
 
