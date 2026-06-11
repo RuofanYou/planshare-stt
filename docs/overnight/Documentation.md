@@ -36,6 +36,7 @@
 - 创作者分发补缺口：正式创作者在“我的战术板”列表可直接“查看公开板”和“复制链接”，发布后不必绕到首页搜索才能分享。
 - 创作者维护补缺口：编辑已发布战术板时也有本地草稿保护，按 board id 隔离；刷新后恢复未保存修改，保存成功后清空。
 - 创作者资料维护补缺口：作者主页资料编辑也有本地草稿保护，按 author id 隔离；刷新后恢复简介、公会、招募和联系方式，保存成功后清空。
+- 创作者入口防呆补缺口：新用户直接打开 `/creator` 时，登录卡片必须给出“没有账号？去投稿申请创作者”入口，避免不知道账号从哪里创建。
 
 ## 验证输出
 
@@ -763,6 +764,53 @@ Playwright:
 
 in-app browser:
 /creator 页面可见，无 framework overlay，console errors=0。
+```
+
+### UGC 生态补缺口：创作者入口防呆
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator application guardrails"
+
+Running 1 test using 1 worker
+·
+1 passed (4.3s)
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 6 tests using 1 worker
+······
+6 passed (19.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.03s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:66:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (8.0s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:221:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.4s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:269:1 › creator can change password from dashboard and log in with the new password (1.7s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:307:1 › creator can withdraw a pending submission from dashboard (1.6s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:333:1 › home search finds boards by boss and author names (2.8s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:352:1 › submit draft survives reload without saving password or contact (1.2s)
+6 passed (19.6s)
+```
+
+```text
+in-app browser:
+/creator 登录卡片中“没有账号？去投稿申请创作者”入口数量为 1。
+点击后跳转到 http://localhost:5183/submit。
+/submit 页面显示“提交你的战术板”和“申请创作者”。
+framework overlay=false，console errors=0。
 ```
 
 ## 已知问题

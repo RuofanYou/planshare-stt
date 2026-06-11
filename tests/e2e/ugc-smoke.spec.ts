@@ -233,6 +233,11 @@ test('creator application guardrails handle missing fields, invalid usernames, a
     await page.getByLabel('战术正文').fill(`P1 防呆验证 ${title}\nP2 集合`)
   }
 
+  await page.goto('/creator')
+  await expect(page.getByRole('link', { name: '没有账号？去投稿申请创作者' })).toBeVisible()
+  await page.getByRole('link', { name: '没有账号？去投稿申请创作者' }).click()
+  await expect(page).toHaveURL(/\/submit$/)
+
   await page.goto('/submit')
   await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
 

@@ -134,6 +134,9 @@ function CreatorLogin({ reduce, onLogin }: { reduce: boolean; onLogin: (token: s
               <Button type="submit" variant="primary" disabled={busy || !username.trim() || !password}>
                 {loginMutation.isPending ? '登录中…' : '登录'}
               </Button>
+              <Button variant="secondary" to="/submit">
+                没有账号？去投稿申请创作者
+              </Button>
             </div>
           </form>
         </GlassCard>
