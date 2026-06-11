@@ -17,6 +17,7 @@ import {
   dur,
   easeEpic,
 } from '../lib/motion'
+import { copyToClipboard } from '../lib/clipboard'
 import CopyButton from '../components/CopyButton'
 import BoardCard from '../components/BoardCard'
 import {
@@ -287,24 +288,8 @@ export default function BoardDetail() {
 
   /** 复制文本到剪贴板（带非安全上下文降级），成功后弹站点级玻璃 Toast。 */
   async function copyText(text: string, message = '已复制到剪贴板') {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      // 剪贴板不可用（如非安全上下文）时降级：临时 textarea
-      const ta = document.createElement('textarea')
-      ta.value = text
-      ta.style.position = 'fixed'
-      ta.style.opacity = '0'
-      document.body.appendChild(ta)
-      ta.select()
-      try {
-        document.execCommand('copy')
-      } catch {
-        document.body.removeChild(ta)
-        return false
-      }
-      document.body.removeChild(ta)
-    }
+    const copied = await copyToClipboard(text)
+    if (!copied) return false
     flashToast(message)
     return true
   }

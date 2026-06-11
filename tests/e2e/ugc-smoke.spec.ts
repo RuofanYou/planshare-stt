@@ -167,6 +167,11 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await page.getByRole('button', { name: '直接发布' }).click()
   await expect(page.getByText('战术板已发布。')).toBeVisible()
+  const directBoardRow = page.locator('.ps-creator__board', { hasText: directTitle })
+  await expect(directBoardRow.getByRole('link', { name: '查看公开板' })).toBeVisible()
+  await expect(directBoardRow.getByRole('button', { name: '复制链接' })).toBeVisible()
+  await directBoardRow.getByRole('button', { name: '复制链接' }).click()
+  await expect(directBoardRow.getByText('链接已复制。')).toBeVisible()
   await expect(
     page.evaluate(() =>
       Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_draft_v1')).length,

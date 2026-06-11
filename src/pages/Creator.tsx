@@ -17,6 +17,7 @@ import {
   useWithdrawCreatorSubmission,
 } from '../api/hooks'
 import { fadeUp, staggerContainer, staggerItem } from '../lib/motion'
+import { copyToClipboard } from '../lib/clipboard'
 import { Avatar, Button, EmptyState, GlassCard, SectionHeading, Skeleton, Tag } from '../components/ui'
 import type { Author, CreatorBoard, CreatorSubmission, CreatorUser, Difficulty } from '../data/types'
 import './Creator.css'
@@ -810,6 +811,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   const [title, setTitle] = useState(board.title)
   const [description, setDescription] = useState(board.description)
   const [contentText, setContentText] = useState(board.contentText)
+  const [copyNotice, setCopyNotice] = useState('')
 
   useEffect(() => {
     if (editing) return
@@ -836,6 +838,12 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   function hideBoard() {
     if (!window.confirm('确定下架这个战术板？下架后不会公开展示，但可以随时恢复发布。')) return
     deleteBoard.mutate(board.id)
+  }
+
+  async function copyBoardLink() {
+    const origin = window.location.origin
+    const copied = await copyToClipboard(`${origin}/board/${board.id}`)
+    setCopyNotice(copied ? '链接已复制。' : '复制失败，请打开公开页后从地址栏复制。')
   }
 
   return (
@@ -897,6 +905,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
       ) : (
         <>
           <p className="ps-creator__panel-copy">{board.description || '无简介'}</p>
+          {copyNotice && <p className="ps-creator__notice">{copyNotice}</p>}
           <div className="ps-creator__actions">
             <Button variant="secondary" onClick={() => setEditing(true)}>
               编辑
@@ -912,7 +921,10 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
             ) : (
               <>
                 <Button variant="secondary" to={`/board/${board.id}`}>
-                  查看
+                  查看公开板
+                </Button>
+                <Button variant="secondary" leadingIcon="copy" onClick={() => void copyBoardLink()}>
+                  复制链接
                 </Button>
                 <Button
                   variant="secondary"
