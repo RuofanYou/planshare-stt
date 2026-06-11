@@ -1614,7 +1614,7 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
-### 最新最终验证
+### 上一轮最终验证
 ```text
 CI=1 npx playwright test --grep "visitor can report a board and admin can hide it from public pages"
 
@@ -1643,7 +1643,38 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### 最新最终验证
+```text
+CI=1 npx playwright test --grep "admin can reset a creator password and the creator can log in again"
+
+Running 1 test using 1 worker
+·
+1 passed (4.5s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.1s)
+✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:666:1 › admin can reset a creator password and the creator can log in again (2.0s)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1347:1 › submit draft survives reload without saving password or contact (1.7s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1648:1 › visitor can report a board and admin can hide it from public pages (10.9s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1783:1 › creator direct publish screens unsafe content in dashboard (5.8s)
+32 passed (1.7m)
+```
+
 ## 高风险 diff
+- `src/pages/Admin.tsx`：管理员重置创作者密码后新增“隐藏新密码”；需人工确认客服流程里复制后立即隐藏明文符合运营习惯。
 - `src/pages/BoardDetail.tsx`：举报成功后会把下一次打开的举报理由重置为默认值；需人工确认多次举报同一板时不继承上次理由更符合普通用户预期。
 - `src/pages/Submit.tsx`：投稿成功或被系统拦截后，用户开始编辑下一份投稿会清掉旧结果提示；需人工确认“用户编辑即开始新投稿”的交互理解符合运营预期。
 - `src/pages/Creator.tsx`：创作者修改密码成功后，继续输入会清掉旧成功提示；需人工确认成功提示消失时机符合“继续编辑代表开始新操作”的理解。

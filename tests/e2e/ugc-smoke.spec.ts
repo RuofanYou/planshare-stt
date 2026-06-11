@@ -682,6 +682,9 @@ test('admin can reset a creator password and the creator can log in again', asyn
   await expect(accountRow.getByRole('button', { name: '复制新密码' })).toBeVisible()
   await accountRow.getByRole('button', { name: '复制新密码' }).click()
   await expect(accountRow.getByText('新密码已复制。')).toBeVisible()
+  await accountRow.getByRole('button', { name: '隐藏新密码' }).click()
+  await expect(accountRow.getByText(`已重置。请把新密码「${resetPassword}」发给用户；离开本行后后台不会再显示它。`)).toHaveCount(0)
+  await expect(accountRow.getByText('新密码已复制。')).toHaveCount(0)
 
   await page.goto('/creator')
   await page.getByLabel('用户名').fill(creator.username)

@@ -1322,6 +1322,16 @@ function AccountRow({
             <Button variant="secondary" size="sm" onClick={copyIssuedPassword}>
               复制新密码
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setIssuedPassword('')
+                setCopyNotice('')
+              }}
+            >
+              隐藏新密码
+            </Button>
             {copyNotice && <p className="ps-admin__success">{copyNotice}</p>}
           </div>
         )}

@@ -4082,6 +4082,52 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### UGC 生态补缺口：管理员重置密码后可立即隐藏明文
+```text
+管理员 / 创作者用户探索:
+管理员帮创作者重置密码后，后台会短暂显示新密码，方便复制给用户。
+原来复制后只能靠离开页面或重新打开重置表单来让明文消失；如果有人旁观，明文会停留太久。
+UGC 开放后，创作者密码重置是常见客服操作，需要给管理员一个明确的“复制完就隐藏”出口。
+
+已修复：
+- 重置密码成功区新增“隐藏新密码”按钮。
+- 点击后会清掉明文新密码和“新密码已复制”提示。
+- 隐藏只影响当前后台显示，不影响已经完成的密码重置。
+- E2E 覆盖：复制新密码后点击隐藏，明文和复制提示消失，创作者仍能用新密码登录。
+
+决策记录：
+- 不把新密码写入任何新状态或后端；仍只在当前行临时显示。
+- 这是后台安全防呆，不改变创作者登录、会话撤销或重置接口。
+```
+
+```text
+CI=1 npx playwright test --grep "admin can reset a creator password and the creator can log in again"
+
+Running 1 test using 1 worker
+·
+1 passed (4.5s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.1s)
+✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:666:1 › admin can reset a creator password and the creator can log in again (2.0s)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1347:1 › submit draft survives reload without saving password or contact (1.7s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1648:1 › visitor can report a board and admin can hide it from public pages (10.9s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1783:1 › creator direct publish screens unsafe content in dashboard (5.8s)
+32 passed (1.7m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
