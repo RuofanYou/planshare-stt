@@ -63,6 +63,33 @@ async function approvePending(request: APIRequestContext, token: string, id: str
   return res.json()
 }
 
+async function createAdminBoard(request: APIRequestContext, suffix: string) {
+  const admin = await adminToken(request)
+  const author = await request.post('/api/authors', {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { name: `E2E 举报作者 ${suffix}` },
+  })
+  expect(author.status()).toBe(201)
+  const authorBody = await author.json()
+
+  const board = await request.post('/api/boards', {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: {
+      title: `E2E 举报处理 ${suffix}`,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `E2E 举报处理 ${suffix}`,
+      contentText: `P1 举报测试 ${suffix}\nP2 集合`,
+      authorId: authorBody.id,
+      isFeatured: false,
+    },
+  })
+  expect(board.status()).toBe(201)
+  return { admin, board: await board.json() }
+}
+
 test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const creatorUsername = `e2e_${runId}`
@@ -392,4 +419,32 @@ test('submit draft survives reload without saving password or contact', async ({
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
   await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()
+})
+
+test('visitor can report a board and admin can hide it from public pages', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const { board } = await createAdminBoard(request, runId)
+  const detail = `E2E 举报说明 ${runId}`
+
+  await page.goto(`/board/${board.id}`)
+  await expect(page.getByRole('heading', { name: board.title })).toBeVisible()
+  await page.getByRole('button', { name: '举报' }).click()
+  await page.locator('#ps-report-reason').selectOption('wrong-info')
+  await page.locator('#ps-report-detail').fill(detail)
+  await page.getByRole('button', { name: '提交举报' }).click()
+  await expect(page.getByText('举报已提交')).toBeVisible()
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '举报' }).click()
+  const reportRow = page.locator('.ps-admin__row-card', { hasText: board.id })
+  await expect(reportRow.getByText(detail)).toBeVisible()
+  await reportRow.getByRole('button', { name: '隐藏板' }).click()
+  await expect(reportRow.getByText('已隐藏')).toBeVisible()
+
+  const hidden = await request.get(`/api/boards/${board.id}`)
+  expect(hidden.status()).toBe(404)
+  await page.goto(`/board/${board.id}`)
+  await expect(page.getByText('战术板加载失败，请稍后再试。')).toBeVisible()
 })

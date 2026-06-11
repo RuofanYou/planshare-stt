@@ -26,6 +26,7 @@
 - 创作者入口防呆补缺口：未注册用户直接进 `/creator` 时，登录卡片新增“没有账号？去投稿申请创作者”入口，可一键回到投稿申请流程。
 - 创作者申请表防呆补缺口：申请密码不足 8 位时，密码框下方实时提示“还差几位”，避免用户只看到灰色提交按钮却不知道原因。
 - 创作者维护闭环补测：Playwright 主链路覆盖正式创作者直发后的编辑、下架、恢复发布，确保发错板可自助撤下并恢复。
+- 浏览用户治理闭环补测：Playwright 覆盖访客举报公开板、管理员在举报队列隐藏板、公开详情页不可见。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -840,6 +841,53 @@ Playwright:
 正式创作者直发后点击“下架”，确认弹窗后该板显示“已下架”，只保留“恢复发布”操作。
 下架状态不再显示“查看公开板”入口。
 点击“恢复发布”后重新显示“已发布”和“查看公开板”。
+```
+
+### 举报到隐藏板闭环回归
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor can report"
+
+Running 1 test using 1 worker
+·
+1 passed (11.2s)
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 7 tests using 1 worker
+·······
+7 passed (29.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.04s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:93:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (8.2s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:258:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.7s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:309:1 › creator can change password from dashboard and log in with the new password (2.1s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:347:1 › creator can withdraw a pending submission from dashboard (1.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:373:1 › home search finds boards by boss and author names (2.7s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › submit draft survives reload without saving password or contact (1.2s)
+✓  7 [chromium] › tests/e2e/ugc-smoke.spec.ts:424:1 › visitor can report a board and admin can hide it from public pages (8.9s)
+7 passed (28.5s)
+```
+
+```text
+Playwright:
+临时公开板详情页点击“举报”，选择“内容有误”并提交后显示“举报已提交”。
+管理员进入“举报”队列，可看到举报说明并点击“隐藏板”。
+隐藏后公开 GET /api/boards/:id 返回 404，详情页显示“战术板加载失败，请稍后再试。”。
 ```
 
 ## 高风险 diff
