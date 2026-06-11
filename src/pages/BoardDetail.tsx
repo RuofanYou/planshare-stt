@@ -279,13 +279,17 @@ export default function BoardDetail() {
 
   // 加载失败 / 未找到：统一玻璃空态
   if (boardQuery.isError || !detail || !board) {
-    const text = boardQuery.isError
-      ? '战术板加载失败，请稍后再试。'
-      : '没有找到这块战术板。'
+    const errorMessage = boardQuery.isError ? (boardQuery.error as Error)?.message : ''
+    const boardUnavailable = errorMessage === 'board not found'
+    const text = boardUnavailable
+      ? '这块战术板已不可见，可能已下架或被管理员隐藏。'
+      : boardQuery.isError
+        ? '战术板加载失败，请稍后再试。'
+        : '没有找到这块战术板。'
     return (
       <DetailFallback
         text={text}
-        isError={boardQuery.isError}
+        isError={boardQuery.isError && !boardUnavailable}
         onHome={() => navigate('/')}
       />
     )

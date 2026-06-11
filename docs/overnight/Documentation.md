@@ -1866,6 +1866,49 @@ vite v5.4.21 building for production...
 13 passed (38.2s)
 ```
 
+### UGC 生态补缺口：不可见战术板提示
+```text
+普通用户探索:
+举报处理或创作者下架后，公开 URL 返回 404。原前端把 `board not found` 显示为“战术板加载失败，请稍后再试。”，用户会误以为系统故障。
+已改为显示：
+“这块战术板已不可见，可能已下架或被管理员隐藏。”
+```
+
+```text
+Browser/Playwright 覆盖:
+本地创建一块板，管理员隐藏后打开公开 URL：
+{
+  "hasUnavailableText": true,
+  "url": "http://localhost:5183/board/p-mq8w49kv-ahxcta"
+}
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor can report"
+
+Running 1 test using 1 worker
+·
+1 passed (11.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓  11 [chromium] › tests/e2e/ugc-smoke.spec.ts:641:1 › visitor can report a board and admin can hide it from public pages (8.9s)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:731:1 › creator direct publish screens unsafe content in dashboard (845ms)
+13 passed (39.0s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

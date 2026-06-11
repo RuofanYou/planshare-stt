@@ -674,7 +674,7 @@ test('visitor can report a board and admin can hide it from public pages', async
   const hidden = await request.get(`/api/boards/${board.id}`)
   expect(hidden.status()).toBe(404)
   await page.goto(`/board/${board.id}`)
-  await expect(page.getByText('战术板加载失败，请稍后再试。')).toBeVisible()
+  await expect(page.getByText('这块战术板已不可见，可能已下架或被管理员隐藏。')).toBeVisible()
 })
 
 test('creator dashboard blocks self-restore for boards hidden by admin reports', async ({ page, request }) => {
