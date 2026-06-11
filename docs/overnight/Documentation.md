@@ -1439,6 +1439,44 @@ vite v5.4.21 building for production...
 11 passed (32.9s)
 ```
 
+### UGC 生态补缺口：访客详情页点赞显示复测
+```text
+Browser 手动复测:
+公开详情页 -> 基于此投稿 -> 返回详情页 -> 点赞。
+
+结果:
+- “基于此投稿”会把原战术板标题、团本、BOSS、正文带入投稿页，缺署名/账号时仍保持提交禁用。
+- 访客点击点赞时，后端只持久化 +1；此前前端会把后端新计数再本地 +1，视觉上多显示一票。
+- 已修复为：点击后先乐观 +1，后端返回后以后端 likeCount 真值显示，本会话按钮保持“已点赞”且不能重复加。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (11.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.11s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:541:1 › visitor can report a board and admin can hide it from public pages (9.0s)
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:579:1 › creator dashboard blocks self-restore for boards hidden by admin reports (5.7s)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:630:1 › creator direct publish screens unsafe content in dashboard (829ms)
+11 passed (43.8s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

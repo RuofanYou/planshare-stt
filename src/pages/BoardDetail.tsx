@@ -82,8 +82,8 @@ function ViewCountUp({ value }: { value: number }) {
 /**
  * 详情页侧栏点赞（服务端持久化版）。
  * 共享 LikeButton 是 mock 本地态（仅展示），本页需要真持久化，故页面级实现：
- * 点击调 useLikeBoard() 写后端 +1，乐观更新本地显示数（先 +1 再发请求，
- * 失败回滚），成功后 hooks 会失效列表/详情让计数与排序由后端真值重算。
+ * 点击调 useLikeBoard() 写后端 +1，乐观更新本地显示数；后端返回后以真值为准，
+ * 避免 query 刷新后把「后端新计数」再次本地 +1。
  * 造型沿用共享 LikeButton 的心形 + 金色语言，保持全站一致。
  */
 function PersistedLike({
@@ -97,14 +97,27 @@ function PersistedLike({
   const likeBoard = useLikeBoard()
   // 本会话内已点过赞则不再重复 +1（与全站「点一次」语义一致；刷新还原由后端真值接管）
   const [liked, setLiked] = useState(false)
-  // 乐观显示数：后端真值（count）+ 本地未落地的 +1
-  const display = liked ? count + 1 : count
+  const [display, setDisplay] = useState(count)
+
+  useEffect(() => {
+    setLiked(false)
+    setDisplay(count)
+  }, [boardId])
+
+  useEffect(() => {
+    if (!liked && !likeBoard.isPending) setDisplay(count)
+  }, [count, liked, likeBoard.isPending])
 
   function handleLike() {
     if (liked || likeBoard.isPending) return
     setLiked(true) // 乐观更新：先点亮 + 数字 +1
+    setDisplay(count + 1)
     likeBoard.mutate(boardId, {
-      onError: () => setLiked(false), // 失败回滚
+      onSuccess: (result) => setDisplay(result.likeCount),
+      onError: () => {
+        setLiked(false)
+        setDisplay(count)
+      },
     })
   }
 
