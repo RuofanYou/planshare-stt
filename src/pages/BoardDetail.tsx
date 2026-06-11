@@ -300,7 +300,10 @@ export default function BoardDetail() {
   /** 复制文本到剪贴板（带非安全上下文降级），成功后弹站点级玻璃 Toast。 */
   async function copyText(text: string, message = '已复制到剪贴板') {
     const copied = await copyToClipboard(text)
-    if (!copied) return false
+    if (!copied) {
+      flashToast('复制失败，请手动选中文本复制')
+      return false
+    }
     flashToast(message)
     return true
   }

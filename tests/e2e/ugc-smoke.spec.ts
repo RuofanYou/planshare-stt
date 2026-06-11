@@ -530,14 +530,59 @@ test('author page likes update author aggregate stats', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '妮可' })).toBeVisible()
 
   const likesStat = page.locator('.ps-author__stat', { hasText: '获赞' })
-  const likesText = (await likesStat.locator('.ps-author__stat-num').textContent()) ?? ''
-  const likesBefore = Number(likesText.replace(/[^\d]/g, ''))
-  expect(Number.isFinite(likesBefore)).toBeTruthy()
-
   const firstCard = page.locator('.ps-card').first()
+  const cardLikeText = (await firstCard.getByRole('button', { name: '点赞' }).textContent()) ?? ''
+  const likesBefore = Number(cardLikeText.replace(/[^\d]/g, ''))
+  expect(Number.isFinite(likesBefore)).toBeTruthy()
+  await expect
+    .poll(async () => {
+      const likesText = (await likesStat.locator('.ps-author__stat-num').textContent()) ?? ''
+      return Number(likesText.replace(/[^\d]/g, ''))
+    })
+    .toBe(likesBefore)
+
   await firstCard.getByRole('button', { name: '点赞' }).click()
   await expect(firstCard.getByRole('button', { name: '已点赞' })).toBeVisible()
   await expect(likesStat.locator('.ps-author__stat-num')).toContainText(String(likesBefore + 1))
+})
+
+test('copy actions show a visible failure state when clipboard is blocked', async ({ page }) => {
+  await page.addInitScript(() => {
+    const blockedClipboard = {
+      writeText: () => Promise.reject(new Error('clipboard blocked')),
+    }
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: blockedClipboard,
+    })
+    Object.defineProperty(Navigator.prototype, 'clipboard', {
+      configurable: true,
+      get: () => blockedClipboard,
+    })
+    Object.defineProperty(document, 'execCommand', {
+      configurable: true,
+      value: () => false,
+    })
+    Object.defineProperty(Document.prototype, 'execCommand', {
+      configurable: true,
+      value: () => false,
+    })
+  })
+
+  await page.goto('/board/p-midnight-m9')
+  await expect(page.evaluate(() => navigator.clipboard.writeText('x').then(() => 'ok', () => 'blocked'))).resolves.toBe(
+    'blocked',
+  )
+  await expect(page.evaluate(() => document.execCommand('copy'))).resolves.toBe(false)
+  await page.getByRole('button', { name: '复制战术' }).click()
+  await expect(page.getByRole('status').getByText('复制失败，请手动选中文本复制')).toBeVisible()
+
+  const planRegion = page.getByRole('region', { name: '战术正文' })
+  await planRegion.getByRole('button', { name: '复制' }).click()
+  await expect(planRegion.getByRole('button', { name: '复制失败' })).toBeVisible()
+
+  await page.getByRole('button', { name: '复制链接' }).click()
+  await expect(page.getByRole('status').getByText('复制失败，请手动选中文本复制')).toBeVisible()
 })
 
 test('submit draft survives reload without saving password or contact', async ({ page }) => {

@@ -1586,6 +1586,61 @@ vite v5.4.21 building for production...
 12 passed (37.4s)
 ```
 
+### UGC 生态补缺口：复制失败防呆
+```text
+普通用户探索:
+在内置浏览器打开 /board/p-midnight-m9 后点击“复制战术”。
+Browser 工具没有虚拟剪贴板时，原页面没有给出失败提示，用户会以为按钮没反应。
+```
+
+```text
+修复:
+- src/lib/clipboard.ts 现在尊重 document.execCommand('copy') 的 false 返回值，不再把失败误判成成功。
+- src/components/CopyButton.tsx 统一调用 copyToClipboard，正文小复制按钮失败时短暂显示“复制失败”，并通过 aria-live 说明“复制失败，请手动选中文本复制”。
+- src/pages/BoardDetail.tsx 顶部“复制战术”和“复制链接”失败时显示同一句可见 toast。
+```
+
+```text
+测试决策:
+作者页点赞聚合测试原本会在数字滚动动画从 0 递增时过早读取“获赞”，导致期望值偶发变成 1。
+已改为先等待作者“获赞”统计追平卡片点赞数，再点击点赞；这是测试前提修正，不弱化业务断言。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "copy actions"
+
+Running 1 test using 1 worker
+·
+1 passed (2.7s)
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "author page likes"
+
+Running 1 test using 1 worker
+·
+1 passed (3.6s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   8 [chromium] › tests/e2e/ugc-smoke.spec.ts:528:1 › author page likes update author aggregate stats (1.4s)
+✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:549:1 › copy actions show a visible failure state when clipboard is blocked (769ms)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:709:1 › creator direct publish screens unsafe content in dashboard (895ms)
+13 passed (37.8s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
