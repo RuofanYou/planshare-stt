@@ -650,7 +650,8 @@ test('visitor can report a board and admin can hide it from public pages', async
   await page.locator('#ps-report-reason').selectOption('wrong-info')
   await page.locator('#ps-report-detail').fill(detail)
   await page.getByRole('button', { name: '提交举报' }).click()
-  await expect(page.getByText('举报已提交')).toBeVisible()
+  await expect(page.getByText('举报已提交，已进入管理员处理队列。')).toBeVisible()
+  await expect(page.getByRole('button', { name: '提交举报' })).toHaveCount(0)
 
   const admin = await adminToken(request)
   const updateBoard = await request.put(`/api/boards/${board.id}`, {

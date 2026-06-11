@@ -510,7 +510,7 @@ export default function BoardDetail() {
               >
                 举报
               </Button>
-              {reportDone && <p className="ps-detail__report-status">举报已提交</p>}
+              {reportDone && <p className="ps-detail__report-status">举报已提交，已进入管理员处理队列。</p>}
               {reportOpen && (
                 <form className="ps-detail__report-form glass-strong" onSubmit={submitReport}>
                   <label className="ps-detail__report-label" htmlFor="ps-report-reason">
