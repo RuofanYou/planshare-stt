@@ -347,6 +347,7 @@ test('creator application guardrails handle missing fields, invalid usernames, a
 
   await page.goto('/submit')
   await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
+  await expect(page.getByText('还差：标题、团本、BOSS、投稿署名、战术正文')).toBeVisible()
 
   await page.getByRole('radio', { name: /申请创作者/ }).click()
   await page.getByLabel('标题').fill(`缺密码防呆 ${runId}`)
@@ -359,6 +360,7 @@ test('creator application guardrails handle missing fields, invalid usernames, a
   await expect(page.getByText('密码至少 8 位，还差 1 位。')).toBeVisible()
   await page.getByLabel('战术正文').fill('P1 缺密码')
   await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
+  await expect(page.getByText('还差：登录密码至少 8 位')).toBeVisible()
 
   await page.goto('/submit')
   await fillCreatorApplication(`非法用户名防呆 ${runId}`, 'Bad Name')
@@ -612,6 +614,7 @@ test('submit draft survives reload without saving password or contact', async ({
   await expect(page.getByLabel('战术正文')).toHaveValue(`P1 草稿保护 ${runId}\nP2 集合`)
 
   await page.getByRole('radio', { name: /普通投稿/ }).click()
+  await expect(page.getByText('信息已补齐，可以提交审核。')).toBeVisible()
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
   await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()

@@ -264,6 +264,23 @@
   margin: 0;
 }
 
+.ps-submit__ready {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-submit__ready.is-ready {
+  color: var(--color-success);
+  border-color: var(--color-gold-glow);
+  background: var(--glass-strong);
+}
+
 .ps-submit__activation-link {
   color: var(--color-gold);
   font-weight: var(--weight-medium);

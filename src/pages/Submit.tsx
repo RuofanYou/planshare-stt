@@ -131,14 +131,22 @@ export default function Submit() {
     wantsCreatorProfile && creatorPassword.length > 0 && creatorPassword.length < 8
       ? `密码至少 8 位，还差 ${8 - creatorPassword.length} 位。`
       : '用于以后登录创作者后台，至少 8 位。'
-  const canSubmit =
-    title.trim() !== '' &&
-    raidId !== '' &&
-    bossId !== '' &&
-    contentText.trim() !== '' &&
-    submitterName.trim() !== '' &&
-    (!wantsCreatorProfile || (creatorUsername.trim() !== '' && creatorPassword.length >= 8)) &&
-    !pending
+  const missingSubmitItems = [
+    title.trim() === '' ? '标题' : '',
+    raidId === '' ? '团本' : '',
+    bossId === '' ? 'BOSS' : '',
+    submitterName.trim() === '' ? (wantsCreatorProfile ? '作者名' : '投稿署名') : '',
+    wantsCreatorProfile && creatorUsername.trim() === '' ? '登录用户名' : '',
+    wantsCreatorProfile && creatorPassword.length < 8 ? '登录密码至少 8 位' : '',
+    contentText.trim() === '' ? '战术正文' : '',
+  ].filter(Boolean)
+  const canSubmit = missingSubmitItems.length === 0 && !pending
+  const submitReadinessText =
+    missingSubmitItems.length > 0
+      ? `还差：${missingSubmitItems.join('、')}`
+      : pending
+        ? '正在提交，请稍候。'
+        : '信息已补齐，可以提交审核。'
 
   useEffect(() => {
     draftHydrated.current = true
@@ -608,6 +616,16 @@ export default function Submit() {
               </Button>
             )}
           </motion.div>
+        )}
+
+        {!submittedId && (
+          <motion.p
+            className={canSubmit ? 'ps-submit__ready is-ready' : 'ps-submit__ready'}
+            role="status"
+            variants={reduce ? undefined : staggerItem}
+          >
+            {submitReadinessText}
+          </motion.p>
         )}
 
         <motion.div className="ps-submit__actions" variants={reduce ? undefined : staggerItem}>

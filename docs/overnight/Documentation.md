@@ -1641,6 +1641,50 @@ vite v5.4.21 building for production...
 13 passed (37.8s)
 ```
 
+### UGC 生态补缺口：投稿缺项实时提示
+```text
+普通用户探索:
+投稿页原本只有“提交审核”禁用态，新手不知道还差哪一项。
+已新增实时提示：
+- 空白普通投稿显示“还差：标题、团本、BOSS、投稿署名、战术正文”。
+- 申请创作者但密码不足 8 位显示“还差：登录密码至少 8 位”。
+- 信息补齐后显示“信息已补齐，可以提交审核。”。
+```
+
+```text
+Browser 覆盖:
+打开 /submit。
+当前内置浏览器有本机自动草稿，页面显示“还差：投稿署名”，说明缺项提示会基于已保存草稿实时收敛。
+按钮保持禁用，无前端 error。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator application guardrails|submit draft"
+
+Running 2 tests using 1 worker
+··
+2 passed (5.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.95s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:328:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.5s)
+✓  10 [chromium] › tests/e2e/ugc-smoke.spec.ts:590:1 › submit draft survives reload without saving password or contact (1.1s)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:712:1 › creator direct publish screens unsafe content in dashboard (780ms)
+13 passed (36.5s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
