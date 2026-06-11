@@ -437,6 +437,19 @@ function rowToCreatorSubmission(row) {
   }
 }
 
+function rowToSubmissionReceipt(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    status: row.status,
+    reviewNote: row.review_note ?? undefined,
+    spamReason: row.spam_reason ?? undefined,
+    boardId: row.board_id ?? undefined,
+    createdAt: row.created_at,
+    reviewedAt: row.reviewed_at ?? undefined,
+  }
+}
+
 function rowToCreatorAccount(row) {
   return {
     id: row.id,
@@ -1464,6 +1477,15 @@ app.get('/api/creator/submissions', { preHandler: requireCreatorAuth }, (req) =>
   const authorId = req.creatorAccount.author_id
   if (!authorId) return []
   return stmt.submissionsByAuthor.all(authorId).map(rowToCreatorSubmission)
+})
+
+// GET /api/submissions/:id/receipt -> 游客凭投稿编号查询有限审核状态。
+app.get('/api/submissions/:id/receipt', (req, reply) => {
+  const id = cleanText(req.params.id)
+  if (!id) return reply.code(400).send({ error: '请填写投稿编号' })
+  const submission = stmt.submissionById.get(id)
+  if (!submission) return reply.code(404).send({ error: '没有找到这个投稿编号' })
+  return rowToSubmissionReceipt(submission)
 })
 
 // POST /api/creator/submissions/:id/withdraw -> 创作者撤回自己的待审投稿。

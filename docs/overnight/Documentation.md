@@ -3010,6 +3010,61 @@ vite v5.4.21 building for production...
 22 passed (1.1m)
 ```
 
+### UGC 生态补缺口：游客投稿编号可自助查询状态
+```text
+普通浏览用户探索:
+普通游客投稿成功后只有一个投稿编号，但之前没有自助查询入口。
+这会导致用户不知道投稿是待审核、已发布、被驳回还是被系统拦截，只能等管理员沟通，普通用户自循环断在这里。
+
+已修复：
+- 新增公开只读接口 GET /api/submissions/:id/receipt
+- 返回有限状态：投稿编号、标题、状态、审核备注、拦截原因、公开板 ID、创建/处理时间
+- 不返回联系方式、sourceKey、正文、后台完整投稿字段，避免把管理员视角数据公开出去
+- 投稿页新增“查询投稿状态”面板，可手动输入投稿编号
+- 投稿成功区新增“查看审核状态”
+- 待审核显示“管理员还没有处理，请稍后再来查”
+- 审核通过后显示“已发布”，并提供“打开战术板”入口
+- 未通过/被系统拦截/已撤回用非绿色状态提示，避免把失败状态误看成成功
+
+决策记录：
+- 不做邮箱/短信/第三方登录，符合本次非目标；普通游客只用投稿编号完成状态查询。
+- 投稿编号查询接口只做有限公开状态，不复用管理员投稿响应，避免泄露联系方式与来源信息。
+- 用户如果已经停留在同一编号查询页，重新点“查询”刷新状态；测试按这个真实动作覆盖审核通过后的更新。
+```
+
+```text
+node --test --test-concurrency=1 server/submissions.test.mjs
+
+1..8
+# tests 8
+# pass 8
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor can check submission receipt"
+
+Running 1 test using 1 worker
+·
+1 passed (3.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.94s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1029:1 › visitor can check submission receipt and open the approved board (964ms)
+23 passed (1.1m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

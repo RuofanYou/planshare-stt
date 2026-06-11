@@ -224,6 +224,13 @@ test('admin approval can create an author and publish a board', async (t) => {
     ),
   })
 
+  const pendingReceipt = await requestJson(server.baseUrl, `/api/submissions/${created.body.id}/receipt`)
+  assert.equal(pendingReceipt.res.status, 200)
+  assert.equal(pendingReceipt.body.status, 'pending')
+  assert.equal(pendingReceipt.body.title, '测试投稿战术板')
+  assert.equal('contact' in pendingReceipt.body, false)
+  assert.equal('sourceKey' in pendingReceipt.body, false)
+
   const approved = await requestJson(server.baseUrl, `/api/admin/submissions/${created.body.id}/approve`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
@@ -239,6 +246,11 @@ test('admin approval can create an author and publish a board', async (t) => {
   const board = await requestJson(server.baseUrl, `/api/boards/${approved.body.board.id}`)
   assert.equal(board.res.status, 200)
   assert.equal(board.body.author.name, '投稿作者')
+
+  const approvedReceipt = await requestJson(server.baseUrl, `/api/submissions/${created.body.id}/receipt`)
+  assert.equal(approvedReceipt.res.status, 200)
+  assert.equal(approvedReceipt.body.status, 'approved')
+  assert.equal(approvedReceipt.body.boardId, approved.body.board.id)
 })
 
 test('admin rejection and spam actions do not publish boards', async (t) => {
@@ -271,6 +283,11 @@ test('admin rejection and spam actions do not publish boards', async (t) => {
 
   assert.equal(rejected.body.status, 'rejected')
   assert.equal(spammed.body.status, 'spam')
+
+  const rejectedReceipt = await requestJson(server.baseUrl, `/api/submissions/${rejectTarget.body.id}/receipt`)
+  assert.equal(rejectedReceipt.res.status, 200)
+  assert.equal(rejectedReceipt.body.status, 'rejected')
+  assert.equal(rejectedReceipt.body.reviewNote, '内容不完整')
 
   const boards = await requestJson(server.baseUrl, '/api/boards')
   assert.equal(boards.body.some((board) => board.title === '会被驳回'), false)

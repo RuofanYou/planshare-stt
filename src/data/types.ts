@@ -154,6 +154,18 @@ export interface AdminSubmission extends CreateSubmissionInput {
   reviewedAt?: string
 }
 
+/** 游客凭投稿编号查询到的有限状态，不暴露联系方式和后台来源信息。 */
+export interface SubmissionReceipt {
+  id: string
+  title: string
+  status: SubmissionStatus
+  reviewNote?: string
+  spamReason?: string
+  boardId?: string
+  createdAt: string
+  reviewedAt?: string
+}
+
 /** 创作者后台视角投稿进度：只展示自己的审核状态和处理结果。 */
 export interface CreatorSubmission {
   id: string

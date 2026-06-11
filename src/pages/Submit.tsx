@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import type { Difficulty, SubmissionStatus } from '../data/types'
-import { useBoard, useCreateSubmission, useCreatorMe, useCreatorSession, useRaid, useRaids } from '../api/hooks'
+import type { Difficulty, SubmissionReceipt, SubmissionStatus } from '../data/types'
+import {
+  useBoard,
+  useCreateSubmission,
+  useCreatorMe,
+  useCreatorSession,
+  useRaid,
+  useRaids,
+  useSubmissionReceipt,
+} from '../api/hooks'
 import { Button, SectionHeading, Tag } from '../components/ui'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
 import { copyToClipboard } from '../lib/clipboard'
@@ -21,6 +29,32 @@ function spamReasonLabel(reason: string) {
   if (reason === 'duplicate_content') return '同一网络下重复正文，系统不会重复进入审核'
   if (reason === 'content_blacklist') return '内容风险'
   return reason || '内容风险'
+}
+
+function receiptStatusLabel(status: SubmissionStatus) {
+  if (status === 'pending') return '待审核'
+  if (status === 'approved') return '已发布'
+  if (status === 'rejected') return '未通过'
+  if (status === 'spam') return '被系统拦截'
+  if (status === 'withdrawn') return '已撤回'
+  return '未知状态'
+}
+
+function receiptStatusCopy(receipt: SubmissionReceipt) {
+  if (receipt.status === 'pending') return '管理员还没有处理，请稍后再来查。'
+  if (receipt.status === 'approved') return '这份投稿已经公开，可以直接打开战术板。'
+  if (receipt.status === 'rejected') {
+    return receipt.reviewNote ? `管理员备注：${receipt.reviewNote}` : '这份投稿没有通过，可以按反馈修改后重新投稿。'
+  }
+  if (receipt.status === 'spam') return `未进入人工审核：${spamReasonLabel(receipt.spamReason ?? '')}。`
+  if (receipt.status === 'withdrawn') return '这份投稿已撤回，需要重新提交才会进入审核。'
+  return '状态暂时无法识别。'
+}
+
+function receiptStatusTone(status: SubmissionStatus) {
+  if (status === 'approved') return 'is-success'
+  if (status === 'rejected' || status === 'spam' || status === 'withdrawn') return 'is-warning'
+  return ''
 }
 
 interface SubmitDraft {
@@ -105,15 +139,18 @@ export default function Submit() {
   const reduce = useReducedMotion()
   const raidsQuery = useRaids()
   const createSubmission = useCreateSubmission()
+  const receiptLookup = useSubmissionReceipt()
   const creatorSession = useCreatorSession()
   const creatorMeQuery = useCreatorMe(creatorSession.isAuthed)
   const [searchParams] = useSearchParams()
   const templateBoardId = searchParams.get('from') || ''
   const contextRaidId = searchParams.get('raidId') || ''
   const contextBossId = searchParams.get('bossId') || ''
+  const receiptParam = searchParams.get('receipt') || ''
   const templateQuery = useBoard(templateBoardId || undefined)
   const appliedTemplateId = useRef('')
   const appliedContextKey = useRef('')
+  const appliedReceiptId = useRef('')
   const initialDraft = useRef(readSubmitDraft())
   const draftHydrated = useRef(false)
 
@@ -140,6 +177,8 @@ export default function Submit() {
   const [submittedStatus, setSubmittedStatus] = useState<SubmissionStatus | ''>('')
   const [submittedSpamReason, setSubmittedSpamReason] = useState('')
   const [receiptCopyStatus, setReceiptCopyStatus] = useState('')
+  const [receiptId, setReceiptId] = useState(receiptParam)
+  const [receiptLocalError, setReceiptLocalError] = useState('')
   const creatorNamePrefilled = useRef(false)
 
   const raidDetailQuery = useRaid(raidId || undefined)
@@ -266,6 +305,15 @@ export default function Submit() {
     setRaidId(contextRaidId)
     setBossId(contextBossId)
   }, [contextBossId, contextRaidId, templateBoardId])
+
+  useEffect(() => {
+    const nextReceiptId = receiptParam.trim()
+    if (!nextReceiptId || appliedReceiptId.current === nextReceiptId) return
+    appliedReceiptId.current = nextReceiptId
+    setReceiptId(nextReceiptId)
+    setReceiptLocalError('')
+    receiptLookup.mutate(nextReceiptId)
+  }, [receiptParam])
 
   useEffect(() => {
     if (!draftHydrated.current) return
@@ -419,6 +467,18 @@ export default function Submit() {
     setReceiptCopyStatus(copied ? '已复制投稿编号。' : '复制失败，请手动记录投稿编号。')
   }
 
+  function submitReceiptLookup(e: React.FormEvent) {
+    e.preventDefault()
+    const nextReceiptId = receiptId.trim()
+    if (!nextReceiptId) {
+      receiptLookup.reset()
+      setReceiptLocalError('请先填写投稿编号。')
+      return
+    }
+    setReceiptLocalError('')
+    receiptLookup.mutate(nextReceiptId)
+  }
+
   return (
     <div className="container ps-submit">
       <motion.header
@@ -462,6 +522,55 @@ export default function Submit() {
           </button>
         )}
       </div>
+
+      <section className="ps-submit__receipt-lookup glass" aria-labelledby="ps-submit-receipt-title">
+        <div className="ps-submit__receipt-head">
+          <div>
+            <h2 id="ps-submit-receipt-title">查询投稿状态</h2>
+            <p>输入投稿编号，查看这份投稿现在是待审核、已发布还是需要修改。</p>
+          </div>
+        </div>
+        <form className="ps-submit__receipt-form" onSubmit={submitReceiptLookup}>
+          <label className="ps-submit__label" htmlFor="ps-submit-receipt-id">
+            投稿编号
+          </label>
+          <input
+            id="ps-submit-receipt-id"
+            className="ps-submit__input"
+            value={receiptId}
+            onChange={(e) => {
+              setReceiptId(e.target.value)
+              setReceiptLocalError('')
+              if (receiptLookup.error || receiptLookup.data) receiptLookup.reset()
+            }}
+            placeholder="粘贴投稿编号"
+          />
+          <Button type="submit" variant="secondary" disabled={receiptLookup.isPending}>
+            {receiptLookup.isPending ? '查询中…' : '查询'}
+          </Button>
+        </form>
+        {(receiptLocalError || receiptLookup.error) && (
+          <p className="ps-submit__receipt-error" role="alert">
+            {receiptLocalError || (receiptLookup.error as Error).message}
+          </p>
+        )}
+        {receiptLookup.data && (
+          <div className="ps-submit__receipt-result" role="status">
+            <div>
+              <p className={`ps-submit__receipt-kicker ${receiptStatusTone(receiptLookup.data.status)}`}>
+                {receiptStatusLabel(receiptLookup.data.status)}
+              </p>
+              <h3>{receiptLookup.data.title}</h3>
+              <p>{receiptStatusCopy(receiptLookup.data)}</p>
+            </div>
+            {receiptLookup.data.status === 'approved' && receiptLookup.data.boardId && (
+              <Button variant="primary" to={`/board/${receiptLookup.data.boardId}`}>
+                打开战术板
+              </Button>
+            )}
+          </div>
+        )}
+      </section>
 
       {isLoggedInCreator && (
         <p className="ps-submit__creator-session">
@@ -823,6 +932,9 @@ export default function Submit() {
               <div className="ps-submit__success-actions">
                 <Button variant="secondary" onClick={copySubmittedId}>
                   复制投稿编号
+                </Button>
+                <Button variant="secondary" to={`/submit?receipt=${encodeURIComponent(submittedId)}`}>
+                  查看审核状态
                 </Button>
                 {(submittedKind === 'creator' || submittedKind === 'creatorSubmission') && (
                   <Button variant="secondary" to="/creator">

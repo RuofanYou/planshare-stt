@@ -1026,6 +1026,40 @@ test('submit draft survives reload without saving password or contact', async ({
   await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()
 })
 
+test('visitor can check submission receipt and open the approved board', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const title = `游客状态查询 ${runId}`
+
+  await page.setExtraHTTPHeaders({ 'X-Forwarded-For': `198.51.100.${(Math.abs(hashSuffix(`receipt_${runId}`)) % 100) + 80}` })
+  await page.goto('/submit')
+  await page.getByLabel('标题').fill(title)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await page.getByLabel('投稿署名').fill(`状态游客 ${runId}`)
+  await page.getByLabel('战术正文').fill(`P1 状态查询 ${runId}\nP2 集合`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
+  await expect(page.getByRole('link', { name: '查看审核状态' })).toBeVisible()
+
+  const successText = await page.locator('.ps-submit__success').innerText()
+  const submissionId = successText.match(/投稿编号：(s-[^。]+)/)?.[1]
+  expect(submissionId).toBeTruthy()
+  await page.getByRole('link', { name: '查看审核状态' }).click()
+  await expect(page).toHaveURL(new RegExp(`/submit\\?receipt=${submissionId}`))
+  await expect(page.getByLabel('投稿编号')).toHaveValue(submissionId!)
+  await expect(page.getByText('待审核', { exact: true })).toBeVisible()
+  await expect(page.getByText('管理员还没有处理，请稍后再来查。')).toBeVisible()
+
+  const admin = await adminToken(request)
+  const approved = await approvePending(request, admin, submissionId!)
+  await page.getByRole('button', { name: '查询' }).click()
+  await expect(page.getByText('已发布', { exact: true })).toBeVisible()
+  await expect(page.getByText('这份投稿已经公开，可以直接打开战术板。')).toBeVisible()
+  await page.getByRole('link', { name: '打开战术板' }).click()
+  await expect(page).toHaveURL(new RegExp(`/board/${approved.board.id}`))
+  await expect(page.getByRole('heading', { name: title })).toBeVisible()
+})
+
 test('spam-screened visitor submission stays editable and is not described as queued', async ({ page }) => {
   const runId = Date.now().toString(36)
   const spamTitle = `游客拦截提示 ${runId}`

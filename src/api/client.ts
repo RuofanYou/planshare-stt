@@ -22,6 +22,7 @@ import type {
   AdminLoginResult,
   CreateSubmissionInput,
   AdminSubmission,
+  SubmissionReceipt,
   ApproveSubmissionInput,
   ApproveSubmissionResult,
   CreatorMeResult,
@@ -226,6 +227,11 @@ export function createSubmission(input: CreateSubmissionInput): Promise<AdminSub
     headers: creatorToken ? { Authorization: `Bearer ${creatorToken}` } : undefined,
     body: JSON.stringify(input),
   })
+}
+
+/** GET /api/submissions/:id/receipt -> 游客凭投稿编号查询审核状态。 */
+export function getSubmissionReceipt(id: string): Promise<SubmissionReceipt> {
+  return request<SubmissionReceipt>(`/api/submissions/${encodeURIComponent(id)}/receipt`)
 }
 
 /** POST /api/boards -> 新建 Board（受保护：需管理员 token；后端生成 id / 时间戳 / 计数） */

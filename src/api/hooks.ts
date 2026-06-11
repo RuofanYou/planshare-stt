@@ -138,6 +138,13 @@ export function useCreateSubmission() {
   })
 }
 
+/** 游客用投稿编号查审核状态；手动触发，不常驻轮询。 */
+export function useSubmissionReceipt() {
+  return useMutation({
+    mutationFn: (id: string) => api.getSubmissionReceipt(id),
+  })
+}
+
 /**
  * 新建板（后台上稿用）：成功后失效列表 / 团本（boardCount 会变） / 作者，
  * 触发各处重拉。
