@@ -88,6 +88,10 @@ export default function Category() {
   }, [boardsQuery.data, difficulty, sortMode])
 
   const selectedBoss = bosses.find((boss) => boss.id === selectedBossId)
+  const submitContextUrl =
+    raid?.id && selectedBossId
+      ? `/submit?raidId=${encodeURIComponent(raid.id)}&bossId=${encodeURIComponent(selectedBossId)}`
+      : '/submit'
 
   /* ---------- 团本加载中：整页玻璃骨架屏 ---------- */
   if (raidQuery.isLoading) {
@@ -277,9 +281,13 @@ export default function Category() {
                 ? '这个 BOSS 还没有战术板。'
                 : '当前难度下还没有战术板。'
           }
-          actionLabel={difficulty !== 'all' ? '查看全部难度' : undefined}
+          actionLabel={difficulty !== 'all' ? '查看全部难度' : boardsEnabled ? '投稿补一份' : undefined}
           onAction={
-            difficulty !== 'all' ? () => setDifficulty('all') : undefined
+            difficulty !== 'all'
+              ? () => setDifficulty('all')
+              : boardsEnabled
+                ? () => navigate(submitContextUrl)
+                : undefined
           }
         />
       )}

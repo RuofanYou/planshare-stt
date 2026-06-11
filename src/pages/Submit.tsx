@@ -100,8 +100,11 @@ export default function Submit() {
   const creatorMeQuery = useCreatorMe(creatorSession.isAuthed)
   const [searchParams] = useSearchParams()
   const templateBoardId = searchParams.get('from') || ''
+  const contextRaidId = searchParams.get('raidId') || ''
+  const contextBossId = searchParams.get('bossId') || ''
   const templateQuery = useBoard(templateBoardId || undefined)
   const appliedTemplateId = useRef('')
+  const appliedContextKey = useRef('')
   const initialDraft = useRef(readSubmitDraft())
   const draftHydrated = useRef(false)
 
@@ -217,6 +220,14 @@ export default function Submit() {
     setDescription(`基于「${template.title}」修改`.slice(0, 120))
     setContentText(template.contentText)
   }, [templateBoardId, templateQuery.data])
+
+  useEffect(() => {
+    const contextKey = `${contextRaidId}:${contextBossId}`
+    if (templateBoardId || !contextRaidId || !contextBossId || appliedContextKey.current === contextKey) return
+    appliedContextKey.current = contextKey
+    setRaidId(contextRaidId)
+    setBossId(contextBossId)
+  }, [contextBossId, contextRaidId, templateBoardId])
 
   useEffect(() => {
     if (!draftHydrated.current) return
@@ -365,6 +376,12 @@ export default function Submit() {
             : templateQuery.isPending
               ? '正在带入源战术板内容…'
               : '已带入源战术板内容，修改后提交审核。'}
+        </p>
+      )}
+
+      {!templateBoardId && contextRaidId && contextBossId && (
+        <p className="ps-submit__template-note">
+          已带入团本和 BOSS，补上标题与战术正文即可提交。
         </p>
       )}
 

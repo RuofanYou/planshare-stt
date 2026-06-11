@@ -2133,6 +2133,60 @@ vite v5.4.21 building for production...
 13 passed (41.6s)
 ```
 
+### UGC 生态补缺口：团本空 BOSS 转投稿
+```text
+普通浏览用户探索:
+首页搜索空结果已经能“投稿补一份”，但用户按团本/BOSS 浏览时，如果某个 BOSS 没有板，只看到“这个 BOSS 还没有战术板”，没有下一步。
+已给团本页空 BOSS 状态新增“投稿补一份”，点击后进入 `/submit?raidId=...&bossId=...`，投稿页会自动预选团本和 BOSS，并提示“已带入团本和 BOSS，补上标题与战术正文即可提交。”
+难度筛选为空时仍优先显示“查看全部难度”，避免用户只是筛错难度就被引导投稿。
+```
+
+```text
+Browser 覆盖:
+正常有板团本页 http://localhost:5183/raid/r-voidspire：
+{
+  "hasRaidTitle": true,
+  "hasCard": true,
+  "hasEmptyText": false,
+  "hasEmptySubmitAction": false
+}
+
+控制台只有既有 React Router v7 future warning 和 THREE.Clock deprecated warning，没有本轮新增错误。
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "empty boss"
+
+Running 1 test using 1 worker
+·
+1 passed (2.9s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.93s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   8 [chromium] › tests/e2e/ugc-smoke.spec.ts:612:1 › empty boss category can route visitors into a prefilled submission (1.4s)
+14 passed (48.7s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

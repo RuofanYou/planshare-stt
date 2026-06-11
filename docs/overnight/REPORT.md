@@ -1270,6 +1270,7 @@ Playwright:
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿页新增“还差”缺项提示；需人工确认文案对首次投稿用户足够直观。
 - `src/pages/Creator.tsx` 与 `src/pages/Creator.css`：创作者直发/编辑表单新增“还差”缺项提示；需人工确认正式创作者视角下不会显得啰嗦。
 - `src/pages/Home.tsx` 与 `src/pages/Home.css`：首页搜索空结果新增“投稿补一份”入口；需人工确认空结果引导不会打扰只想浏览的用户。
+- `src/pages/Category.tsx` 与 `src/pages/Submit.tsx`：团本/BOSS 空态新增“投稿补一份”并通过 query 预选团本和 BOSS；需人工确认从空态转投稿的上下文文案足够明确。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿成功区新增“回首页浏览”；需人工确认成功后的下一步入口符合运营期望。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿页本机草稿新增“清空草稿”按钮；需人工确认共享电脑/误填场景下这个按钮的位置和文案不会造成误删疑虑。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：申请创作者新增“确认密码”并阻止两次密码不一致提交；需人工确认多一个必填框不会明显提高首次投稿阻力。

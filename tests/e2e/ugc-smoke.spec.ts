@@ -609,6 +609,35 @@ test('home search finds boards by boss and author names', async ({ page }) => {
   await expect(page).toHaveURL(/\/submit$/)
 })
 
+test('empty boss category can route visitors into a prefilled submission', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const admin = await adminToken(request)
+  const raidId = `r-empty-${runId}`
+  const bossId = `b-empty-${runId}`
+
+  const raid = await request.post('/api/admin/raids', {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { id: raidId, name: `E2E 空团本 ${runId}`, patch: '12.0.e2e' },
+  })
+  expect(raid.status()).toBe(201)
+  const boss = await request.post('/api/admin/bosses', {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { id: bossId, raidId, name: `E2E 空 BOSS ${runId}`, order: 1 },
+  })
+  expect(boss.status()).toBe(201)
+
+  await page.goto(`/raid/${raidId}`)
+  await expect(page.getByRole('heading', { name: `E2E 空团本 ${runId}` })).toBeVisible()
+  await expect(page.getByText('这个 BOSS 还没有战术板。')).toBeVisible()
+  await page.getByRole('button', { name: '投稿补一份' }).click()
+
+  await expect(page).toHaveURL(new RegExp(`/submit\\?raidId=${raidId}&bossId=${bossId}`))
+  await expect(page.getByText('已带入团本和 BOSS，补上标题与战术正文即可提交。')).toBeVisible()
+  await expect(page.locator('#ps-submit-raid')).toHaveValue(raidId)
+  await expect(page.locator('#ps-submit-boss')).toHaveValue(bossId)
+  await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
+})
+
 test('author page likes update author aggregate stats', async ({ page }) => {
   await page.goto('/author/a-nike')
   await expect(page.getByRole('heading', { name: '妮可' })).toBeVisible()
