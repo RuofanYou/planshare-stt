@@ -333,6 +333,13 @@ export default function BoardDetail() {
     if (reportBoard.error) reportBoard.reset()
   }
 
+  function cancelReport() {
+    clearReportError()
+    setReportOpen(false)
+    setReportReason('wrong-info')
+    setReportDetail('')
+  }
+
   function submitReport(e: React.FormEvent) {
     e.preventDefault()
     if (!board || reportBoard.isPending) return
@@ -578,9 +585,14 @@ export default function BoardDetail() {
                       {(reportBoard.error as Error).message}
                     </p>
                   )}
-                  <Button type="submit" variant="primary" size="sm" disabled={reportBoard.isPending || reportDetailMissing}>
-                    {reportBoard.isPending ? '提交中…' : '提交举报'}
-                  </Button>
+                  <div className="ps-detail__report-actions">
+                    <Button type="button" variant="ghost" size="sm" onClick={cancelReport} disabled={reportBoard.isPending}>
+                      取消举报
+                    </Button>
+                    <Button type="submit" variant="primary" size="sm" disabled={reportBoard.isPending || reportDetailMissing}>
+                      {reportBoard.isPending ? '提交中…' : '提交举报'}
+                    </Button>
+                  </div>
                 </form>
               )}
             </div>

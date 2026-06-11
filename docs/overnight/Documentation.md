@@ -3850,6 +3850,49 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### UGC 生态补缺口：举报表单可明确取消
+```text
+浏览用户探索:
+详情页点开“举报”后原来只有提交按钮；虽然再次点击“举报”可以收起，但普通用户不一定知道。
+UGC 开放后，举报是治理入口，误点举报时需要有明确退出方式，不能让用户误以为必须提交。
+
+已修复：
+- 举报表单内新增“取消举报”按钮。
+- 点击“取消举报”会关闭表单、清空补充说明、重置举报理由为默认项。
+- 取消不会创建举报，也不会保留“其它原因必填”错误。
+- 再次打开举报表单时是干净状态。
+
+决策记录：
+- 取消举报只影响前端表单状态，不触发后端写入。
+- 不改变举报成功后的处理队列语义；提交成功后仍关闭表单并显示“已进入管理员处理队列”。
+```
+
+```text
+CI=1 npx playwright test --grep "visitor can report a board"
+
+Running 1 test using 1 worker
+·
+1 passed (12.9s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1188:1 › admin board curation and restore require confirmation before changing public exposure (2.1s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1636:1 › visitor can report a board and admin can hide it from public pages (10.9s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1767:1 › creator direct publish screens unsafe content in dashboard (770ms)
+32 passed (1.5m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
