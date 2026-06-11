@@ -973,6 +973,10 @@ test('report rate limit shows a visible visitor-facing error', async ({ page, re
   await page.locator('#ps-report-detail').fill(`E2E 限流触发 ${runId}`)
   await page.getByRole('button', { name: '提交举报' }).click()
   await expect(page.getByRole('alert').getByText('举报太频繁，请稍后再试')).toBeVisible()
+  await page.locator('#ps-report-detail').fill(`E2E 限流后继续修改 ${runId}`)
+  await expect(page.getByRole('alert').getByText('举报太频繁，请稍后再试')).toHaveCount(0)
+  await page.getByRole('button', { name: '提交举报' }).click()
+  await expect(page.getByRole('alert').getByText('举报太频繁，请稍后再试')).toBeVisible()
 })
 
 test('visitor can report a board and admin can hide it from public pages', async ({ page, request }) => {

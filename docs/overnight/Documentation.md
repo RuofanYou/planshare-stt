@@ -2847,6 +2847,44 @@ vite v5.4.21 building for production...
 19 passed (1.0m)
 ```
 
+### UGC 生态补缺口：举报失败后继续修改会清掉旧错误
+```text
+普通浏览用户探索:
+访客举报如果触发限流，会看到“举报太频繁，请稍后再试”。
+如果他继续改举报说明，旧错误还挂在表单上，会让人误以为页面没有响应。
+
+已修复：
+- 举报表单打开/关闭时清掉上一次接口错误
+- 修改举报理由时清掉上一次接口错误
+- 修改补充说明时清掉上一次接口错误
+- 如果再次提交仍然命中限流，会重新显示新的错误
+- 不改变后端限流规则，只改善失败后的恢复反馈
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "report rate limit"
+
+Running 1 test using 1 worker
+·
+1 passed (4.3s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.88s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓  16 [chromium] › tests/e2e/ugc-smoke.spec.ts:954:1 › report rate limit shows a visible visitor-facing error (7.3s)
+19 passed (1.2m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

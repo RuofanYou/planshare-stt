@@ -318,6 +318,10 @@ export default function BoardDetail() {
     void copyText(window.location.href, '链接已复制')
   }
 
+  function clearReportError() {
+    if (reportBoard.error) reportBoard.reset()
+  }
+
   function submitReport(e: React.FormEvent) {
     e.preventDefault()
     if (!board || reportBoard.isPending) return
@@ -511,6 +515,7 @@ export default function BoardDetail() {
                 variant="secondary"
                 size="sm"
                 onClick={() => {
+                  clearReportError()
                   setReportOpen((value) => !value)
                   setReportDone(false)
                 }}
@@ -527,7 +532,10 @@ export default function BoardDetail() {
                     id="ps-report-reason"
                     className="ps-detail__report-select"
                     value={reportReason}
-                    onChange={(e) => setReportReason(e.target.value as typeof reportReason)}
+                    onChange={(e) => {
+                      setReportReason(e.target.value as typeof reportReason)
+                      clearReportError()
+                    }}
                   >
                     {REPORT_REASONS.map((reason) => (
                       <option key={reason.value} value={reason.value}>
@@ -542,7 +550,10 @@ export default function BoardDetail() {
                     id="ps-report-detail"
                     className="ps-detail__report-textarea"
                     value={reportDetail}
-                    onChange={(e) => setReportDetail(e.target.value)}
+                    onChange={(e) => {
+                      setReportDetail(e.target.value)
+                      clearReportError()
+                    }}
                     rows={3}
                     maxLength={200}
                   />
