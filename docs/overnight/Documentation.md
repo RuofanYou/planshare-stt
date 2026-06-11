@@ -3157,6 +3157,47 @@ vite v5.4.21 building for production...
 24 passed (1.0m)
 ```
 
+### UGC 生态补缺口：创作者作者主页可直接复制分享
+```text
+创作者用户探索:
+创作者保存作者简介、公会信息后，已有“查看主页”，但没有“复制主页链接”。
+小白想把作者主页发给队友或公会时，还要先打开页面再从地址栏复制，分享闭环不够直接。
+
+已修复：
+- 作者主页资料区新增“复制主页链接”
+- 复制成功显示“作者主页链接已复制。”
+- 用户继续修改资料时，旧的复制成功提示会清掉
+- 原有“查看主页”保留，仍可直接检查公开展示效果
+
+决策记录：
+- 不新增独立分享弹窗；直接复用已有 copyToClipboard 和页面内状态提示。
+- 这是作者主页分享闭环，不改变作者资料保存接口和公开字段范围。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (14.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.93s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.0s)
+24 passed (1.1m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

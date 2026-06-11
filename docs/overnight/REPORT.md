@@ -1261,15 +1261,15 @@ vite v5.4.21 building for production...
 # pass 48
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.7s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:406:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:470:1 › creator can change password from dashboard and log in with the new password (1.7s)
-✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:723:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.4s)
-✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1034:1 › visitor can check submission receipt and open the approved board (988ms)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1068:1 › submission receipt rate limit shows a visible visitor-facing error (522ms)
-✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1125:1 › duplicate visitor submission explains that the same content will not enter review twice (1.3s)
-✓  24 [chromium] › tests/e2e/ugc-smoke.spec.ts:1299:1 › creator direct publish screens unsafe content in dashboard (717ms)
-24 passed (1.0m)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.0s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:410:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.6s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:474:1 › creator can change password from dashboard and log in with the new password (1.9s)
+✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:727:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.4s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1038:1 › visitor can check submission receipt and open the approved board (994ms)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1072:1 › submission receipt rate limit shows a visible visitor-facing error (590ms)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1129:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
+✓  24 [chromium] › tests/e2e/ugc-smoke.spec.ts:1303:1 › creator direct publish screens unsafe content in dashboard (860ms)
+24 passed (1.1m)
 ```
 
 ## 高风险 diff
@@ -1288,6 +1288,7 @@ vite v5.4.21 building for production...
 - `src/pages/Creator.tsx`：创作者登录页新增“还差”状态提示；需人工确认登录页信息密度仍然简洁。
 - `src/pages/Creator.tsx`：创作者登录/修改密码错误会在继续输入后清理；需人工确认错误消失时机足够符合直觉。
 - `src/pages/Creator.tsx`：资料保存、直发发布和编辑保存的旧状态会在继续输入后清理；需人工确认成功提示保留/消失时机足够符合直觉。
+- `src/pages/Creator.tsx`：作者主页资料区新增“复制主页链接”；需人工确认创作者主页分享文案符合运营口径。
 - `src/pages/Creator.tsx`：创作者直发成功区新增“查看刚发布的公开板 / 复制刚发布链接”；需人工确认连续发布时成功区不会占用过多空间。
 - `src/pages/Creator.tsx`：修改密码时两次新密码不一致改为提前禁用提交；需人工确认这个交互比“点击后报错”更符合运营预期。
 - `src/pages/Creator.tsx`：修改密码区新增“还差”状态提示；需人工确认账号安全区信息密度仍然简洁。

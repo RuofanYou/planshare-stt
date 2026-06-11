@@ -639,6 +639,7 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
   const [guildName, setGuildName] = useState(initialDraft.guildName)
   const [guildRecruit, setGuildRecruit] = useState(initialDraft.guildRecruit)
   const [guildContact, setGuildContact] = useState(initialDraft.guildContact)
+  const [profileCopyNotice, setProfileCopyNotice] = useState('')
   const profileDraft = { name, bio, guildName, guildRecruit, guildContact }
   const hasProfileDraft = hasCreatorProfileDraftContent(author, profileDraft)
 
@@ -673,6 +674,7 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
 
   function clearProfileStatus() {
     if (updateProfile.error || updateProfile.isSuccess) updateProfile.reset()
+    if (profileCopyNotice) setProfileCopyNotice('')
   }
 
   function resetProfileDraft() {
@@ -684,6 +686,11 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
     setGuildName(current.guildName)
     setGuildRecruit(current.guildRecruit)
     setGuildContact(current.guildContact)
+  }
+
+  async function copyAuthorLink() {
+    const copied = await copyToClipboard(`${window.location.origin}/author/${author.id}`)
+    setProfileCopyNotice(copied ? '作者主页链接已复制。' : '复制失败，请打开主页后从地址栏复制。')
   }
 
   return (
@@ -767,12 +774,16 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
           </p>
         )}
         {updateProfile.isSuccess && <p className="ps-creator__notice">资料已保存。</p>}
+        {profileCopyNotice && <p className="ps-creator__notice">{profileCopyNotice}</p>}
         <div className="ps-creator__actions">
           <Button type="submit" variant="primary" disabled={updateProfile.isPending || !name.trim()}>
             {updateProfile.isPending ? '保存中…' : '保存资料'}
           </Button>
           <Button variant="secondary" to={`/author/${author.id}`}>
             查看主页
+          </Button>
+          <Button variant="secondary" leadingIcon="copy" onClick={() => void copyAuthorLink()}>
+            复制主页链接
           </Button>
         </div>
       </form>

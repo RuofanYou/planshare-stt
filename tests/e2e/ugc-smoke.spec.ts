@@ -267,6 +267,9 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await page.getByLabel('招募说明').fill(`E2E 招募 ${runId}`)
   await page.getByRole('button', { name: '保存资料' }).click()
   await expect(page.getByText('资料已保存。')).toBeVisible()
+  await expect(page.getByRole('button', { name: '复制主页链接' })).toBeVisible()
+  await page.getByRole('button', { name: '复制主页链接' }).click()
+  await expect(page.getByText('作者主页链接已复制。')).toBeVisible()
   await expect(
     page.evaluate(() =>
       Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_profile_draft_v1')).length,
@@ -274,6 +277,7 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   ).resolves.toBe(0)
   await page.getByLabel('简介').fill(`E2E 二次资料草稿 ${runId}`)
   await expect(page.getByText('资料已保存。')).toHaveCount(0)
+  await expect(page.getByText('作者主页链接已复制。')).toHaveCount(0)
   await expect(page.getByRole('button', { name: '清空资料草稿' })).toBeVisible()
   await page.getByRole('button', { name: '清空资料草稿' }).click()
   await expect(page.getByLabel('简介')).toHaveValue(`E2E 资料草稿 ${runId}`)
