@@ -2313,10 +2313,13 @@ Running 1 test using 1 worker
 后端已经会把管理员驳回备注返回到创作者投稿进度，前端也有“修改后重投”，但缺少真实浏览器链路覆盖。
 对创作者自循环来说，被驳回不能只是一个失败状态，必须能看到原因、带回原稿、修改后重新进入审核。
 
+继续追查后发现后台单条驳回/标垃圾只能写死“后台驳回 / 后台标记垃圾”，创作者仍不知道具体要改什么。
+已在投稿展开详情中新增“处理备注”输入框；管理员填写后，驳回/标垃圾会把这句话作为 reviewNote 传给后端。
+
 已补 Playwright：
 - 创建创作者投稿
-- 管理员后台点“驳回”
-- 创作者登录后看到“未通过”和“管理员备注：后台驳回”
+- 管理员后台填写“请补充站位和时间轴 ...”并点“驳回”
+- 创作者登录后看到“未通过”和具体管理员备注
 - 点“修改后重投”进入投稿页，标题、团本、BOSS、正文自动带回
 - 修改正文后重新提交，进入创作者审核进度
 ```
@@ -2326,7 +2329,31 @@ CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "rejected submission
 
 Running 1 test using 1 worker
 ·
-1 passed (5.3s)
+1 passed (5.7s)
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.31s
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   7 [chromium] › tests/e2e/ugc-smoke.spec.ts:589:1 › creator can fix and retry a rejected submission from dashboard (3.2s)
+16 passed (49.1s)
 ```
 
 ## 已知问题

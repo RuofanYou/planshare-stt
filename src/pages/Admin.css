@@ -372,6 +372,23 @@
   min-width: min(260px, 100%);
 }
 
+.ps-admin__review-note {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-gold-cream);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  font-weight: var(--weight-medium);
+}
+
+.ps-admin__textarea--note {
+  min-height: 92px;
+  white-space: pre-wrap;
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
 /* ---------- 行内二次确认条（玻璃 alertdialog） ---------- */
 .ps-admin__confirm {
   display: flex;

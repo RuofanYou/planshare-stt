@@ -25,6 +25,7 @@ export function SubmissionsSection({
   const markSpam = useMarkSubmissionSpam()
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [authorBySubmission, setAuthorBySubmission] = useState<Record<string, string>>({})
+  const [reviewNoteBySubmission, setReviewNoteBySubmission] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   function guard(error: unknown) {
@@ -76,6 +77,10 @@ export function SubmissionsSection({
 
   function selectedAuthor(id: string) {
     return authorBySubmission[id] ?? ''
+  }
+
+  function reviewNote(id: string, fallback: string) {
+    return reviewNoteBySubmission[id]?.trim() || fallback
   }
 
   function toggleSelected(id: string, checked: boolean) {
@@ -253,84 +258,103 @@ export function SubmissionsSection({
                       )}
 
                       {isPending ? (
-                        <div className="ps-admin__submission-review">
-                          <div className="ps-admin__select-wrap">
-                            <select
-                              className="ps-admin__select"
-                              value={selectedAuthor(submission.id)}
-                              onChange={(e) =>
-                                setAuthorBySubmission((current) => ({
+                        <>
+                          <label className="ps-admin__review-note" htmlFor={`submission-review-note-${submission.id}`}>
+                            <span>处理备注</span>
+                            <textarea
+                              id={`submission-review-note-${submission.id}`}
+                              className="ps-admin__textarea ps-admin__textarea--note"
+                              value={reviewNoteBySubmission[submission.id] ?? ''}
+                              onChange={(event) =>
+                                setReviewNoteBySubmission((current) => ({
                                   ...current,
-                                  [submission.id]: e.target.value,
+                                  [submission.id]: event.target.value,
                                 }))
                               }
-                            >
-                              <option value="">选择已有作者</option>
-                              {authors.map((author) => (
-                                <option key={author.id} value={author.id}>
-                                  {author.name}
-                                </option>
-                              ))}
-                            </select>
-                            <SelectChevron />
-                          </div>
+                              rows={3}
+                              maxLength={160}
+                              placeholder="给创作者看的修改建议，例如：请补充站位图、时间轴或技能分配。"
+                            />
+                          </label>
+                          <div className="ps-admin__submission-review">
+                            <div className="ps-admin__select-wrap">
+                              <select
+                                className="ps-admin__select"
+                                value={selectedAuthor(submission.id)}
+                                onChange={(e) =>
+                                  setAuthorBySubmission((current) => ({
+                                    ...current,
+                                    [submission.id]: e.target.value,
+                                  }))
+                                }
+                              >
+                                <option value="">选择已有作者</option>
+                                {authors.map((author) => (
+                                  <option key={author.id} value={author.id}>
+                                    {author.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <SelectChevron />
+                            </div>
 
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={!selectedAuthor(submission.id) || busy}
-                            onClick={() =>
-                              approve(submission.id, {
-                                mode: 'existingAuthor',
-                                authorId: selectedAuthor(submission.id),
-                              })
-                            }
-                          >
-                            绑定已有作者发布
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={busy}
-                            onClick={() => approve(submission.id, { mode: 'createAuthor' })}
-                          >
-                            创建作者并发布
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={busy}
-                            onClick={() => approve(submission.id, { mode: 'plainAuthor' })}
-                          >
-                            作为普通投稿发布
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={busy}
-                            onClick={() =>
-                              rejectSubmission.mutate(
-                                { id: submission.id, note: '后台驳回' },
-                                { onError: guard },
-                              )
-                            }
-                          >
-                            驳回
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={busy}
-                            onClick={() =>
-                              markSpam.mutate(
-                                { id: submission.id, note: '后台标记垃圾' },
-                                { onError: guard },
-                              )
-                            }
-                          >
-                            标记垃圾
-                          </Button>
-                        </div>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={!selectedAuthor(submission.id) || busy}
+                              onClick={() =>
+                                approve(submission.id, {
+                                  mode: 'existingAuthor',
+                                  authorId: selectedAuthor(submission.id),
+                                })
+                              }
+                            >
+                              绑定已有作者发布
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={busy}
+                              onClick={() => approve(submission.id, { mode: 'createAuthor' })}
+                            >
+                              创建作者并发布
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={busy}
+                              onClick={() => approve(submission.id, { mode: 'plainAuthor' })}
+                            >
+                              作为普通投稿发布
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={busy}
+                              onClick={() =>
+                                rejectSubmission.mutate(
+                                  { id: submission.id, note: reviewNote(submission.id, '后台驳回') },
+                                  { onError: guard },
+                                )
+                              }
+                            >
+                              驳回
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={busy}
+                              onClick={() =>
+                                markSpam.mutate(
+                                  { id: submission.id, note: reviewNote(submission.id, '后台标记垃圾') },
+                                  { onError: guard },
+                                )
+                              }
+                            >
+                              标记垃圾
+                            </Button>
+                          </div>
+                        </>
                       ) : (
                         <p className="ps-admin__row-meta">
                           已处理：{submissionStatusLabel(submission.status)}

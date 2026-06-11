@@ -589,6 +589,7 @@ test('creator can withdraw a pending submission from dashboard', async ({ page, 
 test('creator can fix and retry a rejected submission from dashboard', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const creator = await createCreatorApplication(request, `reject_${runId}`)
+  const reviewNote = `请补充站位和时间轴 ${runId}`
 
   await page.goto('/admin')
   await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
@@ -597,6 +598,7 @@ test('creator can fix and retry a rejected submission from dashboard', async ({ 
   const rejectedRow = page.locator('.ps-admin__row-card', { hasText: creator.title })
   await expect(rejectedRow).toBeVisible()
   await rejectedRow.getByRole('button', { name: '查看' }).click()
+  await rejectedRow.getByLabel('处理备注').fill(reviewNote)
   await rejectedRow.getByRole('button', { name: '驳回' }).click()
   await expect(rejectedRow.getByText('已驳回', { exact: true })).toBeVisible()
 
@@ -608,7 +610,7 @@ test('creator can fix and retry a rejected submission from dashboard', async ({ 
 
   const rejectedCreatorRow = page.locator('.ps-creator__submission', { hasText: creator.title })
   await expect(rejectedCreatorRow.getByText('未通过')).toBeVisible()
-  await expect(rejectedCreatorRow.getByText('管理员备注：后台驳回')).toBeVisible()
+  await expect(rejectedCreatorRow.getByText(`管理员备注：${reviewNote}`)).toBeVisible()
   await rejectedCreatorRow.getByRole('button', { name: '修改后重投' }).click()
 
   await expect(page).toHaveURL(/\/submit$/)
