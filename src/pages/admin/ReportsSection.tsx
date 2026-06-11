@@ -14,7 +14,9 @@ export function ReportsSection({
   const reportsQuery = useAdminReports()
   const hideBoard = useHideBoardFromReport()
   const dismissReport = useDismissReport()
-  const [confirmHideReportId, setConfirmHideReportId] = useState('')
+  const [confirmReportAction, setConfirmReportAction] = useState<{ id: string; action: 'hide' | 'dismiss' } | null>(
+    null,
+  )
 
   function guard(error: unknown) {
     if (isUnauthorized(error)) onLogout()
@@ -58,7 +60,8 @@ export function ReportsSection({
               const isPending = report.status === 'pending'
               const boardTitle = report.boardTitle ?? `战术板 ${report.boardId}`
               const boardContent = report.boardContent?.trim()
-              const isConfirmingHide = confirmHideReportId === report.id
+              const confirmAction =
+                confirmReportAction?.id === report.id ? confirmReportAction.action : null
               const busy =
                 (hideBoard.isPending && hideBoard.variables?.id === report.id) ||
                 (dismissReport.isPending && dismissReport.variables?.id === report.id)
@@ -98,7 +101,7 @@ export function ReportsSection({
                             variant="primary"
                             size="sm"
                             disabled={busy}
-                            onClick={() => setConfirmHideReportId(report.id)}
+                            onClick={() => setConfirmReportAction({ id: report.id, action: 'hide' })}
                           >
                             隐藏板
                           </Button>
@@ -106,30 +109,24 @@ export function ReportsSection({
                             variant="ghost"
                             size="sm"
                             disabled={busy}
-                            onClick={() =>
-                              dismissReport.mutate(
-                                { id: report.id, note: '后台驳回举报' },
-                                {
-                                  onSuccess: () => setConfirmHideReportId(''),
-                                  onError: guard,
-                                },
-                              )
-                            }
+                            onClick={() => setConfirmReportAction({ id: report.id, action: 'dismiss' })}
                           >
                             驳回举报
                           </Button>
                         </>
                       )}
-                      {isPending && isConfirmingHide && (
+                      {isPending && confirmAction && (
                         <div className="ps-admin__confirm glass-strong" role="alertdialog">
                           <span className="ps-admin__confirm-text">
-                            确认隐藏「{boardTitle}」？隐藏后公开列表和详情页都会不可见，创作者不能自行恢复。
+                            {confirmAction === 'hide'
+                              ? `确认隐藏「${boardTitle}」？隐藏后公开列表和详情页都会不可见，创作者不能自行恢复。`
+                              : `确认驳回对「${boardTitle}」的举报？驳回后这块板会继续公开展示。`}
                           </span>
                           <div className="ps-admin__confirm-actions">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setConfirmHideReportId('')}
+                              onClick={() => setConfirmReportAction(null)}
                               disabled={busy}
                             >
                               取消
@@ -138,17 +135,25 @@ export function ReportsSection({
                               variant="primary"
                               size="sm"
                               onClick={() =>
-                                hideBoard.mutate(
-                                  { id: report.id, note: '后台处理举报隐藏' },
-                                  {
-                                    onSuccess: () => setConfirmHideReportId(''),
-                                    onError: guard,
-                                  },
-                                )
+                                confirmAction === 'hide'
+                                  ? hideBoard.mutate(
+                                      { id: report.id, note: '后台处理举报隐藏' },
+                                      {
+                                        onSuccess: () => setConfirmReportAction(null),
+                                        onError: guard,
+                                      },
+                                    )
+                                  : dismissReport.mutate(
+                                      { id: report.id, note: '后台驳回举报' },
+                                      {
+                                        onSuccess: () => setConfirmReportAction(null),
+                                        onError: guard,
+                                      },
+                                    )
                               }
                               disabled={busy}
                             >
-                              {busy ? '隐藏中…' : '确认隐藏'}
+                              {busy ? '处理中…' : confirmAction === 'hide' ? '确认隐藏' : '确认驳回'}
                             </Button>
                           </div>
                         </div>

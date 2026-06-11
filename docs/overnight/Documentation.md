@@ -3632,6 +3632,49 @@ vite v5.4.21 building for production...
 31 passed (1.4m)
 ```
 
+### UGC 生态补缺口：驳回举报需要二次确认
+```text
+管理员 / 浏览用户探索:
+举报隐藏板已经有二次确认，但“驳回举报”原来一点即关闭线索。
+UGC 开放后，驳回举报意味着管理员确认这块板继续公开展示；如果误点，潜在违规内容会继续留在公开页。
+
+已修复：
+- 点击“驳回举报”先显示页面内确认条。
+- 确认文案说明驳回后战术板会继续公开展示。
+- 点击“取消”不会改变举报状态，仍保持待处理。
+- 点击“确认驳回”才真正关闭举报。
+- 隐藏板确认仍沿用同一确认条，不改变原有隐藏流程。
+
+决策记录：
+- 修正旧决策：驳回举报不再保持一键操作；举报处理的两个结论“隐藏 / 驳回”都会影响公开内容治理，都需要防误点。
+- 不新增后端端点；仍复用现有举报处理 API，确认逻辑只在后台 UI 层。
+```
+
+```text
+CI=1 npx playwright test --grep "visitor can report a board"
+
+Running 1 test using 1 worker
+·
+1 passed (12.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1537:1 › visitor can report a board and admin can hide it from public pages (10.4s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1663:1 › creator direct publish screens unsafe content in dashboard (771ms)
+31 passed (1.6m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

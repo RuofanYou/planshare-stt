@@ -1576,6 +1576,12 @@ test('visitor can report a board and admin can hide it from public pages', async
   const dismissedRow = page.locator('.ps-admin__row-card', { hasText: dismissedCase.board.id })
   await expect(dismissedRow.getByText(dismissDetail)).toBeVisible()
   await dismissedRow.getByRole('button', { name: '驳回举报' }).click()
+  await expect(dismissedRow.getByRole('alertdialog')).toContainText(`确认驳回对「${dismissedCase.board.title}」的举报？`)
+  await dismissedRow.getByRole('button', { name: '取消' }).click()
+  await expect(dismissedRow.getByText('待处理')).toBeVisible()
+  await expect(dismissedRow.getByRole('alertdialog')).toHaveCount(0)
+  await dismissedRow.getByRole('button', { name: '驳回举报' }).click()
+  await dismissedRow.getByRole('button', { name: '确认驳回' }).click()
   await expect(dismissedRow.getByText('已驳回')).toBeVisible()
 
   await page.goto(`/board/${dismissedCase.board.id}`)

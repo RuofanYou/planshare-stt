@@ -1355,7 +1355,7 @@ vite v5.4.21 building for production...
 31 passed (1.5m)
 ```
 
-### 最新最终验证
+### 上一轮最终验证
 ```text
 npm run verify
 
@@ -1378,7 +1378,31 @@ vite v5.4.21 building for production...
 31 passed (1.4m)
 ```
 
+### 最新最终验证
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.1s)
+✓   7 [chromium] › tests/e2e/ugc-smoke.spec.ts:699:1 › admin can suspend and restore a creator account (2.8s)
+✓   8 [chromium] › tests/e2e/ugc-smoke.spec.ts:749:1 › admin bulk submission actions require confirmation (1.7s)
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1537:1 › visitor can report a board and admin can hide it from public pages (10.4s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1612:1 › creator dashboard blocks self-restore for boards hidden by admin reports (5.7s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1663:1 › creator direct publish screens unsafe content in dashboard (771ms)
+31 passed (1.6m)
+```
+
 ## 高风险 diff
+- `src/pages/admin/ReportsSection.tsx`：驳回举报新增页面内二次确认；需人工确认举报处理效率和“误驳回也要防呆”的运营取舍符合预期。
 - `src/pages/Admin.tsx`：恢复创作者账号新增页面内二次确认；需人工确认“恢复也需要确认”的账号治理流程符合运营预期。
 - `src/pages/admin/SubmissionsSection.tsx`：单条驳回/标垃圾新增页面内二次确认；需人工确认审核效率和“负向处理必须确认”的运营取舍符合预期。
 - `src/api/hooks.ts` 与 `src/pages/Creator.tsx`：创作者本人状态、投稿进度和我的战术板改为进入页面/窗口聚焦必刷新，并在创作者后台打开时每 5 秒轻量刷新；需人工确认额外请求量可接受，但这是保证管理员审核、密码重置、隐藏/下架等动态状态及时同步的必要取舍。
