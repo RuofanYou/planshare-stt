@@ -617,3 +617,24 @@ test('creator dashboard blocks self-restore for boards hidden by admin reports',
   const publicBoard = await request.get(`/api/boards/${board.id}`)
   expect(publicBoard.status()).toBe(404)
 })
+
+test('creator direct publish screens unsafe content in dashboard', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createTrustedCreator(request, `screen_${runId}`)
+  const blockedTitle = `E2E 直发筛查 ${runId}`
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+
+  await page.locator('#creator-board-title').fill(blockedTitle)
+  await page.locator('#creator-board-raid').selectOption('r-voidspire')
+  await page.locator('#creator-board-boss').selectOption('b-averzian')
+  await page.locator('#creator-board-description').fill('E2E 直发筛查')
+  await page.locator('#creator-board-content').fill(`这是一条博 彩广告 ${runId}`)
+  await page.getByRole('button', { name: '直接发布' }).click()
+  await expect(page.getByText('战术内容包含暂不支持公开展示的内容')).toBeVisible()
+  await expect(page.locator('.ps-creator__board', { hasText: blockedTitle })).toHaveCount(0)
+})

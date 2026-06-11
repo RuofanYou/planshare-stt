@@ -45,6 +45,7 @@
 - 管理员治理追溯补缺口：后台新增“审计”页展示最近审计日志，能看到账号状态、重置密码、举报处理、审核等治理动作。
 - 举报治理防绕过补缺口：创作者自助下架仍可自助恢复，但管理员因举报隐藏的板会记录 `hidden_by=admin`，创作者后台只显示“管理员隐藏”，不提供恢复发布，后端也拒绝 `isHidden:false` 绕过。
 - 举报证据保全补缺口：举报创建时把当时的板标题、简介、正文、作者和更新时间快照写入 `reports`，后台举报队列直接显示举报时内容摘录，避免创作者或管理员后续编辑导致治理证据漂移。
+- 创作者直发筛查补缺口：游客投稿已有内容筛查，但正式创作者直发/编辑曾只做字段校验；现已复用归一化黑名单，违规标题/简介/正文会返回 400，不创建也不污染已有公开板。
 
 ## 验证输出
 
@@ -1231,6 +1232,58 @@ vite v5.4.21 building for production...
 ✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:532:1 › visitor can report a board and admin can hide it from public pages (8.9s)
 ✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (655ms)
 10 passed (31.7s)
+```
+
+### UGC 生态补缺口：创作者直发内容筛查
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.10s
+```
+
+```text
+node --test server/creator-username-auth.test.mjs --test-name-pattern "unsafe content"
+
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator direct publish screens"
+
+Running 1 test using 1 worker
+·
+1 passed (3.1s)
+```
+
+```text
+Playwright:
+正式创作者登录后台后，在“我的战术板”直发表单输入命中归一化黑名单的正文。
+点击“直接发布”后页面显示“战术内容包含暂不支持公开展示的内容”。
+该标题没有进入“我的战术板”列表。
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.07s
+
+1..44
+# tests 44
+# suites 0
+# pass 44
+# fail 0
+
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (454ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (958ms)
+11 passed (33.8s)
 ```
 
 ## 已知问题

@@ -32,6 +32,7 @@
 - 管理员治理追溯补缺口：后台新增“审计”页展示最近审计日志，可追踪账号状态、重置密码、举报处理、审核等动作。
 - 举报治理防绕过补缺口：管理员因举报隐藏创作者战术板后，创作者后台显示“管理员隐藏”且不能自行恢复；后端恢复接口也返回 403，公开页继续不可见。
 - 举报证据保全补缺口：举报记录新增板标题、简介、正文、作者、更新时间快照；后台举报队列显示举报时内容摘录，防止后续编辑污染管理员判断。
+- 创作者直发筛查补缺口：创作者直发/编辑战术板现在复用归一化内容黑名单；命中后返回 400，不创建新板，也不污染已有公开板。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -186,6 +187,43 @@ vite v5.4.21 building for production...
 ✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:532:1 › visitor can report a board and admin can hide it from public pages (8.9s)
 ✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (655ms)
 10 passed (31.7s)
+```
+
+### 创作者直发内容筛查验证
+```text
+node --test server/creator-username-auth.test.mjs --test-name-pattern "unsafe content"
+
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator direct publish screens"
+
+Running 1 test using 1 worker
+·
+1 passed (3.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.07s
+
+1..44
+# tests 44
+# suites 0
+# pass 44
+# fail 0
+
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (454ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (958ms)
+11 passed (33.8s)
 ```
 
 ### 普通用户防呆补测验证
@@ -1137,6 +1175,7 @@ Playwright:
 - `src/pages/Admin.tsx`：后台新增审计日志页，会展示 audit detail JSON；需人工确认后台可见信息范围符合运营预期。
 - `server/index.mjs`、`src/pages/Creator.tsx`、`src/data/types.ts`：新增 `boards.hidden_by` 区分创作者自助下架与管理员隐藏；需人工确认旧隐藏板默认处理和管理员误隐藏后的恢复流程。
 - `server/index.mjs`、`src/pages/admin/ReportsSection.tsx`、`src/data/types.ts`：举报新增板内容快照并在后台展示；需人工确认正文摘录长度和后台可见信息范围符合运营预期。
+- `server/index.mjs`：创作者直发/编辑现在会被归一化内容黑名单拦截；需人工确认 trusted 创作者也应受同一基础筛查约束。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。

@@ -1194,6 +1194,9 @@ function validateBoardDraft(input, reply) {
   if (input.bossId && !stmt.bossById.get(input.bossId)) {
     return reply.code(400).send({ error: '字段无效：bossId' })
   }
+  if (findAbuseReason(input.title, input.description, input.contentText)) {
+    return reply.code(400).send({ error: '战术内容包含暂不支持公开展示的内容' })
+  }
   input.seasonVersion = input.seasonVersion || raid.patch
   return null
 }

@@ -751,6 +751,56 @@ test('approved creator can publish, edit, hide, and republish own boards without
   assert.equal(publicBoard.body.board.title, '创作者直发战术 v2')
 })
 
+test('approved creator direct publish and edit are screened for unsafe content', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+  const application = await submitCreatorApplication(server)
+  await approveCreatorUntilTrusted(server, application)
+
+  const blockedCreate = await requestJson(server.baseUrl, '/api/creator/boards', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({
+      title: '创作者直发筛查',
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: '不应公开',
+      contentText: '这是一条博 彩广告',
+    }),
+  })
+  assert.equal(blockedCreate.res.status, 400)
+  assert.equal(blockedCreate.body.error, '战术内容包含暂不支持公开展示的内容')
+
+  const create = await requestJson(server.baseUrl, '/api/creator/boards', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({
+      title: '创作者安全直发',
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: '正常公开',
+      contentText: 'P1 安全直发\nP2 集合',
+    }),
+  })
+  assert.equal(create.res.status, 201)
+
+  const blockedUpdate = await requestJson(server.baseUrl, `/api/creator/boards/${create.body.id}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({ contentText: '改成裸聊广告' }),
+  })
+  assert.equal(blockedUpdate.res.status, 400)
+  assert.equal(blockedUpdate.body.error, '战术内容包含暂不支持公开展示的内容')
+
+  const publicBoard = await requestJson(server.baseUrl, `/api/boards/${create.body.id}`)
+  assert.equal(publicBoard.res.status, 200)
+  assert.equal(publicBoard.body.board.contentText, 'P1 安全直发\nP2 集合')
+})
+
 test('creator cannot republish a board hidden by admin report handling', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())
