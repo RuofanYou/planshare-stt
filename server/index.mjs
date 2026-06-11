@@ -2567,6 +2567,9 @@ app.put('/api/authors/:id', { preHandler: requireAuth }, (req, reply) => {
 app.delete('/api/authors/:id', { preHandler: requireAuth }, (req, reply) => {
   const row = stmt.authorById.get(req.params.id)
   if (!row) return reply.code(404).send({ error: 'author not found' })
+  if (row.creator_account_id) {
+    return reply.code(409).send({ error: '该作者已绑定创作者账号，不能删除' })
+  }
   if (stmt.boardCountByAuthor.get(row.id).n > 0) {
     return reply.code(409).send({ error: '该作者名下还有战术板，不能删除' })
   }

@@ -46,6 +46,7 @@
 - 举报治理防绕过补缺口：创作者自助下架仍可自助恢复，但管理员因举报隐藏的板会记录 `hidden_by=admin`，创作者后台只显示“管理员隐藏”，不提供恢复发布，后端也拒绝 `isHidden:false` 绕过。
 - 举报证据保全补缺口：举报创建时把当时的板标题、简介、正文、作者和更新时间快照写入 `reports`，后台举报队列直接显示举报时内容摘录，避免创作者或管理员后续编辑导致治理证据漂移。
 - 创作者直发筛查补缺口：游客投稿已有内容筛查，但正式创作者直发/编辑曾只做字段校验；现已复用归一化黑名单，违规标题/简介/正文会返回 400，不创建也不污染已有公开板。
+- 创作者账号生命周期补缺口：后台删除作者现在会拒绝已绑定创作者账号的作者，避免管理员把半公开/正式创作者的作者档案删成孤儿账号；需要治理时应暂停账号或隐藏作者，而不是删除绑定关系。
 
 ## 验证输出
 
@@ -1284,6 +1285,49 @@ vite v5.4.21 building for production...
 ✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (454ms)
 ✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (958ms)
 11 passed (33.8s)
+```
+
+### UGC 生态补缺口：创作者作者档案删除保护
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.14s
+```
+
+```text
+node --test server/creator-username-auth.test.mjs --test-name-pattern "cannot delete"
+
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+```
+
+```text
+API:
+管理员删除已绑定创作者账号的作者返回 409。
+创作者随后访问 /api/creator/me 仍返回原 author，visibility=semi_public。
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.03s
+
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (5.7s)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (847ms)
+11 passed (39.4s)
 ```
 
 ## 已知问题

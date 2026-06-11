@@ -599,6 +599,28 @@ test('creator can edit only their own semi-public author profile', async (t) => 
   assert.equal(update.body.author.visibility, 'semi_public')
 })
 
+test('admin cannot delete an author that is linked to a creator account', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+  const application = await submitCreatorApplication(server)
+  const admin = await adminToken(server.baseUrl)
+  const authorId = application.creatorAuth.author.id
+
+  const remove = await requestJson(server.baseUrl, `/api/authors/${authorId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  assert.equal(remove.res.status, 409)
+  assert.equal(remove.body.error, '该作者已绑定创作者账号，不能删除')
+
+  const me = await requestJson(server.baseUrl, '/api/creator/me', {
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+  })
+  assert.equal(me.res.status, 200)
+  assert.equal(me.body.author.id, authorId)
+  assert.equal(me.body.author.visibility, 'semi_public')
+})
+
 test('admin approval promotes creator author and publishes board', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

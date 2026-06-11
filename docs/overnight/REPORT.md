@@ -33,6 +33,7 @@
 - 举报治理防绕过补缺口：管理员因举报隐藏创作者战术板后，创作者后台显示“管理员隐藏”且不能自行恢复；后端恢复接口也返回 403，公开页继续不可见。
 - 举报证据保全补缺口：举报记录新增板标题、简介、正文、作者、更新时间快照；后台举报队列显示举报时内容摘录，防止后续编辑污染管理员判断。
 - 创作者直发筛查补缺口：创作者直发/编辑战术板现在复用归一化内容黑名单；命中后返回 400，不创建新板，也不污染已有公开板。
+- 创作者账号生命周期补缺口：后台删除作者时拒绝删除已绑定创作者账号的作者，避免创作者账号残留但作者档案被删。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -224,6 +225,35 @@ vite v5.4.21 building for production...
 ✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (454ms)
 ✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (958ms)
 11 passed (33.8s)
+```
+
+### 创作者作者档案删除保护验证
+```text
+node --test server/creator-username-auth.test.mjs --test-name-pattern "cannot delete"
+
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.03s
+
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (5.7s)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (847ms)
+11 passed (39.4s)
 ```
 
 ### 普通用户防呆补测验证
@@ -1176,6 +1206,7 @@ Playwright:
 - `server/index.mjs`、`src/pages/Creator.tsx`、`src/data/types.ts`：新增 `boards.hidden_by` 区分创作者自助下架与管理员隐藏；需人工确认旧隐藏板默认处理和管理员误隐藏后的恢复流程。
 - `server/index.mjs`、`src/pages/admin/ReportsSection.tsx`、`src/data/types.ts`：举报新增板内容快照并在后台展示；需人工确认正文摘录长度和后台可见信息范围符合运营预期。
 - `server/index.mjs`：创作者直发/编辑现在会被归一化内容黑名单拦截；需人工确认 trusted 创作者也应受同一基础筛查约束。
+- `server/index.mjs`：删除作者时新增创作者账号绑定保护；需人工确认未来如果要彻底注销创作者账号，应单独设计注销/归档流程。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。
