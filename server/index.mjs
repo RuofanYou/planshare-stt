@@ -1914,6 +1914,7 @@ app.post('/api/boards', { preHandler: requireAuth }, (req, reply) => {
   if (!stmt.raidById.get(b.raidId)) return reply.code(400).send({ error: '字段无效：raidId' })
   const bossError = validateBossBelongsToRaid(b.raidId, b.bossId, reply)
   if (bossError) return bossError
+  if (!stmt.authorById.get(b.authorId)) return reply.code(400).send({ error: '字段无效：authorId' })
   const id = `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
   const today = new Date().toISOString().slice(0, 10)
   stmt.insertBoard.run({
@@ -2455,6 +2456,9 @@ app.put('/api/boards/:id', { preHandler: requireAuth }, (req, reply) => {
       reply,
     )
     if (bossError) return bossError
+  }
+  if ('authorId' in b && !stmt.authorById.get(b.authorId)) {
+    return reply.code(400).send({ error: '字段无效：authorId' })
   }
   // 可更新字段：契约白名单 -> 列名 + 取值转换。
   const fields = [

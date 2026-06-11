@@ -278,6 +278,13 @@ test('admin can manage raids and bosses and deletion checks block linked content
   assert.equal(raidDetail.res.status, 200)
   assert.equal(raidDetail.body.bosses.some((item) => item.id === 'b-test-lab-one'), true)
 
+  const author = await requestJson(server.baseUrl, '/api/authors', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({ name: '测试作者' }),
+  })
+  assert.equal(author.res.status, 201)
+
   const created = await requestJson(server.baseUrl, '/api/boards', {
     method: 'POST',
     headers: { Authorization: `Bearer ${admin}` },
@@ -289,7 +296,7 @@ test('admin can manage raids and bosses and deletion checks block linked content
       seasonVersion: '12.0.test',
       description: '用于删除校验',
       contentText: 'P1 测试',
-      authorId: 'a-mirror',
+      authorId: author.body.id,
     }),
   })
   assert.equal(created.res.status, 201)
@@ -305,7 +312,7 @@ test('admin can manage raids and bosses and deletion checks block linked content
       seasonVersion: 'S3',
       description: '不应创建',
       contentText: 'P1 错配',
-      authorId: 'a-mirror',
+      authorId: author.body.id,
     }),
   })
   assert.equal(mismatchedCreate.res.status, 400)
@@ -318,6 +325,35 @@ test('admin can manage raids and bosses and deletion checks block linked content
   })
   assert.equal(mismatchedUpdate.res.status, 400)
   assert.equal(mismatchedUpdate.body.error, '字段无效：bossId 不属于所选团本')
+
+  const missingAuthorCreate = await requestJson(server.baseUrl, '/api/boards', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({
+      title: '孤儿作者板',
+      raidId: 'r-test-lab',
+      bossId: 'b-test-lab-one',
+      difficulty: 'mythic',
+      seasonVersion: '12.0.test',
+      description: '不应创建',
+      contentText: 'P1 不应创建',
+      authorId: 'a-missing-author',
+    }),
+  })
+  assert.equal(missingAuthorCreate.res.status, 400)
+  assert.equal(missingAuthorCreate.body.error, '字段无效：authorId')
+
+  const missingAuthorUpdate = await requestJson(server.baseUrl, `/api/boards/${created.body.id}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({ authorId: 'a-missing-author' }),
+  })
+  assert.equal(missingAuthorUpdate.res.status, 400)
+  assert.equal(missingAuthorUpdate.body.error, '字段无效：authorId')
+
+  const unchanged = await requestJson(server.baseUrl, `/api/boards/${created.body.id}`)
+  assert.equal(unchanged.res.status, 200)
+  assert.equal(unchanged.body.board.authorId, author.body.id)
 
   const blockedBossDelete = await requestJson(server.baseUrl, '/api/admin/bosses/b-test-lab-one', {
     method: 'DELETE',

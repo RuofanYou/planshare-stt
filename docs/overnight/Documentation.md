@@ -1331,7 +1331,7 @@ vite v5.4.21 building for production...
 11 passed (39.4s)
 ```
 
-### UGC 生态补缺口：团本/BOSS 关系完整性
+### UGC 生态补缺口：团本/BOSS/作者关系完整性
 ```text
 npm run build
 
@@ -1375,6 +1375,7 @@ API:
 游客投稿使用 `r-voidspire` + `b-beloren` 返回 400。
 创作者直发使用 `r-voidspire` + `b-beloren` 返回 400。
 管理员新建/编辑板造成 raid/boss 错配时返回 400。
+管理员新建/编辑板使用不存在的 authorId 时返回 400。
 ```
 
 ```text
@@ -1382,7 +1383,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 2.02s
+✓ built in 2.03s
 
 1..47
 # tests 47
@@ -1390,9 +1391,9 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (733ms)
-✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (952ms)
-11 passed (34.2s)
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (651ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (814ms)
+11 passed (33.6s)
 ```
 
 ## 已知问题
