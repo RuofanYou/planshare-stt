@@ -83,6 +83,7 @@ export function ResourcesSection({
           <input id="ps-raid-name" className="ps-admin__input" value={raidName} onChange={(e) => setRaidName(e.target.value)} />
         </div>
         {createRaid.error && <p className="ps-admin__error">{(createRaid.error as Error).message}</p>}
+        {deleteRaid.error && <p className="ps-admin__error">{(deleteRaid.error as Error).message}</p>}
         <div className="ps-admin__actions">
           <Button type="submit" variant="primary" disabled={createRaid.isPending || !raidName.trim() || !raidPatch.trim()}>
             {createRaid.isPending ? '保存中…' : '新增团本'}
@@ -130,8 +131,11 @@ function RaidResourceRow({
   const deleteBoss = useDeleteBoss()
   const [bossName, setBossName] = useState('')
   const [bossOrder, setBossOrder] = useState('')
+  const [confirmBossId, setConfirmBossId] = useState('')
+  const [confirmRaidDelete, setConfirmRaidDelete] = useState(false)
 
   const bosses: Boss[] = raidQuery.data?.bosses ?? []
+  const bossToDelete = bosses.find((boss) => boss.id === confirmBossId)
 
   function submitBoss(e: React.FormEvent) {
     e.preventDefault()
@@ -184,7 +188,10 @@ function RaidResourceRow({
               {boss.order}. {boss.name}
               <button
                 type="button"
-                onClick={() => deleteBoss.mutate({ id: boss.id, raidId: raid.id }, { onError: onGuard })}
+                onClick={() => {
+                  setConfirmBossId(boss.id)
+                  setConfirmRaidDelete(false)
+                }}
                 disabled={deleteBoss.isPending}
               >
                 删除
@@ -192,11 +199,80 @@ function RaidResourceRow({
             </span>
           ))}
         </div>
+        {bossToDelete && (
+          <div className="ps-admin__confirm glass-strong" role="alertdialog">
+            <span className="ps-admin__confirm-text">
+              确认删除 BOSS「{bossToDelete.name}」？有关联战术板或投稿时后端会拒绝删除。
+            </span>
+            <div className="ps-admin__confirm-actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setConfirmBossId('')}
+                disabled={deleteBoss.isPending}
+              >
+                取消
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  deleteBoss.mutate(
+                    { id: bossToDelete.id, raidId: raid.id },
+                    {
+                      onSuccess: () => setConfirmBossId(''),
+                      onError: onGuard,
+                    },
+                  )
+                }}
+                disabled={deleteBoss.isPending}
+              >
+                {deleteBoss.isPending ? '删除中…' : '确认删除'}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="ps-admin__row-actions">
-        <Button variant="ghost" size="sm" onClick={onDeleteRaid} disabled={raidDeleteBusy}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setConfirmRaidDelete(true)
+            setConfirmBossId('')
+          }}
+          disabled={raidDeleteBusy}
+        >
           删除团本
         </Button>
+        {confirmRaidDelete && (
+          <div className="ps-admin__confirm glass-strong" role="alertdialog">
+            <span className="ps-admin__confirm-text">
+              确认删除团本「{raid.name}」？有关联 BOSS、战术板或投稿时后端会拒绝删除。
+            </span>
+            <div className="ps-admin__confirm-actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setConfirmRaidDelete(false)}
+                disabled={raidDeleteBusy}
+              >
+                取消
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  onDeleteRaid()
+                  setConfirmRaidDelete(false)
+                }}
+                disabled={raidDeleteBusy}
+              >
+                {raidDeleteBusy ? '删除中…' : '确认删除'}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </GlassCard>
   )

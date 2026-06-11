@@ -917,6 +917,56 @@ test('empty boss category can route visitors into a prefilled submission', async
   await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
 })
 
+test('admin resource deletion requires confirmation before removing bosses and raids', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const admin = await adminToken(request)
+  const raidId = `r-delete-${runId}`
+  const bossId = `b-delete-${runId}`
+  const raidName = `E2E 删除团本 ${runId}`
+  const bossName = `E2E 删除 BOSS ${runId}`
+
+  const raid = await request.post('/api/admin/raids', {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { id: raidId, name: raidName, patch: '12.0.e2e' },
+  })
+  expect(raid.status()).toBe(201)
+  const boss = await request.post('/api/admin/bosses', {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { id: bossId, raidId, name: bossName, order: 1 },
+  })
+  expect(boss.status()).toBe(201)
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '团本' }).click()
+
+  const raidRow = page.locator('.ps-admin__row-card', { hasText: raidName })
+  await expect(raidRow).toBeVisible()
+  const bossChip = raidRow.locator('.ps-admin__boss-chip', { hasText: bossName })
+  await expect(bossChip).toBeVisible()
+
+  await bossChip.getByRole('button', { name: '删除' }).click()
+  await expect(raidRow.getByRole('alertdialog')).toContainText(`确认删除 BOSS「${bossName}」？`)
+  await raidRow.getByRole('button', { name: '取消' }).click()
+  await expect(raidRow.getByRole('alertdialog')).toHaveCount(0)
+  await expect(bossChip).toBeVisible()
+
+  await bossChip.getByRole('button', { name: '删除' }).click()
+  await raidRow.getByRole('button', { name: '确认删除' }).click()
+  await expect(bossChip).toHaveCount(0)
+
+  await raidRow.getByRole('button', { name: '删除团本' }).click()
+  await expect(raidRow.getByRole('alertdialog')).toContainText(`确认删除团本「${raidName}」？`)
+  await raidRow.getByRole('button', { name: '取消' }).click()
+  await expect(raidRow.getByRole('alertdialog')).toHaveCount(0)
+  await expect(raidRow).toBeVisible()
+
+  await raidRow.getByRole('button', { name: '删除团本' }).click()
+  await raidRow.getByRole('button', { name: '确认删除' }).click()
+  await expect(raidRow).toHaveCount(0)
+})
+
 test('author page likes update author aggregate stats', async ({ page }) => {
   await page.goto('/author/a-nike')
   await expect(page.getByRole('heading', { name: '妮可' })).toBeVisible()

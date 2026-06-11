@@ -3325,6 +3325,48 @@ vite v5.4.21 building for production...
 27 passed (1.2m)
 ```
 
+### UGC 生态补缺口：团本/BOSS 删除需要二次确认
+```text
+管理员 / 浏览用户探索:
+团本和 BOSS 是前台筛选、投稿下拉和空 BOSS 投稿引导的基础数据。
+后端已经会阻止有关联战术板、投稿或 BOSS 的删除，但空团本/空 BOSS 在后台原来点一下就删除，误点会让前台入口直接消失。
+
+已修复：
+- 删除 BOSS 前先显示页面内确认条
+- 删除团本前先显示页面内确认条
+- 点击“取消”不会删除
+- 点击“确认删除”才调用后端删除
+- 团本删除被后端拒绝时，后台会显示错误原因
+
+决策记录：
+- 不放宽后端删除规则；前端只补误操作确认和错误可见性。
+- 复用后台已有 `ps-admin__confirm` alertdialog 样式，和战术板删除、作者删除、创作者暂停保持一致。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "resource deletion requires confirmation"
+
+Running 1 test using 1 worker
+·
+1 passed (3.7s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.93s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:920:1 › admin resource deletion requires confirmation before removing bosses and raids (1.4s)
+28 passed (1.2m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

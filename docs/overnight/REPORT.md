@@ -29,6 +29,7 @@
 - 浏览用户治理闭环补测：Playwright 覆盖访客举报公开板、管理员在举报队列隐藏板、公开详情页不可见。
 - 创作者账号救援闭环补测：Playwright 覆盖管理员后台重置创作者密码，旧密码失效，新密码可重新登录。
 - 创作者治理闭环补缺口：后台“账号与密码”区新增暂停/恢复账号；暂停后创作者不能登录，恢复后可重新登录。
+- 资源管理误删防呆补缺口：后台团本/BOSS 删除新增页面内二次确认；取消不删除，确认后才删除。
 - 管理员治理追溯补缺口：后台新增“审计”页展示最近审计日志，可追踪账号状态、重置密码、举报处理、审核等动作。
 - 举报治理防绕过补缺口：管理员因举报隐藏创作者战术板后，创作者后台显示“管理员隐藏”且不能自行恢复；后端恢复接口也返回 403，公开页继续不可见。
 - 举报证据保全补缺口：举报记录新增板标题、简介、正文、作者、更新时间快照；后台举报队列显示举报时内容摘录，防止后续编辑污染管理员判断。
@@ -1253,7 +1254,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.92s
+✓ built in 1.93s
 
 1..48
 # tests 48
@@ -1261,20 +1262,21 @@ vite v5.4.21 building for production...
 # pass 48
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:153:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.3s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:428:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.5s)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:153:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.1s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:428:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.6s)
 ✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:492:1 › creator can change password from dashboard and log in with the new password (1.8s)
-✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › admin can reset a creator password and the creator can log in again (1.7s)
-✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:577:1 › admin can suspend and restore a creator account (2.6s)
+✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › admin can reset a creator password and the creator can log in again (1.6s)
+✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:577:1 › admin can suspend and restore a creator account (2.5s)
 ✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:754:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.4s)
-✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1065:1 › visitor can check submission receipt and open the approved board (6.1s)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1099:1 › visitor rejected receipt can return to a clean resubmission form (617ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1128:1 › visitor spam receipt can return to a clean resubmission form (605ms)
-✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1151:1 › visitor withdrawn receipt can return to a clean resubmission form (625ms)
-✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1177:1 › submission receipt rate limit shows a visible visitor-facing error (575ms)
-✓  23 [chromium] › tests/e2e/ugc-smoke.spec.ts:1234:1 › duplicate visitor submission explains that the same content will not enter review twice (1.1s)
-✓  27 [chromium] › tests/e2e/ugc-smoke.spec.ts:1408:1 › creator direct publish screens unsafe content in dashboard (776ms)
-27 passed (1.2m)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:920:1 › admin resource deletion requires confirmation before removing bosses and raids (1.4s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1115:1 › visitor can check submission receipt and open the approved board (977ms)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1149:1 › visitor rejected receipt can return to a clean resubmission form (553ms)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1178:1 › visitor spam receipt can return to a clean resubmission form (609ms)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1201:1 › visitor withdrawn receipt can return to a clean resubmission form (648ms)
+✓  22 [chromium] › tests/e2e/ugc-smoke.spec.ts:1227:1 › submission receipt rate limit shows a visible visitor-facing error (626ms)
+✓  24 [chromium] › tests/e2e/ugc-smoke.spec.ts:1284:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
+✓  28 [chromium] › tests/e2e/ugc-smoke.spec.ts:1458:1 › creator direct publish screens unsafe content in dashboard (738ms)
+28 passed (1.2m)
 ```
 
 ## 高风险 diff
@@ -1288,6 +1290,7 @@ vite v5.4.21 building for production...
 - `server/index.mjs`：创作者直发/编辑现在会被归一化内容黑名单拦截；需人工确认 trusted 创作者也应受同一基础筛查约束。
 - `server/index.mjs`：删除作者时新增创作者账号绑定保护；需人工确认未来如果要彻底注销创作者账号，应单独设计注销/归档流程。
 - `server/index.mjs`：新增 raid/boss 关系校验，并禁止管理员把板关联到不存在的作者；需人工确认历史数据里是否存在旧的 boss 为空、错配或孤儿作者记录，必要时做一次只读巡检。
+- `src/pages/admin/ResourcesSection.tsx`：团本/BOSS 删除新增页面内二次确认，并显示团本删除失败原因；需人工确认空资源删除流程和文案符合运营预期。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Admin.tsx`：管理员重置创作者密码后新增“复制新密码”；需人工确认明文临时密码仅短暂展示在当前账号行的安全取舍符合运营预期。
