@@ -247,6 +247,9 @@ test('creator application guardrails handle missing fields, invalid usernames, a
   await page.locator('#ps-submit-boss').selectOption('b-averzian')
   await page.getByLabel('作者名 / 投稿署名').fill(`防呆创作者 ${runId}`)
   await page.getByLabel('用户名').fill(`short_${runId}`)
+  await expect(page.getByText('用于以后登录创作者后台，至少 8 位。')).toBeVisible()
+  await page.getByLabel('密码').fill('1234567')
+  await expect(page.getByText('密码至少 8 位，还差 1 位。')).toBeVisible()
   await page.getByLabel('战术正文').fill('P1 缺密码')
   await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
 

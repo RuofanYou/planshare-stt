@@ -127,6 +127,10 @@ export default function Submit() {
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
   const pending = createSubmission.isPending
+  const creatorPasswordHint =
+    wantsCreatorProfile && creatorPassword.length > 0 && creatorPassword.length < 8
+      ? `密码至少 8 位，还差 ${8 - creatorPassword.length} 位。`
+      : '用于以后登录创作者后台，至少 8 位。'
   const canSubmit =
     title.trim() !== '' &&
     raidId !== '' &&
@@ -466,10 +470,14 @@ export default function Submit() {
                     className="ps-submit__input"
                     type="password"
                     autoComplete="new-password"
+                    aria-describedby="ps-submit-password-hint"
                     value={creatorPassword}
                     onChange={(e) => setCreatorPassword(e.target.value)}
                     placeholder="至少 8 位"
                   />
+                  <p className="ps-submit__hint" id="ps-submit-password-hint">
+                    {creatorPasswordHint}
+                  </p>
                 </div>
                 <div className="ps-submit__field ps-submit__field--wide">
                   <label className="ps-submit__label" htmlFor="ps-submit-contact">
