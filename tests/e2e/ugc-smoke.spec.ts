@@ -726,6 +726,12 @@ test('admin can suspend and restore a creator account', async ({ page, request }
   await page.goto('/admin')
   await page.getByRole('tab', { name: '创作者' }).click()
   await accountRow.getByRole('button', { name: '恢复账号' }).click()
+  await expect(accountRow.getByRole('alertdialog')).toContainText('确定恢复这个创作者账号？')
+  await accountRow.getByRole('button', { name: '取消' }).click()
+  await expect(accountRow.getByText('已暂停')).toBeVisible()
+  await expect(accountRow.getByRole('alertdialog')).toHaveCount(0)
+  await accountRow.getByRole('button', { name: '恢复账号' }).click()
+  await accountRow.getByRole('button', { name: '确认恢复' }).click()
   await expect(accountRow.getByText('正常')).toBeVisible()
 
   await page.getByRole('tab', { name: '审计' }).click()

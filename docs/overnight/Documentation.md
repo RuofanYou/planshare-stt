@@ -3589,6 +3589,49 @@ vite v5.4.21 building for production...
 31 passed (1.5m)
 ```
 
+### UGC 生态补缺口：恢复创作者账号也需要二次确认
+```text
+管理员 / 创作者用户探索:
+暂停账号已经有二次确认，但“恢复账号”原来一点即恢复。
+UGC 开放后，恢复账号意味着重新允许该创作者登录、继续投稿和维护战术板，误点同样是权限风险。
+
+已修复：
+- 点击“恢复账号”先显示页面内确认条。
+- 确认文案说明恢复后用户可重新登录并继续投稿、维护战术板。
+- 点击“取消”不会恢复账号，状态仍是“已暂停”。
+- 点击“确认恢复”才真正恢复账号。
+- “重置密码”会关闭账号状态确认条，避免一个账号行里同时出现两类救援动作。
+
+决策记录：
+- 修正旧决策：恢复不再保持一键操作；账号恢复是重新授予权限，和暂停一样需要确认。
+- 不改变后端账号状态接口，只在后台 UI 层增加确认。
+```
+
+```text
+CI=1 npx playwright test --grep "admin can suspend and restore a creator account"
+
+Running 1 test using 1 worker
+·
+1 passed (4.9s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.94s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   7 [chromium] › tests/e2e/ugc-smoke.spec.ts:699:1 › admin can suspend and restore a creator account (2.7s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1657:1 › creator direct publish screens unsafe content in dashboard (845ms)
+31 passed (1.4m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

@@ -1247,7 +1247,7 @@ function AccountRow({
   const [password, setPassword] = useState('')
   const [issuedPassword, setIssuedPassword] = useState('')
   const [copyNotice, setCopyNotice] = useState('')
-  const [confirmSuspend, setConfirmSuspend] = useState(false)
+  const [statusConfirm, setStatusConfirm] = useState<'suspend' | 'restore' | null>(null)
   const trimmedPassword = password.trim()
   const canReset = trimmedPassword.length >= 8 && !busy
   const authorName = account.author?.name ?? '未绑定作者'
@@ -1356,7 +1356,7 @@ function AccountRow({
               setIsResetting(true)
               setIssuedPassword('')
               setCopyNotice('')
-              setConfirmSuspend(false)
+              setStatusConfirm(null)
             }}
           >
             重置密码
@@ -1367,26 +1367,23 @@ function AccountRow({
           size="sm"
           disabled={statusBusy || isResetting}
           onClick={() => {
-            if (isSuspended) {
-              setConfirmSuspend(false)
-              onUpdateStatus('active')
-              return
-            }
-            setConfirmSuspend(true)
+            setStatusConfirm(isSuspended ? 'restore' : 'suspend')
           }}
         >
           {statusBusy ? (isSuspended ? '恢复中…' : '暂停中…') : isSuspended ? '恢复账号' : '暂停账号'}
         </Button>
-        {confirmSuspend && !isSuspended && (
+        {statusConfirm && (
           <div className="ps-admin__confirm glass-strong" role="alertdialog">
             <span className="ps-admin__confirm-text">
-              确定暂停这个创作者账号？暂停后该用户会被强制退出，恢复前不能登录。
+              {statusConfirm === 'suspend'
+                ? '确定暂停这个创作者账号？暂停后该用户会被强制退出，恢复前不能登录。'
+                : '确定恢复这个创作者账号？恢复后该用户可以重新登录并继续投稿、维护战术板。'}
             </span>
             <div className="ps-admin__confirm-actions">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setConfirmSuspend(false)}
+                onClick={() => setStatusConfirm(null)}
                 disabled={statusBusy}
               >
                 取消
@@ -1395,12 +1392,13 @@ function AccountRow({
                 variant="primary"
                 size="sm"
                 onClick={() => {
-                  setConfirmSuspend(false)
-                  onUpdateStatus('suspended')
+                  const nextStatus = statusConfirm === 'suspend' ? 'suspended' : 'active'
+                  setStatusConfirm(null)
+                  onUpdateStatus(nextStatus)
                 }}
                 disabled={statusBusy}
               >
-                确认暂停
+                {statusConfirm === 'suspend' ? '确认暂停' : '确认恢复'}
               </Button>
             </div>
           </div>
