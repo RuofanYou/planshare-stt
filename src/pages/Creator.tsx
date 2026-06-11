@@ -467,7 +467,7 @@ function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }
             查看公开板
           </Button>
         )}
-        {(submission.status === 'rejected' || submission.status === 'withdrawn') && (
+        {(submission.status === 'rejected' || submission.status === 'spam' || submission.status === 'withdrawn') && (
           <Button variant="secondary" size="sm" onClick={retrySubmission}>
             修改后重投
           </Button>
@@ -1244,6 +1244,7 @@ function submissionStatusMeta(submission: CreatorSubmission): {
 function spamReasonLabel(reason?: string) {
   if (reason === 'honeypot') return '表单异常'
   if (reason === 'duplicate_content') return '同一网络下重复正文'
+  if (reason === 'content_blacklist') return '内容风险'
   if (reason) return reason
   return '内容风险'
 }

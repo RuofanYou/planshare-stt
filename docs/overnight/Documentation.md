@@ -2250,6 +2250,34 @@ vite v5.4.21 building for production...
 14 passed (42.1s)
 ```
 
+### UGC 生态补缺口：系统拦截后可修改重投
+```text
+普通创作者探索:
+创作者投稿如果被系统标记为 spam，后台原本只显示“被拦截 / 没有进入人工审核”。这对小白是死路：不知道为什么被拦、也没有下一步。
+同时 `content_blacklist` 这类机器码可能直接出现在“系统拦截：...”后面。
+
+已改为：
+- spam 状态也显示“修改后重投”，和未通过、已撤回保持一致
+- `content_blacklist` 显示为“内容风险”
+- 点击“修改后重投”会把原标题、团本、BOSS、正文带回投稿页；用户改掉问题内容后可重新提交审核
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.09s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "spam-screened"
+
+Running 1 test using 1 worker
+·
+1 passed (3.9s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

@@ -586,6 +586,56 @@ test('creator can withdraw a pending submission from dashboard', async ({ page, 
   await expect(page.getByText('待审核', { exact: true })).toBeVisible()
 })
 
+test('creator can fix and retry a spam-screened submission from dashboard', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `retryspam_${runId}`)
+  const spamTitle = `E2E 拦截后重投 ${runId}`
+
+  const spam = await request.post('/api/submissions', {
+    headers: {
+      Authorization: `Bearer ${creator.token}`,
+      'X-Forwarded-For': `203.0.113.${Math.abs(hashSuffix(`retryspam_${runId}`)) % 200}`,
+    },
+    data: {
+      title: spamTitle,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `E2E 拦截后重投 ${runId}`,
+      contentText: `这是一条博 彩广告 ${runId}`,
+      submitterName: `自助创作者 retryspam_${runId}`,
+      wantsCreatorProfile: false,
+    },
+  })
+  expect(spam.status()).toBe(201)
+  const spamBody = await spam.json()
+  expect(spamBody.status).toBe('spam')
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+
+  const spamRow = page.locator('.ps-creator__submission', { hasText: spamTitle })
+  await expect(spamRow.getByText('被拦截')).toBeVisible()
+  await expect(spamRow.getByText('系统拦截：内容风险')).toBeVisible()
+  await spamRow.getByRole('button', { name: '修改后重投' }).click()
+
+  await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByText(`已登录为 自助创作者 retryspam_${runId}`)).toBeVisible()
+  await expect(page.getByLabel('标题')).toHaveValue(spamTitle)
+  await expect(page.locator('#ps-submit-raid')).toHaveValue('r-voidspire')
+  await expect(page.locator('#ps-submit-boss')).toHaveValue('b-averzian')
+  await expect(page.getByLabel('战术正文')).toHaveValue(`这是一条博 彩广告 ${runId}`)
+
+  await page.getByLabel('标题').fill(`${spamTitle} 修正版`)
+  await page.getByLabel('战术正文').fill(`P1 修正后重投 ${runId}\nP2 集合`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
+})
+
 test('home search finds boards by boss and author names', async ({ page }) => {
   await page.goto('/')
   const search = page.getByPlaceholder('搜索 BOSS、作者、技能名或关键词')
