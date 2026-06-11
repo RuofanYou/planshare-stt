@@ -1271,6 +1271,7 @@ Playwright:
 - `src/pages/Creator.tsx` 与 `src/pages/Creator.css`：创作者直发/编辑表单新增“还差”缺项提示；需人工确认正式创作者视角下不会显得啰嗦。
 - `src/pages/Home.tsx` 与 `src/pages/Home.css`：首页搜索空结果新增“投稿补一份”入口；需人工确认空结果引导不会打扰只想浏览的用户。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿成功区新增“回首页浏览”；需人工确认成功后的下一步入口符合运营期望。
+- `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿页本机草稿新增“清空草稿”按钮；需人工确认共享电脑/误填场景下这个按钮的位置和文案不会造成误删疑虑。
 - `src/pages/BoardDetail.tsx`：举报成功提示改为“已进入管理员处理队列”；需人工确认治理流程说明足够清楚。
 - `src/pages/BoardDetail.tsx`：公开板 404 且后端返回 `board not found` 时显示“已不可见”；需人工确认下架/隐藏/不存在统一文案可接受。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。

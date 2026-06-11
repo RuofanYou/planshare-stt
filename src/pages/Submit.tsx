@@ -147,6 +147,21 @@ export default function Submit() {
       : pending
         ? '正在提交，请稍候。'
         : '信息已补齐，可以提交审核。'
+  const hasVisibleDraft = hasDraftContent({
+    title,
+    raidId,
+    bossId,
+    difficulty,
+    description,
+    contentText,
+    submitterName,
+    wantsCreatorProfile,
+    creatorUsername,
+    creatorBio,
+    creatorGuildName,
+    creatorGuildRecruit,
+    creatorGuildContact,
+  })
 
   useEffect(() => {
     draftHydrated.current = true
@@ -219,6 +234,14 @@ export default function Submit() {
     setCreatorGuildRecruit('')
     setCreatorGuildContact('')
     setWebsite('')
+  }
+
+  function clearDraft() {
+    writeSubmitDraft(EMPTY_DRAFT)
+    resetForm()
+    setLocalError('')
+    setSubmittedId('')
+    setSubmittedKind('')
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -298,9 +321,16 @@ export default function Submit() {
         </p>
       )}
 
-      <p className="ps-submit__draft-note">
-        草稿会自动保存在本机；密码和联系方式不会保存。
-      </p>
+      <div className="ps-submit__draft-bar">
+        <p className="ps-submit__draft-note">
+          草稿会自动保存在本机；密码和联系方式不会保存。
+        </p>
+        {hasVisibleDraft && !submittedId && (
+          <button type="button" className="ps-submit__draft-clear" onClick={clearDraft}>
+            清空草稿
+          </button>
+        )}
+      </div>
 
       <motion.form
         className="ps-submit__form glass"

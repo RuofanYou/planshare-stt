@@ -1909,6 +1909,55 @@ vite v5.4.21 building for production...
 13 passed (39.0s)
 ```
 
+### UGC 生态补缺口：投稿草稿手动清空
+```text
+普通用户探索:
+投稿页会自动保存本机草稿，适合防误关页面；但如果用户填错一堆内容，或共享电脑上残留旧草稿，只能逐项删除。
+已新增“清空草稿”按钮：只有当前有可见草稿且还未提交成功时出现，点击后清空表单并移除本机草稿。
+```
+
+```text
+Browser 覆盖:
+在 http://localhost:5183/submit 点“清空草稿”后：
+{
+  "boss": "",
+  "clearButtons": 0,
+  "content": "",
+  "raid": "",
+  "submitter": null,
+  "title": ""
+}
+
+说明：内置浏览器当前缺少虚拟剪贴板能力，`fill` 不稳定；本轮仍用内置浏览器完成点击与页面状态验证。
+localStorage 是否被移除由 Playwright 专项测试覆盖。
+控制台只有既有 React Router v7 future warning 和 THREE.Clock deprecated warning，没有本轮新增错误。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "submit draft"
+
+Running 1 test using 1 worker
+·
+1 passed (4.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓  10 [chromium] › tests/e2e/ugc-smoke.spec.ts:604:1 › submit draft survives reload without saving password or contact (1.9s)
+13 passed (36.6s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

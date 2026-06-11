@@ -618,6 +618,7 @@ test('submit draft survives reload without saving password or contact', async ({
   await page.getByLabel('战术正文').fill(`P1 草稿保护 ${runId}\nP2 集合`)
 
   await page.reload()
+  await expect(page.getByRole('button', { name: '清空草稿' })).toBeVisible()
   await expect(page.getByLabel('标题')).toHaveValue(draftTitle)
   await expect(page.locator('#ps-submit-raid')).toHaveValue('r-voidspire')
   await expect(page.locator('#ps-submit-boss')).toHaveValue('b-averzian')
@@ -626,6 +627,21 @@ test('submit draft survives reload without saving password or contact', async ({
   await expect(page.getByLabel('密码')).toHaveValue('')
   await expect(page.getByLabel('联系方式（可选）', { exact: true })).toHaveValue('')
   await expect(page.getByLabel('战术正文')).toHaveValue(`P1 草稿保护 ${runId}\nP2 集合`)
+
+  await page.getByRole('button', { name: '清空草稿' }).click()
+  await expect(page.getByRole('button', { name: '清空草稿' })).toHaveCount(0)
+  await expect(page.getByLabel('标题')).toHaveValue('')
+  await expect(page.locator('#ps-submit-raid')).toHaveValue('')
+  await expect(page.locator('#ps-submit-boss')).toHaveValue('')
+  await expect(page.getByLabel('投稿署名')).toHaveValue('')
+  await expect(page.getByLabel('战术正文')).toHaveValue('')
+  await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()
+
+  await page.getByLabel('标题').fill(draftTitle)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await page.getByLabel('投稿署名').fill(`草稿作者 ${runId}`)
+  await page.getByLabel('战术正文').fill(`P1 草稿保护 ${runId}\nP2 集合`)
 
   await page.getByRole('radio', { name: /普通投稿/ }).click()
   await expect(page.getByText('信息已补齐，可以提交审核。')).toBeVisible()
