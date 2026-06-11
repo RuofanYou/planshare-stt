@@ -2356,6 +2356,28 @@ vite v5.4.21 building for production...
 16 passed (49.1s)
 ```
 
+### UGC 生态补缺口：管理员标垃圾后创作者也可按备注重投
+```text
+普通创作者探索:
+系统自动拦截 spam 已覆盖“修改后重投”，但管理员人工“标记垃圾”也是创作者会遇到的治理结果。
+如果这条路没有浏览器回归，后续可能出现创作者看不到管理员说明、或不能从垃圾状态重投的断点。
+
+已补 Playwright：
+- 创建创作者投稿
+- 管理员后台展开投稿，填写“处理备注：请去掉无关招募广告 ...”
+- 管理员点“标记垃圾”
+- 创作者登录后看到“被拦截”和具体管理员备注
+- 点“修改后重投”带回原稿，修改后重新进入审核
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "admin-spammed"
+
+Running 1 test using 1 worker
+·
+1 passed (5.1s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

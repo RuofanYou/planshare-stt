@@ -676,6 +676,44 @@ test('creator can fix and retry a spam-screened submission from dashboard', asyn
   await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
 })
 
+test('creator can fix and retry an admin-spammed submission from dashboard', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `adminspam_${runId}`)
+  const reviewNote = `请去掉无关招募广告 ${runId}`
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '投稿审核' }).click()
+  const spamRow = page.locator('.ps-admin__row-card', { hasText: creator.title })
+  await expect(spamRow).toBeVisible()
+  await spamRow.getByRole('button', { name: '查看' }).click()
+  await spamRow.getByLabel('处理备注').fill(reviewNote)
+  await spamRow.getByRole('button', { name: '标记垃圾' }).click()
+  await expect(spamRow.getByText('垃圾', { exact: true })).toBeVisible()
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+
+  const creatorSpamRow = page.locator('.ps-creator__submission', { hasText: creator.title })
+  await expect(creatorSpamRow.getByText('被拦截')).toBeVisible()
+  await expect(creatorSpamRow.getByText(`管理员备注：${reviewNote}`)).toBeVisible()
+  await creatorSpamRow.getByRole('button', { name: '修改后重投' }).click()
+
+  await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByText(`已登录为 自助创作者 adminspam_${runId}`)).toBeVisible()
+  await expect(page.getByLabel('标题')).toHaveValue(creator.title)
+  await expect(page.getByLabel('战术正文')).toHaveValue(creator.contentText)
+
+  await page.getByLabel('标题').fill(`${creator.title} 去广告版`)
+  await page.getByLabel('战术正文').fill(`${creator.contentText}\nP3 已按备注移除无关内容`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
+})
+
 test('home search finds boards by boss and author names', async ({ page }) => {
   await page.goto('/')
   const search = page.getByPlaceholder('搜索 BOSS、作者、技能名或关键词')
