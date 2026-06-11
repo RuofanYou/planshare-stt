@@ -1734,6 +1734,51 @@ vite v5.4.21 building for production...
 13 passed (37.4s)
 ```
 
+### UGC 生态补缺口：首页搜索空结果转投稿
+```text
+普通用户探索:
+浏览用户搜索不存在的 BOSS/作者时，原提示只说“可以先按团本浏览”，没有把用户自然引导到“投稿补一份”。
+已改为：
+“暂时没搜到匹配的板子，可以先按团本浏览，或投稿补一份。”
+其中“投稿补一份”是 /submit 链接。
+```
+
+```text
+Browser/Playwright 覆盖:
+搜索“不存在的虚空大章鱼”。
+页面提示:
+{
+  "hint": "暂时没搜到匹配的板子，可以先按团本浏览，或投稿补一份。",
+  "url": "http://localhost:5183/submit"
+}
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "home search"
+
+Running 1 test using 1 worker
+·
+1 passed (5.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   7 [chromium] › tests/e2e/ugc-smoke.spec.ts:514:1 › home search finds boards by boss and author names (3.2s)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:724:1 › creator direct publish screens unsafe content in dashboard (771ms)
+13 passed (43.8s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

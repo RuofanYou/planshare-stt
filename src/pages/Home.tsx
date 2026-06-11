@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   useFeaturedBoards,
@@ -61,6 +61,7 @@ export default function Home() {
 
   const [query, setQuery] = useState('')
   const [searchHint, setSearchHint] = useState('')
+  const [searchMissed, setSearchMissed] = useState(false)
 
   // 主 CTA 指向首个团本目录（异步拿到后才有；未就绪时退化为锚点滚到团本区）。
   const firstRaidId = raids[0]?.id
@@ -78,6 +79,7 @@ export default function Home() {
     const keyword = query.trim().toLowerCase()
     if (!keyword) {
       setSearchHint('先输入 BOSS、作者或战术关键词。')
+      setSearchMissed(false)
       return
     }
 
@@ -96,7 +98,8 @@ export default function Home() {
       return
     }
 
-    setSearchHint('暂时没搜到匹配的板子，可以先按团本浏览。')
+    setSearchHint('暂时没搜到匹配的板子，可以先按团本浏览，或投稿补一份。')
+    setSearchMissed(true)
   }
 
   function scrollToSection(id: string, updateHash = true) {
@@ -161,6 +164,7 @@ export default function Home() {
               onChange={(e) => {
                 setQuery(e.target.value)
                 setSearchHint('')
+                setSearchMissed(false)
               }}
               placeholder="搜索 BOSS、作者、技能名或关键词"
             />
@@ -174,7 +178,21 @@ export default function Home() {
             </Button>
           </motion.form>
 
-          {searchHint && <p className="home-search__hint">{searchHint}</p>}
+          {searchHint && (
+            <p className="home-search__hint">
+              {searchMissed ? (
+                <>
+                  暂时没搜到匹配的板子，可以先按团本浏览，或
+                  <Link className="home-search__hint-link" to="/submit">
+                    投稿补一份
+                  </Link>
+                  。
+                </>
+              ) : (
+                searchHint
+              )}
+            </p>
+          )}
 
           <motion.div
             className="home-quick"

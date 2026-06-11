@@ -122,6 +122,13 @@
   font-size: var(--text-meta);
 }
 
+.home-search__hint-link {
+  color: var(--color-gold-bright);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .home-quick {
   display: flex;
   flex-wrap: wrap;

@@ -528,6 +528,15 @@ test('home search finds boards by boss and author names', async ({ page }) => {
   await button.click()
   await expect(page).toHaveURL(/\/board\/p-beloren-nike$/)
   await expect(page.locator('.ps-detail__author', { hasText: '妮可' })).toBeVisible()
+
+  await page.goto('/')
+  await expect(button).toBeEnabled()
+  await search.fill('不存在的虚空大章鱼')
+  await button.click()
+  await expect(page.getByText('暂时没搜到匹配的板子，可以先按团本浏览，或')).toBeVisible()
+  await expect(page.getByRole('link', { name: '投稿补一份' })).toBeVisible()
+  await page.getByRole('link', { name: '投稿补一份' }).click()
+  await expect(page).toHaveURL(/\/submit$/)
 })
 
 test('author page likes update author aggregate stats', async ({ page }) => {
