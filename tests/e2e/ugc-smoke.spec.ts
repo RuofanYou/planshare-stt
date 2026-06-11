@@ -63,7 +63,37 @@ async function createCreatorApplication(request: APIRequestContext, suffix: stri
     },
   })
   expect(res.status()).toBe(201)
-  return { username, password, title, contentText }
+  const body = await res.json()
+  return {
+    username,
+    password,
+    title,
+    contentText,
+    token: body.creatorAuth?.token as string | undefined,
+    authorId: body.creatorAuth?.author?.id as string | undefined,
+  }
+}
+
+async function createTrustedCreator(request: APIRequestContext, suffix: string) {
+  const creator = await createCreatorApplication(request, suffix)
+  expect(creator.token).toBeTruthy()
+  expect(creator.authorId).toBeTruthy()
+  const admin = await adminToken(request)
+
+  const submissions = await request.get('/api/admin/submissions', {
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  expect(submissions.ok()).toBeTruthy()
+  const first = (await submissions.json()).find((item: { title: string }) => item.title === creator.title)
+  expect(first?.id).toBeTruthy()
+  await approvePending(request, admin, first.id, creator.authorId)
+
+  const second = await submitCreatorReview(request, creator.token!, `${suffix}-two`)
+  await approvePending(request, admin, second.id, creator.authorId)
+  const third = await submitCreatorReview(request, creator.token!, `${suffix}-three`)
+  await approvePending(request, admin, third.id, creator.authorId)
+
+  return { ...creator, admin, token: creator.token!, authorId: creator.authorId! }
 }
 
 async function approvePending(request: APIRequestContext, token: string, id: string, authorId?: string) {
@@ -525,4 +555,55 @@ test('visitor can report a board and admin can hide it from public pages', async
   expect(hidden.status()).toBe(404)
   await page.goto(`/board/${board.id}`)
   await expect(page.getByText('战术板加载失败，请稍后再试。')).toBeVisible()
+})
+
+test('creator dashboard blocks self-restore for boards hidden by admin reports', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createTrustedCreator(request, `adminhide_${runId}`)
+  const directTitle = `E2E 管理员隐藏创作者板 ${runId}`
+
+  const boardRes = await request.post('/api/creator/boards', {
+    headers: { Authorization: `Bearer ${creator.token}` },
+    data: {
+      title: directTitle,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `E2E 管理员隐藏创作者板 ${runId}`,
+      contentText: `P1 管理员隐藏 ${runId}\nP2 集合`,
+    },
+  })
+  expect(boardRes.status()).toBe(201)
+  const board = await boardRes.json()
+
+  const reportRes = await request.post(`/api/boards/${board.id}/reports`, {
+    data: { reason: 'wrong-info', detail: `E2E 管理隐藏 ${runId}` },
+  })
+  expect(reportRes.status()).toBe(201)
+  const report = await reportRes.json()
+
+  const hideRes = await request.post(`/api/admin/reports/${report.id}/hide-board`, {
+    headers: { Authorization: `Bearer ${creator.admin}` },
+    data: { note: 'E2E 管理员确认隐藏' },
+  })
+  expect(hideRes.status()).toBe(200)
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+  const boardRow = page.locator('.ps-creator__board', { hasText: directTitle })
+  await expect(boardRow.locator('.ps-tag__label').getByText('管理员隐藏', { exact: true })).toBeVisible()
+  await expect(boardRow.getByText('该战术板已被管理员隐藏，不能自行恢复发布。')).toBeVisible()
+  await expect(boardRow.getByRole('button', { name: '恢复发布' })).toHaveCount(0)
+
+  const republish = await request.put(`/api/creator/boards/${board.id}`, {
+    headers: { Authorization: `Bearer ${creator.token}` },
+    data: { isHidden: false },
+  })
+  expect(republish.status()).toBe(403)
+  const publicBoard = await request.get(`/api/boards/${board.id}`)
+  expect(publicBoard.status()).toBe(404)
 })

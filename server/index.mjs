@@ -129,6 +129,7 @@ db.exec(`
     description    TEXT NOT NULL,
     author_id      TEXT NOT NULL,
     is_hidden      INTEGER NOT NULL DEFAULT 0,
+    hidden_by      TEXT,
     is_featured    INTEGER NOT NULL DEFAULT 0,
     view_count     INTEGER NOT NULL DEFAULT 0,
     like_count     INTEGER NOT NULL DEFAULT 0,
@@ -246,6 +247,7 @@ ensureColumn('creator_accounts', 'trust_level', "trust_level TEXT NOT NULL DEFAU
 ensureColumn('creator_accounts', 'approved_submission_count', 'approved_submission_count INTEGER NOT NULL DEFAULT 0')
 ensureColumn('submissions', 'content_hash', 'content_hash TEXT')
 ensureColumn('submissions', 'spam_reason', 'spam_reason TEXT')
+ensureColumn('boards', 'hidden_by', 'hidden_by TEXT')
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_creator_accounts_username_unique ON creator_accounts(username)')
 db.exec('CREATE INDEX IF NOT EXISTS idx_creator_sessions_account_id ON creator_sessions(creator_account_id)')
 db.exec('CREATE INDEX IF NOT EXISTS idx_rate_limits_reset_at ON rate_limits(reset_at)')
@@ -274,11 +276,11 @@ function seedIfEmpty() {
   const insertBoard = db.prepare(`
     INSERT INTO boards (
       id, title, raid_id, boss_id, difficulty, season_version, content_text,
-      import_code, description, author_id, is_hidden, is_featured,
+      import_code, description, author_id, is_hidden, hidden_by, is_featured,
       view_count, like_count, created_at, updated_at
     ) VALUES (
       @id, @title, @raidId, @bossId, @difficulty, @seasonVersion, @contentText,
-      @importCode, @description, @authorId, @isHidden, @isFeatured,
+      @importCode, @description, @authorId, @isHidden, @hiddenBy, @isFeatured,
       @viewCount, @likeCount, @createdAt, @updatedAt
     )
   `)
@@ -314,6 +316,7 @@ function seedIfEmpty() {
         description: b.description,
         authorId: b.authorId,
         isHidden: b.isHidden ? 1 : 0,
+        hiddenBy: b.hiddenBy ?? (b.isHidden ? 'admin' : null),
         isFeatured: b.isFeatured ? 1 : 0,
         viewCount: b.viewCount,
         likeCount: b.likeCount,
@@ -373,7 +376,7 @@ function rowToBoard(row) {
 
 // 管理端 Board：在公开形状基础上额外暴露 isHidden 字段。
 function rowToAdminBoard(row) {
-  return { ...rowToBoard(row), isHidden: row.is_hidden === 1 }
+  return { ...rowToBoard(row), isHidden: row.is_hidden === 1, hiddenBy: row.hidden_by ?? null }
 }
 
 function rowToSubmission(row) {
@@ -786,11 +789,11 @@ const stmt = {
   upsertBoard: db.prepare(`
     INSERT INTO boards (
       id, title, raid_id, boss_id, difficulty, season_version, content_text,
-      import_code, description, author_id, is_hidden, is_featured,
+      import_code, description, author_id, is_hidden, hidden_by, is_featured,
       view_count, like_count, created_at, updated_at
     ) VALUES (
       @id, @title, @raidId, @bossId, @difficulty, @seasonVersion, @contentText,
-      @importCode, @description, @authorId, @isHidden, @isFeatured,
+      @importCode, @description, @authorId, @isHidden, @hiddenBy, @isFeatured,
       @viewCount, @likeCount, @createdAt, @updatedAt
     )
     ON CONFLICT(id) DO UPDATE SET
@@ -804,6 +807,7 @@ const stmt = {
       description = excluded.description,
       author_id = excluded.author_id,
       is_hidden = excluded.is_hidden,
+      hidden_by = excluded.hidden_by,
       is_featured = excluded.is_featured,
       view_count = excluded.view_count,
       like_count = excluded.like_count,
@@ -1612,8 +1616,11 @@ app.put('/api/creator/boards/:id', { preHandler: requireCreatorAuth }, (req, rep
   const input = readBoardDraft(req.body ?? {}, row)
   const errorReply = validateBoardDraft(input, reply)
   if (errorReply) return errorReply
-
   const body = req.body ?? {}
+  if (body.isHidden === false && row.hidden_by === 'admin') {
+    return reply.code(403).send({ error: '该战术板已被管理员隐藏，不能自行恢复' })
+  }
+
   const fields = [
     ['title', 'title', input.title],
     ['raidId', 'raid_id', input.raidId],
@@ -1622,7 +1629,6 @@ app.put('/api/creator/boards/:id', { preHandler: requireCreatorAuth }, (req, rep
     ['seasonVersion', 'season_version', input.seasonVersion],
     ['contentText', 'content_text', input.contentText],
     ['description', 'description', input.description],
-    ['isHidden', 'is_hidden', input.isHidden ? 1 : 0],
   ]
   const sets = []
   const params = []
@@ -1632,10 +1638,24 @@ app.put('/api/creator/boards/:id', { preHandler: requireCreatorAuth }, (req, rep
       params.push(value)
     }
   }
+  if ('isHidden' in body) {
+    sets.push('is_hidden = ?')
+    params.push(input.isHidden ? 1 : 0)
+    sets.push('hidden_by = ?')
+    params.push(input.isHidden ? 'creator' : null)
+  }
   const today = new Date().toISOString().slice(0, 10)
   sets.push('updated_at = ?')
   params.push(today, row.id)
   db.prepare(`UPDATE boards SET ${sets.join(', ')} WHERE id = ?`).run(...params)
+  auditLog({
+    actorType: 'creator',
+    actorId: req.creatorAccount.id,
+    action: 'creator_board_update',
+    entityType: 'board',
+    entityId: row.id,
+    detail: { fields: Object.keys(body).filter((key) => key !== 'isFeatured') },
+  })
   return rowToAdminBoard(stmt.boardById.get(row.id))
 })
 
@@ -1646,7 +1666,7 @@ app.delete('/api/creator/boards/:id', { preHandler: requireCreatorAuth }, (req, 
   const row = stmt.boardById.get(req.params.id)
   if (!row || row.author_id !== author.id) return reply.code(404).send({ error: 'board not found' })
 
-  db.prepare('UPDATE boards SET is_hidden = 1, updated_at = ? WHERE id = ?')
+  db.prepare("UPDATE boards SET is_hidden = 1, hidden_by = 'creator', updated_at = ? WHERE id = ?")
     .run(new Date().toISOString().slice(0, 10), row.id)
   auditLog({
     actorType: 'creator',
@@ -2042,7 +2062,7 @@ app.post('/api/admin/reports/:id/hide-board', { preHandler: requireAuth }, (req,
   const board = stmt.boardById.get(report.board_id)
   if (!board) return reply.code(404).send({ error: 'board not found' })
   const now = new Date().toISOString()
-  db.prepare('UPDATE boards SET is_hidden = 1, updated_at = ? WHERE id = ?')
+  db.prepare("UPDATE boards SET is_hidden = 1, hidden_by = 'admin', updated_at = ? WHERE id = ?")
     .run(now.slice(0, 10), board.id)
   stmt.updateReportStatus.run({
     id: report.id,
@@ -2398,7 +2418,6 @@ app.put('/api/boards/:id', { preHandler: requireAuth }, (req, reply) => {
     ['description', 'description', (v) => v],
     ['authorId', 'author_id', (v) => v],
     ['isFeatured', 'is_featured', (v) => (v ? 1 : 0)],
-    ['isHidden', 'is_hidden', (v) => (v ? 1 : 0)],
   ]
   const sets = []
   const params = []
@@ -2407,6 +2426,12 @@ app.put('/api/boards/:id', { preHandler: requireAuth }, (req, reply) => {
       sets.push(`${col} = ?`)
       params.push(conv(b[key]))
     }
+  }
+  if ('isHidden' in b) {
+    sets.push('is_hidden = ?')
+    params.push(b.isHidden ? 1 : 0)
+    sets.push('hidden_by = ?')
+    params.push(b.isHidden ? 'admin' : null)
   }
   const today = new Date().toISOString().slice(0, 10)
   sets.push('updated_at = ?')
@@ -2418,7 +2443,12 @@ app.put('/api/boards/:id', { preHandler: requireAuth }, (req, reply) => {
     action: 'board_update',
     entityType: 'board',
     entityId: row.id,
-    detail: { fields: fields.filter(([key]) => key in b).map(([key]) => key) },
+    detail: {
+      fields: [
+        ...fields.filter(([key]) => key in b).map(([key]) => key),
+        ...('isHidden' in b ? ['isHidden'] : []),
+      ],
+    },
   })
   return rowToAdminBoard(stmt.boardById.get(row.id))
 })

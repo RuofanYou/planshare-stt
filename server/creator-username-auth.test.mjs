@@ -751,6 +751,62 @@ test('approved creator can publish, edit, hide, and republish own boards without
   assert.equal(publicBoard.body.board.title, '创作者直发战术 v2')
 })
 
+test('creator cannot republish a board hidden by admin report handling', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+  const application = await submitCreatorApplication(server)
+  const { admin } = await approveCreatorUntilTrusted(server, application)
+
+  const create = await requestJson(server.baseUrl, '/api/creator/boards', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({
+      title: '会被管理员隐藏的创作者板',
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: '举报后不能被创作者自行恢复',
+      contentText: 'P1 分散\nP2 集合',
+    }),
+  })
+  assert.equal(create.res.status, 201)
+  assert.equal(create.body.hiddenBy, null)
+
+  const report = await requestJson(server.baseUrl, `/api/boards/${create.body.id}/reports`, {
+    method: 'POST',
+    body: JSON.stringify({ reason: 'wrong-info', detail: '战术内容过期' }),
+  })
+  assert.equal(report.res.status, 201)
+
+  const hide = await requestJson(server.baseUrl, `/api/admin/reports/${report.body.id}/hide-board`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({ note: '确认隐藏' }),
+  })
+  assert.equal(hide.res.status, 200)
+  assert.equal(hide.body.status, 'hidden')
+
+  const creatorBoards = await requestJson(server.baseUrl, '/api/creator/boards', {
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+  })
+  assert.equal(creatorBoards.res.status, 200)
+  const hiddenBoard = creatorBoards.body.find((item) => item.id === create.body.id)
+  assert.equal(hiddenBoard.isHidden, true)
+  assert.equal(hiddenBoard.hiddenBy, 'admin')
+
+  const republish = await requestJson(server.baseUrl, `/api/creator/boards/${create.body.id}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({ isHidden: false }),
+  })
+  assert.equal(republish.res.status, 403)
+  assert.equal(republish.body.error, '该战术板已被管理员隐藏，不能自行恢复')
+
+  const publicBoard = await requestJson(server.baseUrl, `/api/boards/${create.body.id}`)
+  assert.equal(publicBoard.res.status, 404)
+})
+
 test('approved creator cannot update another author board', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

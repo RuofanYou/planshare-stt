@@ -43,6 +43,7 @@
 - 创作者账号救援闭环补测：创作者忘记密码时，管理员可在后台账号区重置密码；旧密码失效，新密码能重新登录。
 - 创作者治理闭环补缺口：后端已有暂停/恢复创作者账号能力，后台账号区补“暂停账号/恢复账号”按钮；暂停会撤销会话并阻止登录，恢复后可重新登录。
 - 管理员治理追溯补缺口：后台新增“审计”页展示最近审计日志，能看到账号状态、重置密码、举报处理、审核等治理动作。
+- 举报治理防绕过补缺口：创作者自助下架仍可自助恢复，但管理员因举报隐藏的板会记录 `hidden_by=admin`，创作者后台只显示“管理员隐藏”，不提供恢复发布，后端也拒绝 `isHidden:false` 绕过。
 
 ## 验证输出
 
@@ -1117,6 +1118,66 @@ vite v5.4.21 building for production...
 Playwright:
 管理员暂停并恢复创作者账号后，进入“审计”页。
 页面显示“审计日志”，并能在状态为 active 的审计行看到 `creator_account_update`。
+```
+
+### UGC 生态补缺口：管理员隐藏不可被创作者自行恢复
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.06s
+```
+
+```text
+node --test server/creator-username-auth.test.mjs
+
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator dashboard blocks"
+
+Running 1 test using 1 worker
+·
+1 passed (2.9s)
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 10 tests using 1 worker
+··········
+10 passed (32.8s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.12s
+
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:532:1 › visitor can report a board and admin can hide it from public pages (8.8s)
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:560:1 › creator dashboard blocks self-restore for boards hidden by admin reports (653ms)
+10 passed (32.9s)
+```
+
+```text
+Playwright:
+正式创作者直发战术板后，游客举报，管理员处理为隐藏。
+创作者登录后台后，该板显示“管理员隐藏”和“该战术板已被管理员隐藏，不能自行恢复发布。”。
+页面没有“恢复发布”按钮；直接打创作者恢复接口返回 403，公开详情页仍为 404。
 ```
 
 ## 已知问题

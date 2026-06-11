@@ -228,6 +228,8 @@ export interface AuditLog {
 export interface AdminBoard extends Board {
   /** 是否对公开列表隐藏 */
   isHidden: boolean
+  /** 隐藏来源：creator 表示创作者自助下架，admin 表示管理员治理隐藏 */
+  hiddenBy?: 'creator' | 'admin' | null
 }
 
 /** 创作者后台视角的自己的板：与后台板一样需要看到下架状态。 */

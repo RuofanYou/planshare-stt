@@ -1024,16 +1024,20 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
     setCopyNotice(copied ? '链接已复制。' : '复制失败，请打开公开页后从地址栏复制。')
   }
 
+  const hiddenByAdmin = board.isHidden && board.hiddenBy === 'admin'
+
   return (
     <article className="ps-creator__board">
       <div className="ps-creator__board-top">
         <div>
           <h3 className="ps-creator__board-title">{board.title}</h3>
           <p className="ps-creator__meta">
-            {board.isHidden ? '已下架' : '已发布'} · {board.updatedAt}
+            {hiddenByAdmin ? '管理员隐藏' : board.isHidden ? '已下架' : '已发布'} · {board.updatedAt}
           </p>
         </div>
-        <Tag variant={board.isHidden ? 'neutral' : 'gold'}>{board.isHidden ? '下架' : '公开'}</Tag>
+        <Tag variant={board.isHidden ? 'neutral' : 'gold'}>
+          {hiddenByAdmin ? '管理员隐藏' : board.isHidden ? '下架' : '公开'}
+        </Tag>
       </div>
 
       {editing ? (
@@ -1084,12 +1088,15 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
       ) : (
         <>
           <p className="ps-creator__panel-copy">{board.description || '无简介'}</p>
+          {hiddenByAdmin && (
+            <p className="ps-creator__notice">该战术板已被管理员隐藏，不能自行恢复发布。</p>
+          )}
           {copyNotice && <p className="ps-creator__notice">{copyNotice}</p>}
           <div className="ps-creator__actions">
             <Button variant="secondary" onClick={() => setEditing(true)}>
               编辑
             </Button>
-            {board.isHidden ? (
+            {hiddenByAdmin ? null : board.isHidden ? (
               <Button
                 variant="primary"
                 onClick={() => updateBoard.mutate({ id: board.id, patch: { isHidden: false } })}
