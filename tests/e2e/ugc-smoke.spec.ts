@@ -216,6 +216,16 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
       Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_edit_draft_v1')).length,
     ),
   ).resolves.toBe(0)
+
+  page.once('dialog', (dialog) => dialog.accept())
+  await reloadedDirectBoardRow.getByRole('button', { name: '下架' }).click()
+  await expect(reloadedDirectBoardRow.getByText('已下架')).toBeVisible()
+  await expect(reloadedDirectBoardRow.getByRole('button', { name: '恢复发布' })).toBeVisible()
+  await expect(reloadedDirectBoardRow.getByRole('link', { name: '查看公开板' })).toHaveCount(0)
+
+  await reloadedDirectBoardRow.getByRole('button', { name: '恢复发布' }).click()
+  await expect(reloadedDirectBoardRow.getByText('已发布')).toBeVisible()
+  await expect(reloadedDirectBoardRow.getByRole('link', { name: '查看公开板' })).toBeVisible()
 })
 
 test('creator application guardrails handle missing fields, invalid usernames, and duplicates', async ({ page }) => {

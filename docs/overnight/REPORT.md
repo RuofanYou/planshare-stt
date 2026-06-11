@@ -25,6 +25,7 @@
 - 创作者资料维护补缺口：作者主页资料编辑新增按 author id 隔离的本地草稿保护，刷新不丢简介、公会、招募和联系方式，保存成功后清空。
 - 创作者入口防呆补缺口：未注册用户直接进 `/creator` 时，登录卡片新增“没有账号？去投稿申请创作者”入口，可一键回到投稿申请流程。
 - 创作者申请表防呆补缺口：申请密码不足 8 位时，密码框下方实时提示“还差几位”，避免用户只看到灰色提交按钮却不知道原因。
+- 创作者维护闭环补测：Playwright 主链路覆盖正式创作者直发后的编辑、下架、恢复发布，确保发错板可自助撤下并恢复。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -793,6 +794,52 @@ in-app browser:
 /submit 切到“申请创作者”后，密码框下方默认提示“用于以后登录创作者后台，至少 8 位。”。
 输入 7 位密码后提示“密码至少 8 位，还差 1 位。”。
 提交按钮保持 disabled，console errors=0。
+```
+
+### 创作者下架与恢复发布回归
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (9.3s)
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 6 tests using 1 worker
+······
+6 passed (18.3s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.06s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:66:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (8.2s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:231:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.7s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:282:1 › creator can change password from dashboard and log in with the new password (1.6s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:320:1 › creator can withdraw a pending submission from dashboard (1.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:346:1 › home search finds boards by boss and author names (2.8s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:365:1 › submit draft survives reload without saving password or contact (883ms)
+6 passed (18.8s)
+```
+
+```text
+Playwright:
+正式创作者直发后点击“下架”，确认弹窗后该板显示“已下架”，只保留“恢复发布”操作。
+下架状态不再显示“查看公开板”入口。
+点击“恢复发布”后重新显示“已发布”和“查看公开板”。
 ```
 
 ## 高风险 diff
