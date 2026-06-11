@@ -283,11 +283,16 @@ function CreatorSecurityPanel() {
   const [nextPassword, setNextPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [localError, setLocalError] = useState('')
+  const passwordMismatch =
+    nextPassword.length >= 8 &&
+    confirmPassword.length >= 8 &&
+    nextPassword !== confirmPassword
 
   const canSubmit =
     currentPassword.length > 0 &&
     nextPassword.length >= 8 &&
     confirmPassword.length >= 8 &&
+    !passwordMismatch &&
     !updatePassword.isPending
 
   function submitPassword(e: React.FormEvent) {
@@ -324,7 +329,10 @@ function CreatorSecurityPanel() {
           type="password"
           autoComplete="current-password"
           value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
+          onChange={(e) => {
+            setCurrentPassword(e.target.value)
+            setLocalError('')
+          }}
         />
         <label className="ps-creator__label" htmlFor="creator-next-password">新密码</label>
         <input
@@ -333,7 +341,10 @@ function CreatorSecurityPanel() {
           type="password"
           autoComplete="new-password"
           value={nextPassword}
-          onChange={(e) => setNextPassword(e.target.value)}
+          onChange={(e) => {
+            setNextPassword(e.target.value)
+            setLocalError('')
+          }}
         />
         <label className="ps-creator__label" htmlFor="creator-confirm-password">确认新密码</label>
         <input
@@ -342,11 +353,14 @@ function CreatorSecurityPanel() {
           type="password"
           autoComplete="new-password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e) => {
+            setConfirmPassword(e.target.value)
+            setLocalError('')
+          }}
         />
-        {(localError || updatePassword.error) && (
+        {(passwordMismatch || localError || updatePassword.error) && (
           <p className="ps-creator__error" role="alert">
-            {localError || (updatePassword.error as Error).message}
+            {passwordMismatch ? '两次新密码不一致。' : localError || (updatePassword.error as Error).message}
           </p>
         )}
         {updatePassword.isSuccess && <p className="ps-creator__notice">密码已更新。</p>}
@@ -920,7 +934,7 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
           </div>
         </div>
         <div className="ps-creator__field">
-          <label className="ps-creator__label" htmlFor="creator-board-description">简介</label>
+          <label className="ps-creator__label" htmlFor="creator-board-description">战术简介</label>
           <input
             id="creator-board-description"
             className="ps-creator__input"
@@ -1053,7 +1067,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
             />
           </div>
           <div className="ps-creator__field">
-            <label className="ps-creator__label" htmlFor={`creator-edit-description-${board.id}`}>简介</label>
+            <label className="ps-creator__label" htmlFor={`creator-edit-description-${board.id}`}>战术简介</label>
             <input
               id={`creator-edit-description-${board.id}`}
               className="ps-creator__input"

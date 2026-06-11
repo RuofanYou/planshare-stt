@@ -1396,6 +1396,49 @@ vite v5.4.21 building for production...
 11 passed (33.6s)
 ```
 
+### UGC 生态补缺口：普通用户视角防呆复测
+```text
+Browser 手动复测:
+首页 -> 投稿 -> 创作者申请 -> 创作者后台 -> 本地管理员审核 -> 3 次通过自动晋升 -> trusted 直发。
+
+结果:
+- 必填项未齐时“提交审核”和“直接发布”保持禁用。
+- 密码不足 8 位时页面显示“还差 N 位”。
+- 用户名非法/重复会被拦截。
+- 新创作者审核期能看到待审进度，但直发入口关闭。
+- 3 次审核通过后自动变为正式创作者，出现直发、编辑、复制链接、下架入口。
+- trusted 创作者直发含黑名单内容时被拦截，正常内容可发布。
+- 修改密码时，两次新密码不一致现在会直接提示并禁用“更新密码”。
+- 直发表单的“简介”改为“战术简介”，避免和作者资料“简介”混淆。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator can change password|creator direct publish screens"
+
+Running 2 tests using 1 worker
+··
+2 passed (4.8s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.08s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:532:1 › visitor can report a board and admin can hide it from public pages (8.9s)
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (713ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (809ms)
+11 passed (32.9s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

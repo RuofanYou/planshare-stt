@@ -1260,6 +1260,8 @@ Playwright:
 - `server/index.mjs`：新增 raid/boss 关系校验，并禁止管理员把板关联到不存在的作者；需人工确认历史数据里是否存在旧的 boss 为空、错配或孤儿作者记录，必要时做一次只读巡检。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
+- `src/pages/Creator.tsx`：修改密码时两次新密码不一致改为提前禁用提交；需人工确认这个交互比“点击后报错”更符合运营预期。
+- `src/pages/Creator.tsx`：创作者直发表单“简介”改为“战术简介”；需人工确认用词与后台/详情页展示一致。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。
 - `src/lib/clipboard.ts`：抽出剪贴板 fallback 给详情页和创作者后台共用；需人工复核旧详情页复制 toast 行为未退化。
 - `src/pages/Creator.tsx`：编辑草稿存储在浏览器 localStorage，并按 board id 隔离；需人工复核多账号共用同一浏览器时是否符合运营预期。

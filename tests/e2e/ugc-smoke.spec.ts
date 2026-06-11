@@ -368,8 +368,8 @@ test('creator can change password from dashboard and log in with the new passwor
 
   await page.getByLabel('当前密码').fill(creator.password)
   await page.getByLabel('确认新密码').fill('mismatch-password')
-  await page.getByRole('button', { name: '更新密码' }).click()
   await expect(page.getByText('两次新密码不一致。')).toBeVisible()
+  await expect(page.getByRole('button', { name: '更新密码' })).toBeDisabled()
 
   await page.getByLabel('确认新密码').fill(nextPassword)
   await page.getByRole('button', { name: '更新密码' }).click()
