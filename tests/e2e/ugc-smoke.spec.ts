@@ -234,6 +234,8 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await expect(page.getByText(firstTitle)).toBeVisible()
   await expect(page.getByText('已通过')).toBeVisible()
   await expect(page.getByRole('link', { name: '查看公开板' })).toBeVisible()
+  await expect(page.getByText('资料已展示在作者主页；累计 3 次审核通过后会开放直接发布。')).toBeVisible()
+  await expect(page.getByText('资料会展示在作者主页；上方可直接发布和维护你的战术板。')).toHaveCount(0)
   await expect(page.getByText('资料草稿会自动保存在本机；保存成功后清空。')).toBeVisible()
 
   await page.getByLabel('简介').fill(`E2E 资料草稿 ${runId}`)
@@ -288,6 +290,7 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await page.goto('/creator')
   await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+  await expect(page.getByText('资料会展示在作者主页；上方可直接发布和维护你的战术板。')).toBeVisible()
   await expect(page.getByText('直发草稿会自动保存在本机；成功发布后清空。')).toBeVisible()
   await expect(page.getByText('还差：标题、团本、BOSS、战术正文')).toBeVisible()
   await page.getByLabel('标题').fill(directTitle)

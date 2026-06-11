@@ -207,7 +207,7 @@ function CreatorConsole({
 
         <motion.div variants={reduce ? undefined : staggerItem}>
           {author ? (
-            <CreatorProfileEditor author={author} />
+            <CreatorProfileEditor author={author} canDirectPublish={canDirectPublish} />
           ) : (
             <GlassCard tone="glass" className="ps-creator__panel">
               <Tag variant="gold">待申请</Tag>
@@ -569,7 +569,7 @@ function clearCreatorProfileDraft(authorId: string) {
   }
 }
 
-function CreatorProfileEditor({ author }: { author: Author }) {
+function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; canDirectPublish: boolean }) {
   const updateProfile = useUpdateCreatorProfile()
   const [initialDraft] = useState(() => readCreatorProfileDraft(author))
   const [name, setName] = useState(initialDraft.name)
@@ -624,9 +624,11 @@ function CreatorProfileEditor({ author }: { author: Author }) {
       <Tag variant="gold">{visibilityLabel(author.visibility)}</Tag>
       <h2 className="ps-creator__panel-title">作者主页资料</h2>
       <p className="ps-creator__panel-copy">
-        {author.visibility === 'approved'
+        {canDirectPublish
           ? '资料会展示在作者主页；上方可直接发布和维护你的战术板。'
-          : '资料可半公开展示；前 3 个战术板通过审核后会开放直接发布。'}
+          : author.visibility === 'approved'
+            ? '资料已展示在作者主页；累计 3 次审核通过后会开放直接发布。'
+            : '资料可半公开展示；前 3 个战术板通过审核后会开放直接发布。'}
       </p>
       <div className="ps-creator__draft-bar">
         <p className="ps-creator__notice">资料草稿会自动保存在本机；保存成功后清空。</p>

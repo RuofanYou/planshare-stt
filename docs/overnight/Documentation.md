@@ -2196,6 +2196,12 @@ vite v5.4.21 building for production...
 已统一改为“资料可半公开展示；前 3 个战术板通过审核后会开放直接发布。”，并在 UGC 主链 E2E 加断言：
 - 新创作者后台必须显示 3 次门槛文案
 - 不允许再出现“首个战术板通过审核后会开放直接发布。”
+
+继续追查后发现第二个相同误导点：首个战术板通过后，作者主页已正式公开，但账号还在审核期，资料区仍会因为 `author.visibility=approved` 显示“上方可直接发布和维护你的战术板。”
+已把 `canDirectPublish` 传入资料编辑组件，区分三种状态：
+- 半公开主页：前 3 个战术板通过审核后开放直发
+- 已公开但审核期：资料已展示在作者主页；累计 3 次审核通过后会开放直接发布
+- trusted：资料会展示在作者主页；上方可直接发布和维护你的战术板
 ```
 
 ```text
@@ -2223,7 +2229,7 @@ CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
 
 Running 1 test using 1 worker
 ·
-1 passed (13.1s)
+1 passed (13.6s)
 ```
 
 ```text
