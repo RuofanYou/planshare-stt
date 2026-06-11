@@ -886,6 +886,30 @@ test('submit draft survives reload without saving password or contact', async ({
   await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()
 })
 
+test('report rate limit shows a visible visitor-facing error', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const { board } = await createAdminBoard(request, `limit_${runId}`)
+  await page.setExtraHTTPHeaders({ 'X-Forwarded-For': `198.51.100.${(Math.abs(hashSuffix(`report_${runId}`)) % 100) + 100}` })
+
+  await page.goto(`/board/${board.id}`)
+  await expect(page.getByRole('heading', { name: board.title })).toBeVisible()
+
+  for (let index = 1; index <= 5; index += 1) {
+    await page.getByRole('button', { name: '举报' }).click()
+    await page.locator('#ps-report-reason').selectOption('other')
+    await page.locator('#ps-report-detail').fill(`E2E 限流前 ${runId}-${index}`)
+    await page.getByRole('button', { name: '提交举报' }).click()
+    await expect(page.getByText('举报已提交，已进入管理员处理队列。')).toBeVisible()
+    await expect(page.getByRole('button', { name: '提交举报' })).toHaveCount(0)
+  }
+
+  await page.getByRole('button', { name: '举报' }).click()
+  await page.locator('#ps-report-reason').selectOption('other')
+  await page.locator('#ps-report-detail').fill(`E2E 限流触发 ${runId}`)
+  await page.getByRole('button', { name: '提交举报' }).click()
+  await expect(page.getByRole('alert').getByText('举报太频繁，请稍后再试')).toBeVisible()
+})
+
 test('visitor can report a board and admin can hide it from public pages', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const { board } = await createAdminBoard(request, runId)

@@ -1247,6 +1247,27 @@ Playwright:
 页面显示“审计日志”，并能在状态为 active 的审计行看到 `creator_account_update`。
 ```
 
+### 最新最终验证
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:889:1 › report rate limit shows a visible visitor-facing error (1.9s)
+✓  16 [chromium] › tests/e2e/ugc-smoke.spec.ts:913:1 › visitor can report a board and admin can hide it from public pages (10.0s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:972:1 › creator dashboard blocks self-restore for boards hidden by admin reports (684ms)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1023:1 › creator direct publish screens unsafe content in dashboard (729ms)
+18 passed (54.0s)
+```
+
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
@@ -1287,6 +1308,7 @@ Playwright:
 - `server/ugc-ready.test.mjs` 与 `tests/e2e/ugc-smoke.spec.ts`：举报治理新增“驳回举报不隐藏公开板”的回归覆盖；需人工确认后台驳回文案和运营操作权限符合预期。
 - `src/pages/admin/SubmissionsSection.tsx`、`src/pages/Admin.css` 与 `tests/e2e/ugc-smoke.spec.ts`：后台单条投稿审核新增“处理备注”，驳回/标垃圾时会传给创作者；需人工确认备注长度和默认文案符合运营预期。
 - `tests/e2e/ugc-smoke.spec.ts`：新增管理员人工标垃圾后创作者查看备注并修改重投的浏览器回归；需人工确认 spam 状态允许重投符合治理预期。
+- `tests/e2e/ugc-smoke.spec.ts`：新增举报限流错误可见性回归；需人工确认“同 IP 每小时 5 次”的运营阈值是否合适。
 - `server/index.mjs` 与 `src/data/types.ts`：投稿状态新增 `withdrawn`；需人工复核运营报表或外部脚本是否假设投稿状态只有四种。
 - `server/index.mjs` 与 `src/pages/Creator.tsx`：创作者投稿进度现在返回并使用原投稿正文，用于“修改后重投”；需人工复核该数据只暴露给投稿所属创作者。
 - `server/index.mjs`：驳回/spam 投稿现在保留 `author_id`，让创作者可以看到失败状态；需确认这符合运营上“失败记录对创作者可见”的预期。
