@@ -1116,9 +1116,8 @@ function validateSubmissionInput(input, reply, options = {}) {
     return reply.code(400).send({ error: '字段无效：raidId' })
   }
   input.seasonVersion = input.seasonVersion || stmt.raidById.get(input.raidId).patch
-  if (input.bossId && !stmt.bossById.get(input.bossId)) {
-    return reply.code(400).send({ error: '字段无效：bossId' })
-  }
+  const bossError = validateBossBelongsToRaid(input.raidId, input.bossId, reply)
+  if (bossError) return bossError
   if (input.wantsCreatorProfile && !options.hasCreatorSession) {
     const usernameError = validateCreatorUsername(input.creatorUsername)
     if (usernameError) return reply.code(400).send({ error: usernameError })
@@ -1126,6 +1125,16 @@ function validateSubmissionInput(input, reply, options = {}) {
     if (input.creatorPassword.length < 8) {
       return reply.code(400).send({ error: '密码至少需要 8 位' })
     }
+  }
+  return null
+}
+
+function validateBossBelongsToRaid(raidId, bossId, reply) {
+  if (!bossId) return reply.code(400).send({ error: '字段缺失：bossId（BOSS）' })
+  const boss = stmt.bossById.get(bossId)
+  if (!boss) return reply.code(400).send({ error: '字段无效：bossId' })
+  if (boss.raid_id !== raidId) {
+    return reply.code(400).send({ error: '字段无效：bossId 不属于所选团本' })
   }
   return null
 }
@@ -1191,9 +1200,8 @@ function validateBoardDraft(input, reply) {
   }
   const raid = stmt.raidById.get(input.raidId)
   if (!raid) return reply.code(400).send({ error: '字段无效：raidId' })
-  if (input.bossId && !stmt.bossById.get(input.bossId)) {
-    return reply.code(400).send({ error: '字段无效：bossId' })
-  }
+  const bossError = validateBossBelongsToRaid(input.raidId, input.bossId, reply)
+  if (bossError) return bossError
   if (findAbuseReason(input.title, input.description, input.contentText)) {
     return reply.code(400).send({ error: '战术内容包含暂不支持公开展示的内容' })
   }
@@ -1897,12 +1905,15 @@ app.post('/api/submissions', { bodyLimit: 1024 * 1024 }, (req, reply) => {
 // POST /api/boards -> 新建 Board（受保护；后端生成 id；viewCount=0, likeCount=0, isHidden=false）
 app.post('/api/boards', { preHandler: requireAuth }, (req, reply) => {
   const b = req.body ?? {}
-  const required = ['title', 'raidId', 'difficulty', 'seasonVersion', 'contentText', 'authorId']
+  const required = ['title', 'raidId', 'bossId', 'difficulty', 'seasonVersion', 'contentText', 'authorId']
   for (const key of required) {
     if (b[key] == null || b[key] === '') {
       return reply.code(400).send({ error: `字段缺失：${key}` })
     }
   }
+  if (!stmt.raidById.get(b.raidId)) return reply.code(400).send({ error: '字段无效：raidId' })
+  const bossError = validateBossBelongsToRaid(b.raidId, b.bossId, reply)
+  if (bossError) return bossError
   const id = `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
   const today = new Date().toISOString().slice(0, 10)
   stmt.insertBoard.run({
@@ -2434,6 +2445,17 @@ app.put('/api/boards/:id', { preHandler: requireAuth }, (req, reply) => {
   const row = stmt.boardById.get(req.params.id)
   if (!row) return reply.code(404).send({ error: 'board not found' })
   const b = req.body ?? {}
+  if ('raidId' in b && !stmt.raidById.get(b.raidId)) {
+    return reply.code(400).send({ error: '字段无效：raidId' })
+  }
+  if ('raidId' in b || 'bossId' in b) {
+    const bossError = validateBossBelongsToRaid(
+      'raidId' in b ? b.raidId : row.raid_id,
+      'bossId' in b ? b.bossId : row.boss_id,
+      reply,
+    )
+    if (bossError) return bossError
+  }
   // 可更新字段：契约白名单 -> 列名 + 取值转换。
   const fields = [
     ['title', 'title', (v) => v],

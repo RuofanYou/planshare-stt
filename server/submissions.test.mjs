@@ -192,6 +192,19 @@ test('visitor submissions require a boss', async (t) => {
   assert.match(body.error, /bossId/)
 })
 
+test('visitor submissions reject a boss from a different raid', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+
+  const { res, body } = await requestJson(server.baseUrl, '/api/submissions', {
+    method: 'POST',
+    body: JSON.stringify(validSubmission({ raidId: 'r-voidspire', bossId: 'b-beloren' })),
+  })
+
+  assert.equal(res.status, 400)
+  assert.equal(body.error, '字段无效：bossId 不属于所选团本')
+})
+
 test('admin approval can create an author and publish a board', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

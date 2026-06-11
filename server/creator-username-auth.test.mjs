@@ -823,6 +823,29 @@ test('approved creator direct publish and edit are screened for unsafe content',
   assert.equal(publicBoard.body.board.contentText, 'P1 安全直发\nP2 集合')
 })
 
+test('approved creator direct publish rejects a boss from a different raid', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+  const application = await submitCreatorApplication(server)
+  await approveCreatorUntilTrusted(server, application)
+
+  const create = await requestJson(server.baseUrl, '/api/creator/boards', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${application.creatorAuth.token}` },
+    body: JSON.stringify({
+      title: '错配 BOSS 直发',
+      raidId: 'r-voidspire',
+      bossId: 'b-beloren',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: '不应创建',
+      contentText: 'P1 错配',
+    }),
+  })
+  assert.equal(create.res.status, 400)
+  assert.equal(create.body.error, '字段无效：bossId 不属于所选团本')
+})
+
 test('creator cannot republish a board hidden by admin report handling', async (t) => {
   const server = await startServer()
   t.after(() => server.stop())

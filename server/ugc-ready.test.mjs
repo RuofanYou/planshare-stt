@@ -294,6 +294,31 @@ test('admin can manage raids and bosses and deletion checks block linked content
   })
   assert.equal(created.res.status, 201)
 
+  const mismatchedCreate = await requestJson(server.baseUrl, '/api/boards', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({
+      title: '错配 BOSS 的板',
+      raidId: 'r-voidspire',
+      bossId: 'b-test-lab-one',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: '不应创建',
+      contentText: 'P1 错配',
+      authorId: 'a-mirror',
+    }),
+  })
+  assert.equal(mismatchedCreate.res.status, 400)
+  assert.equal(mismatchedCreate.body.error, '字段无效：bossId 不属于所选团本')
+
+  const mismatchedUpdate = await requestJson(server.baseUrl, `/api/boards/${created.body.id}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({ raidId: 'r-voidspire' }),
+  })
+  assert.equal(mismatchedUpdate.res.status, 400)
+  assert.equal(mismatchedUpdate.body.error, '字段无效：bossId 不属于所选团本')
+
   const blockedBossDelete = await requestJson(server.baseUrl, '/api/admin/bosses/b-test-lab-one', {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${admin}` },

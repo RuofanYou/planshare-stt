@@ -34,6 +34,7 @@
 - 举报证据保全补缺口：举报记录新增板标题、简介、正文、作者、更新时间快照；后台举报队列显示举报时内容摘录，防止后续编辑污染管理员判断。
 - 创作者直发筛查补缺口：创作者直发/编辑战术板现在复用归一化内容黑名单；命中后返回 400，不创建新板，也不污染已有公开板。
 - 创作者账号生命周期补缺口：后台删除作者时拒绝删除已绑定创作者账号的作者，避免创作者账号残留但作者档案被删。
+- 团本/BOSS 数据完整性补缺口：游客投稿、创作者直发/编辑、管理员新建/编辑板都会拒绝不属于所选团本的 BOSS，防止公开筛选和后台数据错乱。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -254,6 +255,55 @@ vite v5.4.21 building for production...
 ✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (5.7s)
 ✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (847ms)
 11 passed (39.4s)
+```
+
+### 团本/BOSS 关系完整性验证
+```text
+node --test server/submissions.test.mjs --test-name-pattern "different raid"
+
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+```
+
+```text
+node --test server/creator-username-auth.test.mjs --test-name-pattern "different raid"
+
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+```
+
+```text
+node --test server/ugc-ready.test.mjs --test-name-pattern "admin can manage raids"
+
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.02s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (733ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (952ms)
+11 passed (34.2s)
 ```
 
 ### 普通用户防呆补测验证
@@ -1207,6 +1257,7 @@ Playwright:
 - `server/index.mjs`、`src/pages/admin/ReportsSection.tsx`、`src/data/types.ts`：举报新增板内容快照并在后台展示；需人工确认正文摘录长度和后台可见信息范围符合运营预期。
 - `server/index.mjs`：创作者直发/编辑现在会被归一化内容黑名单拦截；需人工确认 trusted 创作者也应受同一基础筛查约束。
 - `server/index.mjs`：删除作者时新增创作者账号绑定保护；需人工确认未来如果要彻底注销创作者账号，应单独设计注销/归档流程。
+- `server/index.mjs`：新增 raid/boss 关系校验；需人工确认历史数据里是否存在旧的 boss 为空或错配记录，必要时做一次只读巡检。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。

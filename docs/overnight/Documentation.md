@@ -47,6 +47,7 @@
 - 举报证据保全补缺口：举报创建时把当时的板标题、简介、正文、作者和更新时间快照写入 `reports`，后台举报队列直接显示举报时内容摘录，避免创作者或管理员后续编辑导致治理证据漂移。
 - 创作者直发筛查补缺口：游客投稿已有内容筛查，但正式创作者直发/编辑曾只做字段校验；现已复用归一化黑名单，违规标题/简介/正文会返回 400，不创建也不污染已有公开板。
 - 创作者账号生命周期补缺口：后台删除作者现在会拒绝已绑定创作者账号的作者，避免管理员把半公开/正式创作者的作者档案删成孤儿账号；需要治理时应暂停账号或隐藏作者，而不是删除绑定关系。
+- 团本/BOSS 数据完整性补缺口：游客投稿、创作者直发/编辑、管理员新建/编辑板都会校验 `bossId` 必须属于所选 `raidId`，避免脚本绕过前端下拉造出筛选错乱的脏数据。
 
 ## 验证输出
 
@@ -1328,6 +1329,70 @@ vite v5.4.21 building for production...
 ✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (5.7s)
 ✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (847ms)
 11 passed (39.4s)
+```
+
+### UGC 生态补缺口：团本/BOSS 关系完整性
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.19s
+```
+
+```text
+node --test server/submissions.test.mjs --test-name-pattern "different raid"
+
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+```
+
+```text
+node --test server/creator-username-auth.test.mjs --test-name-pattern "different raid"
+
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+```
+
+```text
+node --test server/ugc-ready.test.mjs --test-name-pattern "admin can manage raids"
+
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+```
+
+```text
+API:
+游客投稿使用 `r-voidspire` + `b-beloren` 返回 400。
+创作者直发使用 `r-voidspire` + `b-beloren` 返回 400。
+管理员新建/编辑板造成 raid/boss 错配时返回 400。
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.02s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:570:1 › creator dashboard blocks self-restore for boards hidden by admin reports (733ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:621:1 › creator direct publish screens unsafe content in dashboard (952ms)
+11 passed (34.2s)
 ```
 
 ## 已知问题
