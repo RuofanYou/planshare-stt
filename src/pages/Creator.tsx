@@ -302,17 +302,27 @@ function CreatorSecurityPanel() {
     nextPassword.length >= 8 &&
     confirmPassword.length >= 8 &&
     nextPassword !== confirmPassword
+  const missingPasswordItems = [
+    currentPassword.length === 0 ? '当前密码' : '',
+    nextPassword.length < 8 ? '新密码至少 8 位' : '',
+    confirmPassword.length === 0 ? '确认新密码' : '',
+    confirmPassword.length > 0 && nextPassword.length >= 8 && nextPassword !== confirmPassword ? '确认新密码一致' : '',
+  ].filter(Boolean)
 
   const canSubmit =
-    currentPassword.length > 0 &&
-    nextPassword.length >= 8 &&
-    confirmPassword.length >= 8 &&
-    !passwordMismatch &&
+    missingPasswordItems.length === 0 &&
     !updatePassword.isPending
+  const passwordReadinessText =
+    missingPasswordItems.length > 0
+      ? `还差：${missingPasswordItems.join('、')}`
+      : updatePassword.isPending
+        ? '正在更新，请稍候。'
+        : '信息已补齐，可以更新密码。'
 
   function submitPassword(e: React.FormEvent) {
     e.preventDefault()
     setLocalError('')
+    if (!canSubmit) return
     if (nextPassword !== confirmPassword) {
       setLocalError('两次新密码不一致。')
       return
@@ -379,6 +389,9 @@ function CreatorSecurityPanel() {
           </p>
         )}
         {updatePassword.isSuccess && <p className="ps-creator__notice">密码已更新。</p>}
+        <p className={canSubmit ? 'ps-creator__ready is-ready' : 'ps-creator__ready'} role="status">
+          {passwordReadinessText}
+        </p>
         <div className="ps-creator__actions">
           <Button type="submit" variant="primary" disabled={!canSubmit}>
             {updatePassword.isPending ? '更新中…' : '更新密码'}

@@ -2650,6 +2650,45 @@ vite v5.4.21 building for production...
 19 passed (54.4s)
 ```
 
+### UGC 生态补缺口：创作者修改密码页补齐“还差”提示
+```text
+普通创作者探索:
+创作者进入账号安全区改密码时，原来按钮会禁用，但页面没有像投稿/登录一样明确说还差哪一项。
+对小白用户来说，这会像“按钮坏了”。
+
+已修复：
+- 空密码表单显示“还差：当前密码、新密码至少 8 位、确认新密码”
+- 只填当前密码时显示“还差：新密码至少 8 位、确认新密码”
+- 新密码太短时显示“还差：新密码至少 8 位”
+- 两次新密码不一致时显示“还差：确认新密码一致”
+- 三项都合格后才显示“信息已补齐，可以更新密码。”
+- 表单未补齐时不会触发改密码请求
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator can change password"
+
+Running 1 test using 1 worker
+·
+1 passed (3.7s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.88s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:453:1 › creator can change password from dashboard and log in with the new password (1.7s)
+19 passed (54.2s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

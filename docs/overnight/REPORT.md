@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.89s
+✓ built in 1.88s
 
 1..47
 # tests 47
@@ -1261,11 +1261,11 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.2s)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (10.7s)
 ✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:453:1 › creator can change password from dashboard and log in with the new password (1.7s)
-✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:905:1 › spam-screened visitor submission stays editable and is not described as queued (950ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1064:1 › creator direct publish screens unsafe content in dashboard (765ms)
-19 passed (54.4s)
+✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:914:1 › spam-screened visitor submission stays editable and is not described as queued (930ms)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1073:1 › creator direct publish screens unsafe content in dashboard (757ms)
+19 passed (54.2s)
 ```
 
 ## 高风险 diff
@@ -1283,6 +1283,7 @@ vite v5.4.21 building for production...
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者登录页新增“还差”状态提示；需人工确认登录页信息密度仍然简洁。
 - `src/pages/Creator.tsx`：修改密码时两次新密码不一致改为提前禁用提交；需人工确认这个交互比“点击后报错”更符合运营预期。
+- `src/pages/Creator.tsx`：修改密码区新增“还差”状态提示；需人工确认账号安全区信息密度仍然简洁。
 - `src/pages/Creator.tsx`：创作者直发表单“简介”改为“战术简介”；需人工确认用词与后台/详情页展示一致。
 - `src/pages/BoardDetail.tsx`：访客点赞显示改为以后端返回 likeCount 真值收敛；需人工确认乐观反馈和刷新后计数一致。
 - `src/components/BoardCard.tsx` 与 `src/components/LikeButton.tsx`：列表卡片点赞从本地 mock 改为后端持久化；需人工确认首页、团本页、作者页的卡片排序和点赞反馈符合预期。
