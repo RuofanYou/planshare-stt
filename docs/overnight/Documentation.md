@@ -3115,6 +3115,48 @@ vite v5.4.21 building for production...
 24 passed (1.2m)
 ```
 
+### UGC 生态补缺口：创作者直发成功后立即可打开和分享
+```text
+创作者用户探索:
+正式创作者直发成功后，原来只显示“战术板已发布。”。
+虽然下方“我的战术板”列表里有公开板入口和复制链接，但新手发布完成后不一定知道要往下找，分享闭环不够直接。
+
+已修复：
+- 直发成功提示区新增“查看刚发布的公开板”
+- 直发成功提示区新增“复制刚发布链接”
+- 复制成功显示“刚发布的链接已复制。”
+- 用户继续输入下一块板时，旧成功提示和复制提示会清掉
+- 下方已发布板列表原有“查看公开板 / 复制链接”保持不变
+
+决策记录：
+- 不新增弹窗或跳转，避免打断连续发布；只在成功提示区补下一步动作。
+- 复制链接复用现有 copyToClipboard，失败时继续提示用户打开公开页后从地址栏复制。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (13.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.93s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.7s)
+24 passed (1.0m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

@@ -938,6 +938,7 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
   const [difficulty, setDifficulty] = useState<Difficulty>(initialDraft.difficulty)
   const [description, setDescription] = useState(initialDraft.description)
   const [contentText, setContentText] = useState(initialDraft.contentText)
+  const [createCopyNotice, setCreateCopyNotice] = useState('')
 
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
@@ -971,12 +972,14 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
 
   function handleRaidChange(nextRaidId: string) {
     if (createBoard.error || createBoard.isSuccess) createBoard.reset()
+    if (createCopyNotice) setCreateCopyNotice('')
     setRaidId(nextRaidId)
     setBossId('')
   }
 
   function clearCreateStatus() {
     if (createBoard.error || createBoard.isSuccess) createBoard.reset()
+    if (createCopyNotice) setCreateCopyNotice('')
   }
 
   function resetCreateForm(clearStatus = true) {
@@ -1005,6 +1008,13 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
       },
       { onSuccess: () => resetCreateForm(false) },
     )
+  }
+
+  async function copyCreatedBoardLink() {
+    const board = createBoard.data
+    if (!board) return
+    const copied = await copyToClipboard(`${window.location.origin}/board/${board.id}`)
+    setCreateCopyNotice(copied ? '刚发布的链接已复制。' : '复制失败，请打开公开页后从地址栏复制。')
   }
 
   return (
@@ -1129,7 +1139,22 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
             {(createBoard.error as Error).message}
           </p>
         )}
-        {createBoard.isSuccess && <p className="ps-creator__notice">战术板已发布。</p>}
+        {createBoard.isSuccess && createBoard.data && (
+          <div className="ps-creator__success glass-strong" role="status">
+            <div>
+              <p className="ps-creator__notice">战术板已发布。</p>
+              {createCopyNotice && <p className="ps-creator__notice">{createCopyNotice}</p>}
+            </div>
+            <div className="ps-creator__actions">
+              <Button variant="secondary" size="sm" to={`/board/${createBoard.data.id}`}>
+                查看刚发布的公开板
+              </Button>
+              <Button variant="secondary" size="sm" leadingIcon="copy" onClick={() => void copyCreatedBoardLink()}>
+                复制刚发布链接
+              </Button>
+            </div>
+          </div>
+        )}
         {(!createBoard.isSuccess || hasCreateFormContent) && (
           <p className={canCreate ? 'ps-creator__ready is-ready' : 'ps-creator__ready'} role="status">
             {createReadinessText}

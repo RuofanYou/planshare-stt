@@ -152,6 +152,21 @@
   margin-top: 0;
 }
 
+.ps-creator__success {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-gold-glow);
+  border-radius: var(--radius-md);
+}
+
+.ps-creator__success .ps-creator__actions {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
 .ps-creator__form {
   display: flex;
   flex-direction: column;
@@ -333,6 +348,7 @@
   .ps-creator__section-head,
   .ps-creator__board-top,
   .ps-creator__confirm,
+  .ps-creator__success,
   .ps-creator__draft-bar,
   .ps-creator__submission-top {
     align-items: flex-start;

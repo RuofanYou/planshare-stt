@@ -333,8 +333,13 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await page.getByRole('button', { name: '直接发布' }).click()
   await expect(page.getByText('战术板已发布。')).toBeVisible()
+  await expect(page.getByRole('link', { name: '查看刚发布的公开板' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '复制刚发布链接' })).toBeVisible()
+  await page.getByRole('button', { name: '复制刚发布链接' }).click()
+  await expect(page.getByText('刚发布的链接已复制。')).toBeVisible()
   await page.getByLabel('标题').fill(`E2E 下一块直发草稿 ${runId}`)
   await expect(page.getByText('战术板已发布。')).toHaveCount(0)
+  await expect(page.getByText('刚发布的链接已复制。')).toHaveCount(0)
   await expect(page.getByRole('button', { name: '清空直发草稿' })).toBeVisible()
   await page.getByRole('button', { name: '清空直发草稿' }).click()
   const directBoardRow = page.locator('.ps-creator__board', { hasText: directTitle })
