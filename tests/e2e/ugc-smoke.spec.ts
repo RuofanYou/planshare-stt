@@ -141,7 +141,20 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await page.goto('/')
   await expect(page.getByRole('heading', { name: '找一块能直接用的战术板' })).toBeVisible()
 
-  const firstBoard = page.locator('.ps-card__link').first()
+  const firstCard = page.locator('.ps-card').first()
+  await expect(firstCard).toBeVisible()
+  const firstCardTitle = (await firstCard.locator('.ps-card__title').innerText()).trim()
+  const cardLike = firstCard.getByRole('button', { name: '点赞' })
+  const cardLikeBeforeText = (await cardLike.textContent()) ?? ''
+  const cardLikeBefore = Number(cardLikeBeforeText.replace(/[^\d]/g, ''))
+  expect(Number.isFinite(cardLikeBefore)).toBeTruthy()
+  await cardLike.click()
+  await expect(firstCard.getByRole('button', { name: '已点赞' })).toContainText(String(cardLikeBefore + 1))
+  await page.reload()
+  const likedCard = page.locator('.ps-card', { hasText: firstCardTitle })
+  await expect(likedCard.getByRole('button', { name: '点赞' })).toContainText(String(cardLikeBefore + 1))
+
+  const firstBoard = likedCard.locator('.ps-card__link')
   await expect(firstBoard).toBeVisible()
   await firstBoard.click()
   await expect(page.getByRole('button', { name: /复制战术/ })).toBeVisible()

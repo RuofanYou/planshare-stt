@@ -1477,6 +1477,45 @@ vite v5.4.21 building for production...
 11 passed (43.8s)
 ```
 
+### UGC 生态补缺口：列表卡片点赞持久化
+```text
+代码复查:
+src/components/LikeButton.tsx 原注释为“本地态切换，不持久化（mock）”。
+src/components/BoardCard.tsx 在首页、团本页、作者页、相关推荐中复用该按钮。
+
+结果:
+- 访客在列表卡片点“点赞”以前只是本地动画，刷新后丢失。
+- 已改为 BoardCard 调用 /api/boards/:id/like，LikeButton 用后端返回 likeCount 收敛显示。
+- 首页卡片点赞后刷新仍显示 +1；详情页点赞仍保持只显示 +1，不叠加。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (12.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.02s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:554:1 › visitor can report a board and admin can hide it from public pages (9.0s)
+✓ 10 [chromium] › tests/e2e/ugc-smoke.spec.ts:592:1 › creator dashboard blocks self-restore for boards hidden by admin reports (697ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:643:1 › creator direct publish screens unsafe content in dashboard (943ms)
+11 passed (35.8s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

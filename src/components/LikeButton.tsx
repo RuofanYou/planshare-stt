@@ -1,34 +1,66 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { dur, easeEpic } from '../lib/motion'
 import { Icon } from './ui'
 import './LikeButton.css'
 
 interface LikeButtonProps {
-  /** 点赞起始值（mock） */
+  /** 后端当前点赞数。 */
   count: number
   /** compact = 卡片底栏小尺寸 */
   size?: 'default' | 'compact'
+  /** 持久化点赞回调；返回后端最新 likeCount。未传时退化成本地预览态。 */
+  onLike?: () => Promise<number>
 }
 
 /**
- * 点赞按钮：本地态切换，不持久化（mock）。
- * 已赞 -> 实心 gold 心（Icon heart filled）+ 数字 +1（count-up 微动）；用 aria-pressed 表达赞/未赞，不靠纯色。
- * 刷新即还原（仅当前会话内存）。
+ * 点赞按钮：接入 onLike 时为后端持久化点赞；未接入时仅用于本地预览态。
+ * 已赞 -> 实心 gold 心（Icon heart filled）+ 数字 +1（count-up 微动）；用 aria-pressed 表达赞/未赞。
  */
-export default function LikeButton({ count, size = 'default' }: LikeButtonProps) {
+export default function LikeButton({ count, size = 'default', onLike }: LikeButtonProps) {
   const [liked, setLiked] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [display, setDisplay] = useState(count)
   const reduce = useReducedMotion()
-  const display = liked ? count + 1 : count
   const iconSize = size === 'compact' ? 14 : 16
+
+  useEffect(() => {
+    if (!liked && !pending) setDisplay(count)
+  }, [count, liked, pending])
+
+  async function handleClick() {
+    if (!onLike) {
+      setLiked((value) => {
+        const next = !value
+        setDisplay(next ? count + 1 : count)
+        return next
+      })
+      return
+    }
+
+    if (liked || pending) return
+    setLiked(true)
+    setPending(true)
+    setDisplay(count + 1)
+    try {
+      const nextCount = await onLike()
+      setDisplay(nextCount)
+    } catch {
+      setLiked(false)
+      setDisplay(count)
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
     <button
       type="button"
       className={`ps-like ps-like--${size}${liked ? ' is-liked' : ''}`}
       aria-pressed={liked}
-      aria-label={liked ? '取消点赞' : '点赞'}
-      onClick={() => setLiked((v) => !v)}
+      aria-label={liked ? '已点赞' : '点赞'}
+      disabled={pending}
+      onClick={() => void handleClick()}
     >
       {/* 心形：已赞实心 + 切换时一次 scale 微动（呼应 visionOS 触感） */}
       <motion.span

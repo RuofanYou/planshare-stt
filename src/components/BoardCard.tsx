@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Board } from '../data/types'
-import { useRaidsMap, useAuthorsMap, useBossName } from '../api/hooks'
+import { useRaidsMap, useAuthorsMap, useBossName, useLikeBoard } from '../api/hooks'
 import { GlassCard, Tag, Avatar, Stat } from './ui'
 import DifficultyTag from './DifficultyTag'
 import LikeButton from './LikeButton'
@@ -34,6 +34,7 @@ export default function BoardCard({ board, variant = 'default' }: BoardCardProps
   // 卡片只拿到 id，名称从共享缓存的查询表 / 轻量 hook 反查，避免每张卡各发请求。
   const raidsMap = useRaidsMap()
   const authorsMap = useAuthorsMap()
+  const likeBoard = useLikeBoard()
   const raidName = raidsMap.get(board.raidId)?.name
   const bossName = useBossName(board.raidId, board.bossId)
   const author = authorsMap.get(board.authorId)
@@ -91,7 +92,14 @@ export default function BoardCard({ board, variant = 'default' }: BoardCardProps
         )}
         <div className="ps-card__metrics">
           <Stat kind="view" value={board.viewCount} label="浏览量" />
-          <LikeButton count={board.likeCount} size="compact" />
+          <LikeButton
+            count={board.likeCount}
+            size="compact"
+            onLike={async () => {
+              const result = await likeBoard.mutateAsync(board.id)
+              return result.likeCount
+            }}
+          />
         </div>
       </div>
     </GlassCard>
