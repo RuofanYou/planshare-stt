@@ -3546,6 +3546,49 @@ vite v5.4.21 building for production...
 31 passed (1.4m)
 ```
 
+### UGC 生态补缺口：单条审核驳回 / 标垃圾需要二次确认
+```text
+管理员 / 投稿用户 / 创作者用户探索:
+批量驳回和批量标垃圾已经有二次确认，但单条投稿在展开详情后仍是一点即处理。
+对 UGC 开放来说，单条驳回会让投稿者进入修改重投，单条标垃圾还会重置创作者晋升进度；误点同样需要防呆。
+
+已修复：
+- 单条“驳回”先显示页面内确认条，说明投稿者会看到处理备注并可修改后重投。
+- 单条“标记垃圾”先显示页面内确认条，说明会重置创作者晋升进度并需要修改后重投。
+- 点击“取消”不会改变投稿状态。
+- 点击“确认驳回 / 确认标记垃圾”才真正调用后端处理。
+- 切换展开行、勾选批量项、审核成功后都会清掉旧确认条，避免确认目标和当前操作不一致。
+
+决策记录：
+- 发布类操作仍不加二次确认，因为发布前管理员已展开详情并选择发布模式；本轮只补“负向处理”防误点。
+- 不新增后端端点；仍复用现有单条审核 API，确认逻辑只在后台 UI 层。
+```
+
+```text
+CI=1 npx playwright test --grep "creator can fix and retry a rejected submission|creator can fix and retry an admin-spammed submission"
+
+Running 2 tests using 1 worker
+··
+2 passed (8.9s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.93s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  10 [chromium] › tests/e2e/ugc-smoke.spec.ts:838:1 › creator can fix and retry a rejected submission from dashboard (3.5s)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:1005:1 › creator can fix and retry an admin-spammed submission from dashboard (3.3s)
+31 passed (1.5m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

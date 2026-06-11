@@ -1308,7 +1308,7 @@ vite v5.4.21 building for production...
 30 passed (1.3m)
 ```
 
-### 最新最终验证
+### 上一轮最终验证
 ```text
 npm run verify
 
@@ -1332,7 +1332,31 @@ vite v5.4.21 building for production...
 31 passed (1.4m)
 ```
 
+### 最新最终验证
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.93s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.0s)
+✓   8 [chromium] › tests/e2e/ugc-smoke.spec.ts:743:1 › admin bulk submission actions require confirmation (1.7s)
+✓  10 [chromium] › tests/e2e/ugc-smoke.spec.ts:838:1 › creator can fix and retry a rejected submission from dashboard (3.5s)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:1005:1 › creator can fix and retry an admin-spammed submission from dashboard (3.3s)
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1531:1 › visitor can report a board and admin can hide it from public pages (11.1s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1651:1 › creator direct publish screens unsafe content in dashboard (753ms)
+31 passed (1.5m)
+```
+
 ## 高风险 diff
+- `src/pages/admin/SubmissionsSection.tsx`：单条驳回/标垃圾新增页面内二次确认；需人工确认审核效率和“负向处理必须确认”的运营取舍符合预期。
 - `src/api/hooks.ts` 与 `src/pages/Creator.tsx`：创作者本人状态、投稿进度和我的战术板改为进入页面/窗口聚焦必刷新，并在创作者后台打开时每 5 秒轻量刷新；需人工确认额外请求量可接受，但这是保证管理员审核、密码重置、隐藏/下架等动态状态及时同步的必要取舍。
 - `tests/e2e/ugc-smoke.spec.ts`：新增“创作者自循环晋升”真人页面回归，覆盖第 2、第 3 份投稿都从创作者后台继续投稿入口完成；测试使用独立测试 IP，避免误触发真实投稿限流。
 - `tests/e2e/ugc-smoke.spec.ts`：新增管理员重置密码后旧创作者标签页自动清理会话的双标签回归；需人工确认“5 秒内退出旧会话”的体验符合运营预期。

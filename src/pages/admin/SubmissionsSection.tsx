@@ -28,6 +28,7 @@ export function SubmissionsSection({
   const [reviewNoteBySubmission, setReviewNoteBySubmission] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkConfirm, setBulkConfirm] = useState<'reject' | 'spam' | null>(null)
+  const [singleConfirm, setSingleConfirm] = useState<{ id: string; action: 'reject' | 'spam' } | null>(null)
 
   function guard(error: unknown) {
     if (isUnauthorized(error)) onLogout()
@@ -70,7 +71,10 @@ export function SubmissionsSection({
     approveSubmission.mutate(
       { id, input },
       {
-        onSuccess: () => setExpandedId(null),
+        onSuccess: () => {
+          setExpandedId(null)
+          setSingleConfirm(null)
+        },
         onError: guard,
       },
     )
@@ -86,6 +90,7 @@ export function SubmissionsSection({
 
   function toggleSelected(id: string, checked: boolean) {
     setBulkConfirm(null)
+    setSingleConfirm(null)
     setSelectedIds((current) => {
       if (checked) {
         return current.includes(id) ? current : [...current, id]
@@ -96,6 +101,7 @@ export function SubmissionsSection({
 
   function toggleAllPending(checked: boolean) {
     setBulkConfirm(null)
+    setSingleConfirm(null)
     setSelectedIds(checked ? pendingSubmissions.map((submission) => submission.id) : [])
   }
 
@@ -127,6 +133,32 @@ export function SubmissionsSection({
     } catch (error) {
       guard(error)
     }
+  }
+
+  function rejectOne(submission: AdminSubmission) {
+    rejectSubmission.mutate(
+      { id: submission.id, note: reviewNote(submission.id, '后台驳回') },
+      {
+        onSuccess: () => {
+          setSingleConfirm(null)
+          setExpandedId(null)
+        },
+        onError: guard,
+      },
+    )
+  }
+
+  function markOneSpam(submission: AdminSubmission) {
+    markSpam.mutate(
+      { id: submission.id, note: reviewNote(submission.id, '后台标记垃圾') },
+      {
+        onSuccess: () => {
+          setSingleConfirm(null)
+          setExpandedId(null)
+        },
+        onError: guard,
+      },
+    )
   }
 
   return (
@@ -264,7 +296,10 @@ export function SubmissionsSection({
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => setExpandedId(isExpanded ? null : submission.id)}
+                      onClick={() => {
+                        setExpandedId(isExpanded ? null : submission.id)
+                        setSingleConfirm(null)
+                      }}
                     >
                       {isExpanded ? '收起' : '查看'}
                     </Button>
@@ -363,12 +398,7 @@ export function SubmissionsSection({
                               variant="ghost"
                               size="sm"
                               disabled={busy}
-                              onClick={() =>
-                                rejectSubmission.mutate(
-                                  { id: submission.id, note: reviewNote(submission.id, '后台驳回') },
-                                  { onError: guard },
-                                )
-                              }
+                              onClick={() => setSingleConfirm({ id: submission.id, action: 'reject' })}
                             >
                               驳回
                             </Button>
@@ -376,16 +406,46 @@ export function SubmissionsSection({
                               variant="ghost"
                               size="sm"
                               disabled={busy}
-                              onClick={() =>
-                                markSpam.mutate(
-                                  { id: submission.id, note: reviewNote(submission.id, '后台标记垃圾') },
-                                  { onError: guard },
-                                )
-                              }
+                              onClick={() => setSingleConfirm({ id: submission.id, action: 'spam' })}
                             >
                               标记垃圾
                             </Button>
                           </div>
+                          {singleConfirm?.id === submission.id && (
+                            <div className="ps-admin__confirm glass-strong" role="alertdialog">
+                              <span className="ps-admin__confirm-text">
+                                {singleConfirm.action === 'reject'
+                                  ? `确认驳回「${submission.title}」？投稿者会看到处理备注，可以修改后重投。`
+                                  : `确认把「${submission.title}」标记为垃圾？这会重置创作者晋升进度，投稿者需要修改后重投。`}
+                              </span>
+                              <div className="ps-admin__confirm-actions">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSingleConfirm(null)}
+                                  disabled={busy}
+                                >
+                                  取消
+                                </Button>
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() =>
+                                    singleConfirm.action === 'reject'
+                                      ? rejectOne(submission)
+                                      : markOneSpam(submission)
+                                  }
+                                  disabled={busy}
+                                >
+                                  {busy
+                                    ? '处理中…'
+                                    : singleConfirm.action === 'reject'
+                                      ? '确认驳回'
+                                      : '确认标记垃圾'}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </>
                       ) : (
                         <p className="ps-admin__row-meta">
