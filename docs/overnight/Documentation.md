@@ -2076,6 +2076,63 @@ vite v5.4.21 building for production...
 13 passed (39.7s)
 ```
 
+### UGC 生态补缺口：登录创作者投稿身份提示
+```text
+普通创作者探索:
+登录后的创作者从“继续投稿 / 修改后重投”进入 `/submit` 时，后端会自动把投稿挂到当前创作者账号下；但页面原本仍显示“普通投稿 / 申请创作者”，用户会不确定这次投稿是否会计入自己的 3 次审核晋升进度。
+
+已改为：
+- 已登录创作者进入投稿页时显示“已登录为 ...；这次投稿会进入你的创作者后台审核进度”
+- 发布身份区域改为只读说明：“使用当前创作者账号投稿；通过审核后会累计到直发资格”
+- 隐藏“申请创作者”选项，避免重复申请账号
+- 提交成功后显示“投稿已进入你的创作者审核进度”，并提供“进入创作者后台”
+```
+
+```text
+Browser 覆盖:
+游客状态打开 http://localhost:5183/submit，确认仍保留游客入口：
+{
+  "url": "http://localhost:5183/submit",
+  "hasVisitorChoice": true,
+  "hasCreatorSessionBanner": false
+}
+
+控制台只有既有 React Router v7 future warning 和 THREE.Clock deprecated warning，没有本轮新增错误。
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.88s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator can withdraw"
+
+Running 1 test using 1 worker
+·
+1 passed (6.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › creator can withdraw a pending submission from dashboard (4.0s)
+13 passed (41.6s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Difficulty } from '../data/types'
-import { useBoard, useCreateSubmission, useCreatorSession, useRaid, useRaids } from '../api/hooks'
+import { useBoard, useCreateSubmission, useCreatorMe, useCreatorSession, useRaid, useRaids } from '../api/hooks'
 import { Button, SectionHeading, Tag } from '../components/ui'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
 import './Submit.css'
@@ -97,6 +97,7 @@ export default function Submit() {
   const raidsQuery = useRaids()
   const createSubmission = useCreateSubmission()
   const creatorSession = useCreatorSession()
+  const creatorMeQuery = useCreatorMe(creatorSession.isAuthed)
   const [searchParams] = useSearchParams()
   const templateBoardId = searchParams.get('from') || ''
   const templateQuery = useBoard(templateBoardId || undefined)
@@ -123,11 +124,16 @@ export default function Submit() {
   const [website, setWebsite] = useState('')
   const [localError, setLocalError] = useState('')
   const [submittedId, setSubmittedId] = useState('')
-  const [submittedKind, setSubmittedKind] = useState<'regular' | 'creator' | ''>('')
+  const [submittedKind, setSubmittedKind] = useState<'regular' | 'creator' | 'creatorSubmission' | ''>('')
+  const creatorNamePrefilled = useRef(false)
 
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
   const pending = createSubmission.isPending
+  const loggedInCreator = creatorMeQuery.data?.user
+  const loggedInAuthor = creatorMeQuery.data?.author
+  const loggedInCreatorName = loggedInAuthor?.name || loggedInCreator?.username || ''
+  const isLoggedInCreator = creatorSession.isAuthed && !!loggedInCreator
   const creatorPasswordHint =
     wantsCreatorProfile && creatorPassword.length > 0 && creatorPassword.length < 8
       ? `密码至少 8 位，还差 ${8 - creatorPassword.length} 位。`
@@ -178,6 +184,27 @@ export default function Submit() {
   useEffect(() => {
     draftHydrated.current = true
   }, [])
+
+  useEffect(() => {
+    if (creatorMeQuery.isError && creatorSession.isUnauthorized(creatorMeQuery.error)) {
+      creatorSession.logout()
+    }
+  }, [creatorMeQuery.error, creatorMeQuery.isError, creatorSession])
+
+  useEffect(() => {
+    if (!creatorSession.isAuthed || !wantsCreatorProfile) return
+    setWantsCreatorProfile(false)
+    setCreatorUsername('')
+    setCreatorPassword('')
+    setCreatorPasswordConfirm('')
+    setContact('')
+  }, [creatorSession.isAuthed, wantsCreatorProfile])
+
+  useEffect(() => {
+    if (!loggedInCreatorName || creatorNamePrefilled.current || submitterName.trim()) return
+    creatorNamePrefilled.current = true
+    setSubmitterName(loggedInCreatorName)
+  }, [loggedInCreatorName, submitterName])
 
   useEffect(() => {
     const template = templateQuery.data?.board
@@ -271,7 +298,8 @@ export default function Submit() {
       return
     }
 
-    const requestedCreator = wantsCreatorProfile
+    const requestedCreator = wantsCreatorProfile && !isLoggedInCreator
+    const requestedCreatorSubmission = isLoggedInCreator
 
     createSubmission.mutate(
       {
@@ -296,7 +324,13 @@ export default function Submit() {
       {
         onSuccess: (submission) => {
           setSubmittedId(submission.id)
-          setSubmittedKind(requestedCreator && submission.creatorAuth?.token ? 'creator' : 'regular')
+          setSubmittedKind(
+            requestedCreator && submission.creatorAuth?.token
+              ? 'creator'
+              : requestedCreatorSubmission
+                ? 'creatorSubmission'
+                : 'regular',
+          )
           if (submission.creatorAuth?.token) {
             creatorSession.login(submission.creatorAuth.token)
           }
@@ -344,6 +378,12 @@ export default function Submit() {
           </button>
         )}
       </div>
+
+      {isLoggedInCreator && (
+        <p className="ps-submit__creator-session">
+          已登录为 {loggedInCreatorName}；这次投稿会进入你的创作者后台审核进度，不需要重新申请账号。
+        </p>
+      )}
 
       <motion.form
         className="ps-submit__form glass"
@@ -465,28 +505,34 @@ export default function Submit() {
             <span className="ps-submit__label" id="ps-submit-identity-label">
               发布身份
             </span>
-            <div className="ps-submit__identity" role="radiogroup" aria-labelledby="ps-submit-identity-label">
-              <button
-                type="button"
-                role="radio"
-                aria-checked={!wantsCreatorProfile}
-                className={!wantsCreatorProfile ? 'ps-submit__identity-btn is-active' : 'ps-submit__identity-btn'}
-                onClick={() => setWantsCreatorProfile(false)}
-              >
-                <span>普通投稿</span>
-                <small>只给这块板署名</small>
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={wantsCreatorProfile}
-                className={wantsCreatorProfile ? 'ps-submit__identity-btn is-active' : 'ps-submit__identity-btn'}
-                onClick={() => setWantsCreatorProfile(true)}
-              >
-                <span>申请创作者</span>
-                <small>用署名建立作者页</small>
-              </button>
-            </div>
+            {isLoggedInCreator ? (
+              <p className="ps-submit__identity-note">
+                使用当前创作者账号投稿；通过审核后会累计到直发资格。
+              </p>
+            ) : (
+              <div className="ps-submit__identity" role="radiogroup" aria-labelledby="ps-submit-identity-label">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={!wantsCreatorProfile}
+                  className={!wantsCreatorProfile ? 'ps-submit__identity-btn is-active' : 'ps-submit__identity-btn'}
+                  onClick={() => setWantsCreatorProfile(false)}
+                >
+                  <span>普通投稿</span>
+                  <small>只给这块板署名</small>
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={wantsCreatorProfile}
+                  className={wantsCreatorProfile ? 'ps-submit__identity-btn is-active' : 'ps-submit__identity-btn'}
+                  onClick={() => setWantsCreatorProfile(true)}
+                >
+                  <span>申请创作者</span>
+                  <small>用署名建立作者页</small>
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -672,10 +718,12 @@ export default function Submit() {
             <p>
               {submittedKind === 'creator'
                 ? `账号已创建，投稿已进入审核：${submittedId}。`
+                : submittedKind === 'creatorSubmission'
+                  ? `投稿已进入你的创作者审核进度：${submittedId}。`
                 : `投稿已进入审核，不会立刻公开：${submittedId}`}
             </p>
             <div className="ps-submit__success-actions">
-              {submittedKind === 'creator' && (
+              {(submittedKind === 'creator' || submittedKind === 'creatorSubmission') && (
                 <Button variant="secondary" to="/creator">
                   进入创作者后台
                 </Button>

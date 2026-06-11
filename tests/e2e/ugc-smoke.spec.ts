@@ -563,10 +563,22 @@ test('creator can withdraw a pending submission from dashboard', async ({ page, 
 
   await page.getByRole('button', { name: '修改后重投' }).click()
   await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByText(`已登录为 自助创作者 withdraw_${runId}`)).toBeVisible()
+  await expect(page.getByText('使用当前创作者账号投稿；通过审核后会累计到直发资格。')).toBeVisible()
+  await expect(page.getByRole('radio', { name: /申请创作者/ })).toHaveCount(0)
   await expect(page.getByLabel('标题')).toHaveValue(creator.title)
   await expect(page.locator('#ps-submit-raid')).toHaveValue('r-voidspire')
   await expect(page.locator('#ps-submit-boss')).toHaveValue('b-averzian')
   await expect(page.getByLabel('战术正文')).toHaveValue(creator.contentText)
+  await page.getByLabel('标题').fill(`${creator.title} 重投`)
+  await page.getByLabel('战术正文').fill(`${creator.contentText}\nP3 修改后重投`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
+  await expect(page.getByRole('link', { name: '进入创作者后台' })).toBeVisible()
+  await page.getByRole('link', { name: '进入创作者后台' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+  await expect(page.getByText(`${creator.title} 重投`)).toBeVisible()
+  await expect(page.getByText('待审核', { exact: true })).toBeVisible()
 })
 
 test('home search finds boards by boss and author names', async ({ page }) => {

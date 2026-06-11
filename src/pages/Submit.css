@@ -51,6 +51,22 @@
   color: var(--color-gold-bright);
 }
 
+.ps-submit__creator-session,
+.ps-submit__identity-note {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-gold-glow);
+  border-radius: var(--radius-md);
+  background: var(--glass-strong);
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__creator-session {
+  margin: calc(var(--space-4) * -1) 0 var(--space-6);
+}
+
 .ps-submit__form {
   display: grid;
   gap: var(--space-5);
