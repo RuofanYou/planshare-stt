@@ -21,6 +21,7 @@
 - 创作者投稿纠错补缺口：创作者可在后台撤回自己的待审投稿；撤回后不再进入管理员审核，后台显示“已撤回”，并写审计日志。
 - 创作者重投补缺口：被驳回或已撤回投稿可一键带回投稿页草稿，保留原标题、团本、BOSS、难度、简介、正文和署名，方便修改后重投。
 - 创作者分发补缺口：创作者“我的战术板”列表新增“查看公开板”和“复制链接”，直发后可以立刻确认公开效果并分享给队友。
+- 创作者维护补缺口：编辑已发布战术板时新增按 board id 隔离的本地草稿保护，刷新不丢修改，保存成功后清空。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -600,6 +601,55 @@ in-app browser:
 /creator 页面可见，无 framework overlay，console errors=0。
 ```
 
+### 创作者编辑草稿保护验证
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.04s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 6 tests using 1 worker
+······
+6 passed (17.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.02s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:66:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (7.3s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:201:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.1s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:244:1 › creator can change password from dashboard and log in with the new password (1.8s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:282:1 › creator can withdraw a pending submission from dashboard (1.8s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:308:1 › home search finds boards by boss and author names (2.8s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:327:1 › submit draft survives reload without saving password or contact (809ms)
+6 passed (18.8s)
+```
+
+```text
+Playwright:
+创作者编辑已发布板时显示“编辑草稿会自动保存在本机；保存成功后清空。”。
+修改标题和正文后刷新页面，再点编辑，草稿恢复。
+保存成功后 `planshare_creator_board_edit_draft_v1*` localStorage 草稿键数量为 0。
+
+in-app browser:
+/creator 页面可见，无 framework overlay，console errors=0。
+```
+
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
@@ -608,6 +658,7 @@ in-app browser:
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。
 - `src/lib/clipboard.ts`：抽出剪贴板 fallback 给详情页和创作者后台共用；需人工复核旧详情页复制 toast 行为未退化。
+- `src/pages/Creator.tsx`：编辑草稿存储在浏览器 localStorage，并按 board id 隔离；需人工复核多账号共用同一浏览器时是否符合运营预期。
 - `server/index.mjs` 与 `src/data/types.ts`：投稿状态新增 `withdrawn`；需人工复核运营报表或外部脚本是否假设投稿状态只有四种。
 - `server/index.mjs` 与 `src/pages/Creator.tsx`：创作者投稿进度现在返回并使用原投稿正文，用于“修改后重投”；需人工复核该数据只暴露给投稿所属创作者。
 - `server/index.mjs`：驳回/spam 投稿现在保留 `author_id`，让创作者可以看到失败状态；需确认这符合运营上“失败记录对创作者可见”的预期。

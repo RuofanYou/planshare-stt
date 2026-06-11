@@ -177,6 +177,25 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
       Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_draft_v1')).length,
     ),
   ).resolves.toBe(0)
+
+  await directBoardRow.getByRole('button', { name: '编辑' }).click()
+  await expect(directBoardRow.getByText('编辑草稿会自动保存在本机；保存成功后清空。')).toBeVisible()
+  await directBoardRow.getByLabel('标题').fill(`${directTitle} 修订`)
+  await directBoardRow.getByLabel('战术正文').fill('P1 创作者直发修订\nP2 结束')
+
+  await page.reload()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+  const reloadedDirectBoardRow = page.locator('.ps-creator__board', { hasText: directTitle })
+  await reloadedDirectBoardRow.getByRole('button', { name: '编辑' }).click()
+  await expect(reloadedDirectBoardRow.getByLabel('标题')).toHaveValue(`${directTitle} 修订`)
+  await expect(reloadedDirectBoardRow.getByLabel('战术正文')).toHaveValue('P1 创作者直发修订\nP2 结束')
+  await reloadedDirectBoardRow.getByRole('button', { name: '保存修改' }).click()
+  await expect(reloadedDirectBoardRow.getByText(`${directTitle} 修订`)).toBeVisible()
+  await expect(
+    page.evaluate(() =>
+      Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_edit_draft_v1')).length,
+    ),
+  ).resolves.toBe(0)
 })
 
 test('creator application guardrails handle missing fields, invalid usernames, and duplicates', async ({ page }) => {

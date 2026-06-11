@@ -542,6 +542,7 @@ function CreatorProfileEditor({ author }: { author: Author }) {
 }
 
 const CREATOR_BOARD_DRAFT_KEY_PREFIX = 'planshare_creator_board_draft_v1'
+const CREATOR_BOARD_EDIT_DRAFT_KEY_PREFIX = 'planshare_creator_board_edit_draft_v1'
 
 interface CreatorBoardDraft {
   title: string
@@ -609,6 +610,79 @@ function clearCreatorBoardDraft(creatorId: string) {
   if (typeof window === 'undefined') return
   try {
     window.localStorage.removeItem(creatorBoardDraftKey(creatorId))
+  } catch {
+    // 忽略本地存储异常。
+  }
+}
+
+interface CreatorBoardEditDraft {
+  title: string
+  description: string
+  contentText: string
+}
+
+function creatorBoardEditDraftKey(boardId: string) {
+  return `${CREATOR_BOARD_EDIT_DRAFT_KEY_PREFIX}:${boardId}`
+}
+
+function readCreatorBoardEditDraft(board: CreatorBoard): CreatorBoardEditDraft {
+  if (typeof window === 'undefined') {
+    return {
+      title: board.title,
+      description: board.description,
+      contentText: board.contentText,
+    }
+  }
+  try {
+    const raw = window.localStorage.getItem(creatorBoardEditDraftKey(board.id))
+    if (!raw) {
+      return {
+        title: board.title,
+        description: board.description,
+        contentText: board.contentText,
+      }
+    }
+    const parsed = JSON.parse(raw) as Partial<CreatorBoardEditDraft>
+    return {
+      title: typeof parsed.title === 'string' ? parsed.title : board.title,
+      description: typeof parsed.description === 'string' ? parsed.description : board.description,
+      contentText: typeof parsed.contentText === 'string' ? parsed.contentText : board.contentText,
+    }
+  } catch {
+    return {
+      title: board.title,
+      description: board.description,
+      contentText: board.contentText,
+    }
+  }
+}
+
+function hasCreatorBoardEditDraftContent(board: CreatorBoard, draft: CreatorBoardEditDraft) {
+  return (
+    draft.title !== board.title ||
+    draft.description !== board.description ||
+    draft.contentText !== board.contentText
+  )
+}
+
+function writeCreatorBoardEditDraft(board: CreatorBoard, draft: CreatorBoardEditDraft) {
+  if (typeof window === 'undefined') return
+  try {
+    const key = creatorBoardEditDraftKey(board.id)
+    if (hasCreatorBoardEditDraftContent(board, draft)) {
+      window.localStorage.setItem(key, JSON.stringify(draft))
+    } else {
+      window.localStorage.removeItem(key)
+    }
+  } catch {
+    // localStorage 不可用时忽略；编辑保存本身不依赖草稿。
+  }
+}
+
+function clearCreatorBoardEditDraft(boardId: string) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(creatorBoardEditDraftKey(boardId))
   } catch {
     // 忽略本地存储异常。
   }
@@ -808,17 +882,24 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   const updateBoard = useUpdateCreatorBoard()
   const deleteBoard = useDeleteCreatorBoard()
   const [editing, setEditing] = useState(false)
-  const [title, setTitle] = useState(board.title)
-  const [description, setDescription] = useState(board.description)
-  const [contentText, setContentText] = useState(board.contentText)
+  const [initialEditDraft] = useState(() => readCreatorBoardEditDraft(board))
+  const [title, setTitle] = useState(initialEditDraft.title)
+  const [description, setDescription] = useState(initialEditDraft.description)
+  const [contentText, setContentText] = useState(initialEditDraft.contentText)
   const [copyNotice, setCopyNotice] = useState('')
 
   useEffect(() => {
     if (editing) return
-    setTitle(board.title)
-    setDescription(board.description)
-    setContentText(board.contentText)
+    const draft = readCreatorBoardEditDraft(board)
+    setTitle(draft.title)
+    setDescription(draft.description)
+    setContentText(draft.contentText)
   }, [board, editing])
+
+  useEffect(() => {
+    if (!editing) return
+    writeCreatorBoardEditDraft(board, { title, description, contentText })
+  }, [board, contentText, description, editing, title])
 
   function saveBoard(e: React.FormEvent) {
     e.preventDefault()
@@ -831,7 +912,12 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
           contentText,
         },
       },
-      { onSuccess: () => setEditing(false) },
+      {
+        onSuccess: () => {
+          clearCreatorBoardEditDraft(board.id)
+          setEditing(false)
+        },
+      },
     )
   }
 
@@ -860,6 +946,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
 
       {editing ? (
         <form className="ps-creator__form" onSubmit={saveBoard}>
+          <p className="ps-creator__notice">编辑草稿会自动保存在本机；保存成功后清空。</p>
           <div className="ps-creator__field">
             <label className="ps-creator__label" htmlFor={`creator-edit-title-${board.id}`}>标题</label>
             <input

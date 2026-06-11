@@ -34,6 +34,7 @@
 - 创作者投稿纠错补缺口：创作者自己的待审投稿可撤回，状态置为 `withdrawn` 并写审计日志；已处理投稿和他人投稿不可撤回。
 - 创作者重投补缺口：被驳回或已撤回投稿点击“修改后重投”会把原标题、团本、BOSS、难度、简介、正文和署名写入投稿页草稿，再跳转 `/submit`，避免长战术板手动复制。
 - 创作者分发补缺口：正式创作者在“我的战术板”列表可直接“查看公开板”和“复制链接”，发布后不必绕到首页搜索才能分享。
+- 创作者维护补缺口：编辑已发布战术板时也有本地草稿保护，按 board id 隔离；刷新后恢复未保存修改，保存成功后清空。
 
 ## 验证输出
 
@@ -660,6 +661,55 @@ vite v5.4.21 building for production...
 Playwright:
 创作者直发成功后，“我的战术板”列表显示“查看公开板”和“复制链接”。
 点击“复制链接”后显示“链接已复制。”。
+
+in-app browser:
+/creator 页面可见，无 framework overlay，console errors=0。
+```
+
+### UGC 生态补缺口：创作者编辑草稿保护
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.04s
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 6 tests using 1 worker
+······
+6 passed (17.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.02s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:66:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (7.3s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:201:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.1s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:244:1 › creator can change password from dashboard and log in with the new password (1.8s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:282:1 › creator can withdraw a pending submission from dashboard (1.8s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:308:1 › home search finds boards by boss and author names (2.8s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:327:1 › submit draft survives reload without saving password or contact (809ms)
+6 passed (18.8s)
+```
+
+```text
+Playwright:
+创作者编辑已发布板时显示“编辑草稿会自动保存在本机；保存成功后清空。”。
+修改标题和正文后刷新页面，再点编辑，草稿恢复。
+保存成功后 `planshare_creator_board_edit_draft_v1*` localStorage 草稿键数量为 0。
 
 in-app browser:
 /creator 页面可见，无 framework overlay，console errors=0。
