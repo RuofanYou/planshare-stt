@@ -29,6 +29,7 @@
 - 浏览用户治理闭环补测：Playwright 覆盖访客举报公开板、管理员在举报队列隐藏板、公开详情页不可见。
 - 创作者账号救援闭环补测：Playwright 覆盖管理员后台重置创作者密码，旧密码失效，新密码可重新登录。
 - 创作者治理闭环补缺口：后台“账号与密码”区新增暂停/恢复账号；暂停后创作者不能登录，恢复后可重新登录。
+- 审核批量操作防呆补缺口：后台批量驳回/批量标记垃圾新增页面内二次确认；取消不处理，确认后才批量处理。
 - 资源管理误删防呆补缺口：后台团本/BOSS 删除新增页面内二次确认；取消不删除，确认后才删除。
 - 管理员治理追溯补缺口：后台新增“审计”页展示最近审计日志，可追踪账号状态、重置密码、举报处理、审核等动作。
 - 举报治理防绕过补缺口：管理员因举报隐藏创作者战术板后，创作者后台显示“管理员隐藏”且不能自行恢复；后端恢复接口也返回 403，公开页继续不可见。
@@ -1254,7 +1255,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.93s
+✓ built in 1.91s
 
 1..48
 # tests 48
@@ -1262,26 +1263,27 @@ vite v5.4.21 building for production...
 # pass 48
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:153:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.1s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:428:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.6s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:492:1 › creator can change password from dashboard and log in with the new password (1.8s)
-✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › admin can reset a creator password and the creator can log in again (1.6s)
-✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:577:1 › admin can suspend and restore a creator account (2.5s)
-✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:754:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.4s)
-✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:920:1 › admin resource deletion requires confirmation before removing bosses and raids (1.4s)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1115:1 › visitor can check submission receipt and open the approved board (977ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1149:1 › visitor rejected receipt can return to a clean resubmission form (553ms)
-✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1178:1 › visitor spam receipt can return to a clean resubmission form (609ms)
-✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1201:1 › visitor withdrawn receipt can return to a clean resubmission form (648ms)
-✓  22 [chromium] › tests/e2e/ugc-smoke.spec.ts:1227:1 › submission receipt rate limit shows a visible visitor-facing error (626ms)
-✓  24 [chromium] › tests/e2e/ugc-smoke.spec.ts:1284:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
-✓  28 [chromium] › tests/e2e/ugc-smoke.spec.ts:1458:1 › creator direct publish screens unsafe content in dashboard (738ms)
-28 passed (1.2m)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:172:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (21.5s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:447:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.1s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:511:1 › creator can change password from dashboard and log in with the new password (1.8s)
+✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:565:1 › admin can reset a creator password and the creator can log in again (1.8s)
+✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:596:1 › admin can suspend and restore a creator account (2.5s)
+✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:640:1 › admin bulk submission actions require confirmation (1.8s)
+✓  10 [chromium] › tests/e2e/ugc-smoke.spec.ts:825:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.3s)
+✓  14 [chromium] › tests/e2e/ugc-smoke.spec.ts:991:1 › admin resource deletion requires confirmation before removing bosses and raids (1.4s)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1186:1 › visitor can check submission receipt and open the approved board (971ms)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1220:1 › visitor rejected receipt can return to a clean resubmission form (598ms)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1249:1 › visitor spam receipt can return to a clean resubmission form (606ms)
+✓  22 [chromium] › tests/e2e/ugc-smoke.spec.ts:1272:1 › visitor withdrawn receipt can return to a clean resubmission form (672ms)
+✓  23 [chromium] › tests/e2e/ugc-smoke.spec.ts:1298:1 › submission receipt rate limit shows a visible visitor-facing error (581ms)
+✓  25 [chromium] › tests/e2e/ugc-smoke.spec.ts:1355:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1529:1 › creator direct publish screens unsafe content in dashboard (773ms)
+29 passed (1.3m)
 ```
 
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
-- `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
+- `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作；批量驳回/标记垃圾已改为二次确认，需人工重点点验审核效率和误操作恢复预期。
 - `playwright.config.ts`：使用 `localhost:5183` 和 `/tmp` 临时 SQLite，避免本机端口与生产数据冲突。
 - `src/pages/Admin.tsx` 与 `src/api/*`：后台创作者账号暂停/恢复直接影响创作者登录权限；暂停已改为页面内二次确认，需人工确认运营流程和误操作恢复预期。
 - `src/pages/Admin.tsx`：后台新增审计日志页，会展示 audit detail JSON；需人工确认后台可见信息范围符合运营预期。

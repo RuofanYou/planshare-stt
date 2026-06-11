@@ -3367,6 +3367,49 @@ vite v5.4.21 building for production...
 28 passed (1.2m)
 ```
 
+### UGC 生态补缺口：批量审核需要二次确认
+```text
+管理员 / 投稿用户探索:
+后台审核队列支持全选待审、批量驳回、批量标记垃圾。
+这对 UGC 开放后的效率很重要，但原来选中后点一次就会处理多条投稿；管理员误点会同时影响多个投稿者。
+
+已修复：
+- 点击“批量驳回”先显示页面内确认条
+- 点击“批量标记垃圾”先显示页面内确认条
+- 确认文案带上当前选中的待审条数
+- 点击“取消”不会改变投稿状态
+- 选择变化时关闭旧确认，避免确认内容和选中数量不一致
+- 点击“确认驳回 / 确认标记垃圾”才真正批量处理
+
+决策记录：
+- 单条审核仍保持快速操作，因为管理员已经展开了单条详情并可填写处理备注；本轮只给多条影响面的批量操作加确认。
+- 批量处理仍复用既有单条 API，不新增后端批量端点，保持服务端审核语义单一。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "admin bulk submission actions"
+
+Running 1 test using 1 worker
+·
+1 passed (3.8s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:640:1 › admin bulk submission actions require confirmation (1.8s)
+29 passed (1.3m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

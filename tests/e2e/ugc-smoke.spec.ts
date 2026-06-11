@@ -150,6 +150,25 @@ async function createAdminBoard(request: APIRequestContext, suffix: string) {
   return { admin, board: await board.json() }
 }
 
+async function createPendingVisitorSubmission(request: APIRequestContext, suffix: string, title: string) {
+  const res = await request.post('/api/submissions', {
+    headers: { 'X-Forwarded-For': `198.51.100.${(Math.abs(hashSuffix(suffix)) % 100) + 90}` },
+    data: {
+      title,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: title,
+      contentText: `P1 ${title}\nP2 集合 ${suffix}`,
+      submitterName: `批量游客 ${suffix}`,
+      wantsCreatorProfile: false,
+    },
+  })
+  expect(res.status()).toBe(201)
+  return res.json()
+}
+
 test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const creatorUsername = `e2e_${runId}`
@@ -616,6 +635,58 @@ test('admin can suspend and restore a creator account', async ({ page, request }
   await page.getByLabel('密码').fill(creator.password)
   await page.getByRole('button', { name: '登录' }).click()
   await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+})
+
+test('admin bulk submission actions require confirmation', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const rejectTitles = [`E2E 批量驳回 A ${runId}`, `E2E 批量驳回 B ${runId}`]
+  const spamTitles = [`E2E 批量垃圾 A ${runId}`, `E2E 批量垃圾 B ${runId}`]
+  for (const [index, title] of [...rejectTitles, ...spamTitles].entries()) {
+    await createPendingVisitorSubmission(request, `bulk_${runId}_${index}`, title)
+  }
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '投稿审核' }).click()
+
+  const bulkBar = page.locator('.ps-admin__bulk-bar')
+  await expect(bulkBar).toBeVisible()
+  const rejectRows = rejectTitles.map((title) => page.locator('.ps-admin__row-card', { hasText: title }))
+  for (const row of rejectRows) {
+    await expect(row.getByText('待审核')).toBeVisible()
+    await row.getByLabel('选择').check()
+  }
+  await bulkBar.getByRole('button', { name: '批量驳回' }).click()
+  await expect(bulkBar.getByRole('alertdialog')).toContainText('确认批量驳回 2 条待审投稿？')
+  await bulkBar.getByRole('button', { name: '取消' }).click()
+  await expect(bulkBar.getByRole('alertdialog')).toHaveCount(0)
+  for (const row of rejectRows) {
+    await expect(row.getByText('待审核')).toBeVisible()
+  }
+  await bulkBar.getByRole('button', { name: '批量驳回' }).click()
+  await bulkBar.getByRole('button', { name: '确认驳回' }).click()
+  for (const row of rejectRows) {
+    await expect(row.getByText('已驳回')).toBeVisible()
+  }
+
+  const spamRows = spamTitles.map((title) => page.locator('.ps-admin__row-card', { hasText: title }))
+  for (const row of spamRows) {
+    await expect(row.getByText('待审核')).toBeVisible()
+    await row.getByLabel('选择').check()
+  }
+  await bulkBar.getByRole('button', { name: '批量标记垃圾' }).click()
+  await expect(bulkBar.getByRole('alertdialog')).toContainText('确认批量标记 2 条待审投稿为垃圾？')
+  await bulkBar.getByRole('button', { name: '取消' }).click()
+  await expect(bulkBar.getByRole('alertdialog')).toHaveCount(0)
+  for (const row of spamRows) {
+    await expect(row.getByText('待审核')).toBeVisible()
+  }
+  await bulkBar.getByRole('button', { name: '批量标记垃圾' }).click()
+  await bulkBar.getByRole('button', { name: '确认标记垃圾' }).click()
+  for (const row of spamRows) {
+    await expect(row.getByText('垃圾', { exact: true })).toBeVisible()
+  }
 })
 
 test('creator can withdraw a pending submission from dashboard', async ({ page, request }) => {

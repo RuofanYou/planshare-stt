@@ -27,6 +27,7 @@ export function SubmissionsSection({
   const [authorBySubmission, setAuthorBySubmission] = useState<Record<string, string>>({})
   const [reviewNoteBySubmission, setReviewNoteBySubmission] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [bulkConfirm, setBulkConfirm] = useState<'reject' | 'spam' | null>(null)
 
   function guard(error: unknown) {
     if (isUnauthorized(error)) onLogout()
@@ -84,6 +85,7 @@ export function SubmissionsSection({
   }
 
   function toggleSelected(id: string, checked: boolean) {
+    setBulkConfirm(null)
     setSelectedIds((current) => {
       if (checked) {
         return current.includes(id) ? current : [...current, id]
@@ -93,6 +95,7 @@ export function SubmissionsSection({
   }
 
   function toggleAllPending(checked: boolean) {
+    setBulkConfirm(null)
     setSelectedIds(checked ? pendingSubmissions.map((submission) => submission.id) : [])
   }
 
@@ -105,6 +108,7 @@ export function SubmissionsSection({
         ),
       )
       setSelectedIds([])
+      setBulkConfirm(null)
     } catch (error) {
       guard(error)
     }
@@ -119,6 +123,7 @@ export function SubmissionsSection({
         ),
       )
       setSelectedIds([])
+      setBulkConfirm(null)
     } catch (error) {
       guard(error)
     }
@@ -156,7 +161,7 @@ export function SubmissionsSection({
                     variant="ghost"
                     size="sm"
                     disabled={!hasSelectedPending || bulkBusy}
-                    onClick={() => void bulkReject()}
+                    onClick={() => setBulkConfirm('reject')}
                   >
                     批量驳回
                   </Button>
@@ -164,11 +169,38 @@ export function SubmissionsSection({
                     variant="ghost"
                     size="sm"
                     disabled={!hasSelectedPending || bulkBusy}
-                    onClick={() => void bulkSpam()}
+                    onClick={() => setBulkConfirm('spam')}
                   >
                     批量标记垃圾
                   </Button>
                 </div>
+                {bulkConfirm && (
+                  <div className="ps-admin__confirm glass-strong" role="alertdialog">
+                    <span className="ps-admin__confirm-text">
+                      {bulkConfirm === 'reject'
+                        ? `确认批量驳回 ${selectedPendingIds.length} 条待审投稿？`
+                        : `确认批量标记 ${selectedPendingIds.length} 条待审投稿为垃圾？`}
+                    </span>
+                    <div className="ps-admin__confirm-actions">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setBulkConfirm(null)}
+                        disabled={bulkBusy}
+                      >
+                        取消
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => void (bulkConfirm === 'reject' ? bulkReject() : bulkSpam())}
+                        disabled={bulkBusy || !hasSelectedPending}
+                      >
+                        {bulkBusy ? '处理中…' : bulkConfirm === 'reject' ? '确认驳回' : '确认标记垃圾'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
