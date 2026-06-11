@@ -10,8 +10,8 @@
 - 前端：React + Vite + TypeScript。
 - 后端业务权威：`server/index.mjs`（Fastify + SQLite）。
 - `worker/index.js` 是 Cloudflare D1 移植版，只有做双后端契约对齐时才改；常规业务先改 Fastify 主线。
-- 后端/API 托管：腾讯 CloudBase 云托管。
-- 临时公网前端托管：Cloudflare Pages。
+- 后端/API 托管：Cloudflare Worker `planshare-api` + D1 `planshare`。
+- 前端托管：Cloudflare Pages `zhaobanzi`。
 
 ## 前端审美与设计系统
 - `DESIGN.md` 是 PlanShare 前端审美与组件设计的单一真相来源，改页面、组件、配色、动效、布局前必须先读。
@@ -21,9 +21,9 @@
 
 ## 线上资源
 - 主分享地址：https://zhaobanzi.pages.dev
-- CloudBase 环境 ID：`planshare-d4gi9p3web9f2c235`
-- CloudBase API 源站：`https://planshare-264988-8-1387201447.sh.run.tcloudbase.com`
-- Cloudflare Pages 只托管静态前端；数据和管理 API 仍在腾讯 CloudBase。
+- 历史 CloudBase 环境 ID：`planshare-d4gi9p3web9f2c235`（当前不作为生产部署目标）
+- Cloudflare Worker API 源站：`https://planshare-api.a549617612.workers.dev`
+- Cloudflare Pages 的 `public/_worker.js` 会把 `/api/*` 代理到 Worker API。
 - 不再使用 `planshare-now.pages.dev`；Cloudflare Pages 里旧项目已删除。
 
 ## 开发与构建
@@ -39,19 +39,21 @@
   ```
 - 前端静态构建使用：
   ```sh
-  VITE_API_BASE='https://planshare-264988-8-1387201447.sh.run.tcloudbase.com' npx vite build --base=/
+  npm run build
   ```
 - SPA 直链依赖 `public/_redirects`，不要删除；它用于让 `/board/:id` 等路径回落到 `index.html`。
-- `src/api/client.ts` 是前端 API 源站配置的单一入口；第三方静态托管时通过 `VITE_API_BASE` 指向 CloudBase。
+- `src/api/client.ts` 是前端 API 源站配置的单一入口；Cloudflare Pages 生产默认走相对路径 `/api/*`，由 `public/_worker.js` 代理到 Worker。
 
 ## 部署
 - 当前线上形态：
   - 前端静态站：Cloudflare Pages，项目名 `zhaobanzi`，域名 `https://zhaobanzi.pages.dev`
-  - 后端/API/SQLite：腾讯 CloudBase 云托管，环境 `planshare-d4gi9p3web9f2c235`
-- 部署 Cloudflare Pages 主站前先构建，再部署：
+  - 后端/API：Cloudflare Worker `planshare-api`
+  - 数据库：Cloudflare D1 `planshare`
+- 部署顺序：先 D1 迁移，再 Worker API，再 Pages：
   ```sh
-  VITE_API_BASE='https://planshare-264988-8-1387201447.sh.run.tcloudbase.com' npx vite build --base=/
-  cp dist/index.html dist/404.html
+  npx wrangler d1 migrations apply planshare --remote
+  npx wrangler deploy
+  npm run build
   npx wrangler pages deploy dist --project-name zhaobanzi --branch main --commit-dirty=true --skip-caching
   ```
 - Cloudflare 相关 CLI：
@@ -61,20 +63,13 @@
   npx wrangler pages deployment list --project-name zhaobanzi
   ```
 - Cloudflare 部署 API 偶尔会 `fetch failed`，通常重试即可；不要因此改业务代码。
-- 腾讯 CloudBase 相关 CLI 使用 `tcb`：
-  ```sh
-  npx tcb login
-  npx tcb env list
-  npx tcb cloudrun --help
-  npx tcb app --help
-  ```
-- 腾讯 CloudBase 后端部署需谨慎，只在后端/API/数据库逻辑确实变更时进行；部署前先确认 `cloudbaserc.json`、环境 ID 和服务名。
-- 不要把 Cloudflare 当后端迁移目标；Cloudflare 当前只是临时/低成本静态前端入口。
+- 腾讯 CloudBase 是历史/备用部署链路；当前生产部署不要走 `tcb`，除非用户明确要求恢复 CloudBase。
+- Cloudflare Worker 是当前生产 API 后端；改 `worker/index.js` 或 D1 schema 后必须用 wrangler 部署并验证。
 - 验证公网前端和 API：
   ```sh
   curl -L https://zhaobanzi.pages.dev/
-  curl -L -H 'Origin: https://zhaobanzi.pages.dev' \
-    https://planshare-264988-8-1387201447.sh.run.tcloudbase.com/api/raids
+  curl -L https://zhaobanzi.pages.dev/api/raids
+  curl -L https://planshare-api.a549617612.workers.dev/api/raids
   ```
 
 ## 禁止误套 WoW 插件流程
@@ -84,5 +79,5 @@
 
 ## 运营约束
 - 现阶段主目标是快速分享和低成本验证，不做过度工程化。
-- 腾讯 CloudBase 免费/试用资源可能到期；Cloudflare Pages 前端不替代后端成本。
+- Cloudflare 免费额度仍需关注 Worker/D1 调用量与写入量。
 - 如果后续要求大陆生产级直连且无风险提示，主线仍是：购买域名 -> ICP 备案 -> 绑定腾讯 CloudBase 或 EdgeOne。

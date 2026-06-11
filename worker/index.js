@@ -4,6 +4,14 @@ const PBKDF2_ITERATIONS = 100000
 const TRUST_REVIEW = 'review'
 const TRUST_TRUSTED = 'trusted'
 const TRUST_PROMOTION_APPROVALS = 3
+const ABUSE_PATTERNS = [
+  /博彩/,
+  /裸聊/,
+  /约炮/,
+  /黄暴/,
+  /代练/,
+  /开票/,
+]
 const REPORT_REASONS = new Set(['spam', 'abuse', 'wrong-info', 'copyright', 'other'])
 const RESERVED_CREATOR_USERNAMES = new Set([
   'admin',
@@ -111,6 +119,23 @@ function fromBase64url(value) {
 async function sha256Hex(value) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function hashText(value) {
+  return sha256Hex(String(value ?? ''))
+}
+
+function normalizeAbuseText(value) {
+  return String(value ?? '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s\p{P}\p{S}]+/gu, '')
+}
+
+function findAbuseReason(...values) {
+  const normalized = normalizeAbuseText(values.filter(Boolean).join('\n'))
+  if (!normalized) return ''
+  return ABUSE_PATTERNS.some((pattern) => pattern.test(normalized)) ? 'content_blacklist' : ''
 }
 
 async function hmac(secret, value) {
@@ -273,7 +298,7 @@ function rowToBoard(row) {
 }
 
 function rowToAdminBoard(row) {
-  return { ...rowToBoard(row), isHidden: row.is_hidden === 1 }
+  return { ...rowToBoard(row), isHidden: row.is_hidden === 1, hiddenBy: row.hidden_by ?? null }
 }
 
 function rowToSubmission(row) {
@@ -300,6 +325,38 @@ function rowToSubmission(row) {
     reviewNote: row.review_note ?? undefined,
     boardId: row.board_id ?? undefined,
     authorId: row.author_id ?? undefined,
+    createdAt: row.created_at,
+    reviewedAt: row.reviewed_at ?? undefined,
+  }
+}
+
+function rowToCreatorSubmission(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    raidId: row.raid_id,
+    bossId: row.boss_id ?? null,
+    difficulty: row.difficulty,
+    description: row.description,
+    contentText: row.content_text,
+    submitterName: row.submitter_name,
+    status: row.status,
+    reviewNote: row.review_note ?? undefined,
+    spamReason: row.spam_reason ?? undefined,
+    boardId: row.board_id ?? undefined,
+    createdAt: row.created_at,
+    reviewedAt: row.reviewed_at ?? undefined,
+  }
+}
+
+function rowToSubmissionReceipt(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    status: row.status,
+    reviewNote: row.review_note ?? undefined,
+    spamReason: row.spam_reason ?? undefined,
+    boardId: row.board_id ?? undefined,
     createdAt: row.created_at,
     reviewedAt: row.reviewed_at ?? undefined,
   }
@@ -333,6 +390,11 @@ function rowToReport(row) {
   return {
     id: row.id,
     boardId: row.board_id,
+    boardTitle: row.board_title_snapshot ?? undefined,
+    boardDescription: row.board_description_snapshot ?? undefined,
+    boardContent: row.board_content_snapshot ?? undefined,
+    boardAuthorId: row.board_author_id_snapshot ?? undefined,
+    boardUpdatedAt: row.board_updated_at_snapshot ?? undefined,
     reason: row.reason,
     detail: row.detail ?? undefined,
     status: row.status,
@@ -414,6 +476,7 @@ function readSubmissionInput(body) {
     creatorGuildName: optionalText(body.creatorGuildName ?? body.guildName),
     creatorGuildRecruit: optionalText(body.creatorGuildRecruit ?? body.guildRecruit),
     creatorGuildContact: optionalText(body.creatorGuildContact ?? body.guildContact),
+    website: typeof body.website === 'string' ? body.website : '',
   }
 }
 
@@ -432,7 +495,11 @@ async function validateSubmissionInput(env, input, hasCreatorSession) {
   const raid = await first(env, 'SELECT * FROM raids WHERE id = ?', [input.raidId])
   if (!raid) return '字段无效：raidId'
   input.seasonVersion = input.seasonVersion || raid.patch
-  if (input.bossId && !(await first(env, 'SELECT * FROM bosses WHERE id = ?', [input.bossId]))) return '字段无效：bossId'
+  if (input.bossId) {
+    const boss = await first(env, 'SELECT * FROM bosses WHERE id = ?', [input.bossId])
+    if (!boss) return '字段无效：bossId'
+    if (boss.raid_id !== input.raidId) return 'BOSS 不属于所选团本'
+  }
   if (input.wantsCreatorProfile && !hasCreatorSession) {
     const usernameError = validateCreatorUsername(input.creatorUsername)
     if (usernameError) return usernameError
@@ -559,7 +626,14 @@ async function validateBoardDraft(env, input) {
   if (!['heroic', 'mythic'].includes(input.difficulty)) return '字段无效：difficulty'
   const raid = await first(env, 'SELECT * FROM raids WHERE id = ?', [input.raidId])
   if (!raid) return '字段无效：raidId'
-  if (input.bossId && !(await first(env, 'SELECT * FROM bosses WHERE id = ?', [input.bossId]))) return '字段无效：bossId'
+  if (input.bossId) {
+    const boss = await first(env, 'SELECT * FROM bosses WHERE id = ?', [input.bossId])
+    if (!boss) return '字段无效：bossId'
+    if (boss.raid_id !== input.raidId) return 'BOSS 不属于所选团本'
+  }
+  if (findAbuseReason(input.title, input.description, input.contentText)) {
+    return '战术内容包含暂不支持公开展示的内容'
+  }
   input.seasonVersion = input.seasonVersion || raid.patch
   return ''
 }
@@ -710,9 +784,9 @@ async function publishSubmission(env, submission, authorId, body = {}) {
   await run(env, `
     INSERT INTO boards (
       id, title, raid_id, boss_id, difficulty, season_version, content_text,
-      import_code, description, author_id, is_hidden, is_featured,
+      import_code, description, author_id, is_hidden, hidden_by, is_featured,
       view_count, like_count, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, ?, 0, 0, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, NULL, ?, 0, 0, ?, ?)
   `, [
     id,
     submission.title,
@@ -770,6 +844,71 @@ async function handle(request, env) {
     if (auth.error) return json({ error: auth.error }, auth.status)
     const author = auth.account.author_id ? await first(env, 'SELECT * FROM authors WHERE id = ?', [auth.account.author_id]) : null
     return json({ user: rowToCreatorAccount(auth.account), author: author ? rowToAuthor(author) : null })
+  }
+
+  if (method === 'GET' && path === '/api/creator/submissions') {
+    const auth = await requireCreator(env, request)
+    if (auth.error) return json({ error: auth.error }, auth.status)
+    const authorId = auth.account.author_id
+    if (!authorId) return json([])
+    return json((await all(env, 'SELECT * FROM submissions WHERE author_id = ? ORDER BY created_at DESC', [authorId])).map(rowToCreatorSubmission))
+  }
+
+  const creatorSubmissionWithdrawMatch = path.match(/^\/api\/creator\/submissions\/([^/]+)\/withdraw$/)
+  if (method === 'POST' && creatorSubmissionWithdrawMatch) {
+    const auth = await requireCreator(env, request)
+    if (auth.error) return json({ error: auth.error }, auth.status)
+    const authorId = auth.account.author_id
+    const submission = await first(env, 'SELECT * FROM submissions WHERE id = ?', [decodeURIComponent(creatorSubmissionWithdrawMatch[1])])
+    if (!authorId || !submission || submission.author_id !== authorId) return json({ error: 'submission not found' }, 404)
+    if (submission.status !== 'pending') return json({ error: '只有待审投稿可以撤回' }, 409)
+    const reviewedAt = nowIso()
+    await run(env, `
+      UPDATE submissions
+      SET status = 'withdrawn', review_note = NULL, board_id = NULL, author_id = ?, reviewed_at = ?
+      WHERE id = ?
+    `, [submission.author_id, reviewedAt, submission.id])
+    await auditLog(env, {
+      actorType: 'creator',
+      actorId: auth.account.id,
+      action: 'creator_submission_withdraw',
+      entityType: 'submission',
+      entityId: submission.id,
+    })
+    return json(rowToCreatorSubmission(await first(env, 'SELECT * FROM submissions WHERE id = ?', [submission.id])))
+  }
+
+  if (method === 'PUT' && path === '/api/creator/password') {
+    const auth = await requireCreator(env, request)
+    if (auth.error) return json({ error: auth.error }, auth.status)
+    if (auth.account.status !== 'active') return json({ error: '账号已被暂停，请联系管理员' }, 403)
+    const body = await readJson(request)
+    const currentPassword = typeof body.currentPassword === 'string' ? body.currentPassword : ''
+    const nextPassword = typeof body.nextPassword === 'string' ? body.nextPassword : ''
+    if (!(await verifyPassword(currentPassword, auth.account.password_hash))) return json({ error: '当前密码不正确' }, 400)
+    if (nextPassword.length < 8) return json({ error: '密码长度至少 8 位' }, 400)
+    if (await verifyPassword(nextPassword, auth.account.password_hash)) return json({ error: '新密码不能和当前密码相同' }, 400)
+    const header = request.headers.get('Authorization') || ''
+    const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+    const now = nowIso()
+    await run(env, 'UPDATE creator_accounts SET password_hash = ?, updated_at = ? WHERE id = ?', [
+      await hashPassword(nextPassword),
+      now,
+      auth.account.id,
+    ])
+    await run(env, `
+      UPDATE creator_sessions
+      SET revoked_at = ?
+      WHERE creator_account_id = ? AND token_hash != ? AND revoked_at IS NULL
+    `, [now, auth.account.id, token ? await sha256Hex(token) : ''])
+    await auditLog(env, {
+      actorType: 'creator',
+      actorId: auth.account.id,
+      action: 'creator_password_update',
+      entityType: 'creator_account',
+      entityId: auth.account.id,
+    })
+    return json({ ok: true, revokedOtherSessions: true })
   }
 
   if (method === 'PUT' && path === '/api/creator/profile') {
@@ -835,9 +974,9 @@ async function handle(request, env) {
     await run(env, `
       INSERT INTO boards (
         id, title, raid_id, boss_id, difficulty, season_version, content_text,
-        import_code, description, author_id, is_hidden, is_featured,
+        import_code, description, author_id, is_hidden, hidden_by, is_featured,
         view_count, like_count, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, 0, 0, 0, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, NULL, 0, 0, 0, ?, ?)
     `, [id, input.title, input.raidId, input.bossId, input.difficulty, input.seasonVersion, input.contentText, input.description, approved.author.id, date, date])
     await auditLog(env, {
       actorType: 'creator',
@@ -858,7 +997,7 @@ async function handle(request, env) {
     const row = await first(env, 'SELECT * FROM boards WHERE id = ?', [decodeURIComponent(creatorBoardMatch[1])])
     if (!row || row.author_id !== approved.author.id) return json({ error: 'board not found' }, 404)
     if (method === 'DELETE') {
-      await run(env, 'UPDATE boards SET is_hidden = 1, updated_at = ? WHERE id = ?', [today(), row.id])
+      await run(env, "UPDATE boards SET is_hidden = 1, hidden_by = 'creator', updated_at = ? WHERE id = ?", [today(), row.id])
       await auditLog(env, {
         actorType: 'creator',
         actorId: auth.account.id,
@@ -869,6 +1008,9 @@ async function handle(request, env) {
       return json({ ok: true })
     }
     const body = await readJson(request)
+    if (body.isHidden === false && row.hidden_by === 'admin') {
+      return json({ error: '该战术板已被管理员隐藏，不能自行恢复发布' }, 403)
+    }
     const input = readBoardDraft(body, row)
     const error = await validateBoardDraft(env, input)
     if (error) return json({ error }, 400)
@@ -889,6 +1031,10 @@ async function handle(request, env) {
         sets.push(`${col} = ?`)
         params.push(value)
       }
+    }
+    if ('isHidden' in body) {
+      sets.push('hidden_by = ?')
+      params.push(input.isHidden ? 'creator' : null)
     }
     sets.push('updated_at = ?')
     params.push(today(), row.id)
@@ -951,16 +1097,25 @@ async function handle(request, env) {
     const body = await readJson(request)
     const reason = cleanText(body.reason)
     if (!REPORT_REASONS.has(reason)) return json({ error: '字段无效：reason' }, 400)
+    const detail = optionalText(body.detail)
+    if (reason === 'other' && !detail) return json({ error: '选择其它原因时请补充说明' }, 400)
     const reportId = randomId('rp')
     await run(env, `
       INSERT INTO reports (
-        id, board_id, reason, detail, source_key, status, resolution_note, created_at, reviewed_at
-      ) VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, NULL)
+        id, board_id, board_title_snapshot, board_description_snapshot,
+        board_content_snapshot, board_author_id_snapshot, board_updated_at_snapshot,
+        reason, detail, source_key, status, resolution_note, created_at, reviewed_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NULL, ?, NULL)
     `, [
       reportId,
       row.id,
+      row.title,
+      row.description,
+      row.content_text,
+      row.author_id,
+      row.updated_at,
       reason,
-      optionalText(body.detail),
+      detail,
       clientKey,
       nowIso(),
     ])
@@ -1010,14 +1165,33 @@ async function handle(request, env) {
     const id = `s-${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`
     const createdAt = nowIso()
     try {
-      const application = input.wantsCreatorProfile && !creatorAccount ? await createCreatorApplication(env, input, createdAt) : null
+      const contentHash = await hashText(input.contentText)
+      const duplicate = await first(env, 'SELECT id FROM submissions WHERE source_key = ? AND content_hash = ? LIMIT 1', [
+        clientKey,
+        contentHash,
+      ])
+      const spamReason =
+        input.website
+          ? 'honeypot'
+          : findAbuseReason(
+              input.title,
+              input.description,
+              input.contentText,
+              input.submitterName,
+              input.contact,
+              input.creatorBio,
+              input.creatorGuildName,
+              input.creatorGuildRecruit,
+              input.creatorGuildContact,
+            ) || (duplicate ? 'duplicate_content' : '')
+      const application = !spamReason && input.wantsCreatorProfile && !creatorAccount ? await createCreatorApplication(env, input, createdAt) : null
       await run(env, `
         INSERT INTO submissions (
           id, title, raid_id, boss_id, difficulty, season_version, description,
           content_text, submitter_name, contact, wants_creator_profile,
           creator_avatar_url, creator_bio, creator_guild_name, creator_guild_recruit,
-          creator_guild_contact, status, source_key, author_id, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)
+          creator_guild_contact, status, source_key, content_hash, spam_reason, author_id, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         id,
         input.title,
@@ -1035,7 +1209,10 @@ async function handle(request, env) {
         input.creatorGuildName,
         input.creatorGuildRecruit,
         input.creatorGuildContact,
+        spamReason ? 'spam' : 'pending',
         clientKey,
+        contentHash,
+        spamReason || null,
         creatorAccount?.author_id ?? application?.author?.id ?? null,
         createdAt,
       ])
@@ -1045,6 +1222,18 @@ async function handle(request, env) {
     } catch (err) {
       return json({ error: err.message || '投稿失败' }, err.statusCode || 400)
     }
+  }
+
+  const submissionReceiptMatch = path.match(/^\/api\/submissions\/([^/]+)\/receipt$/)
+  if (method === 'GET' && submissionReceiptMatch) {
+    const clientKey = getClientKey(request)
+    const limit = await hitPersistentRateLimit(env, `receipt:${clientKey}`, { limit: 30, windowMs: 60 * 60 * 1000 })
+    if (!limit.allowed) return rateLimitResponse(limit, '查询太频繁，请稍后再试')
+    const id = cleanText(decodeURIComponent(submissionReceiptMatch[1]))
+    if (!id) return json({ error: '请填写投稿编号' }, 400)
+    const submission = await first(env, 'SELECT * FROM submissions WHERE id = ?', [id])
+    if (!submission) return json({ error: '没有找到这个投稿编号' }, 404)
+    return json(rowToSubmissionReceipt(submission))
   }
 
   const admin = path.startsWith('/api/admin/') || (path === '/api/boards' && method === 'POST') || (boardMatch && ['PUT', 'DELETE'].includes(method)) || (path === '/api/authors' && method === 'POST') || (authorMatch && ['PUT', 'DELETE'].includes(method))
@@ -1063,9 +1252,9 @@ async function handle(request, env) {
     await run(env, `
       INSERT INTO boards (
         id, title, raid_id, boss_id, difficulty, season_version, content_text,
-        import_code, description, author_id, is_hidden, is_featured,
+        import_code, description, author_id, is_hidden, hidden_by, is_featured,
         view_count, like_count, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, ?, 0, 0, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 0, NULL, ?, 0, 0, ?, ?)
     `, [id, b.title, b.raidId, b.bossId ?? null, b.difficulty, b.seasonVersion, b.contentText, b.description ?? '', b.authorId, b.isFeatured ? 1 : 0, date, date])
     await auditLog(env, {
       actorType: 'admin',
@@ -1216,7 +1405,7 @@ async function handle(request, env) {
     if (adminReportActionMatch[2] === 'hide-board') {
       const board = await first(env, 'SELECT * FROM boards WHERE id = ?', [report.board_id])
       if (!board) return json({ error: 'board not found' }, 404)
-      await run(env, 'UPDATE boards SET is_hidden = 1, updated_at = ? WHERE id = ?', [today(), board.id])
+      await run(env, "UPDATE boards SET is_hidden = 1, hidden_by = 'admin', updated_at = ? WHERE id = ?", [today(), board.id])
       await run(env, `
         UPDATE reports
         SET status = 'hidden', resolution_note = ?, reviewed_at = ?
@@ -1418,18 +1607,18 @@ async function handle(request, env) {
       await run(env, `
         INSERT INTO boards (
           id, title, raid_id, boss_id, difficulty, season_version, content_text,
-          import_code, description, author_id, is_hidden, is_featured,
+          import_code, description, author_id, is_hidden, hidden_by, is_featured,
           view_count, like_count, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           title = excluded.title, raid_id = excluded.raid_id, boss_id = excluded.boss_id,
           difficulty = excluded.difficulty, season_version = excluded.season_version,
           content_text = excluded.content_text, import_code = excluded.import_code,
           description = excluded.description, author_id = excluded.author_id,
-          is_hidden = excluded.is_hidden, is_featured = excluded.is_featured,
+          is_hidden = excluded.is_hidden, hidden_by = excluded.hidden_by, is_featured = excluded.is_featured,
           view_count = excluded.view_count, like_count = excluded.like_count,
           created_at = excluded.created_at, updated_at = excluded.updated_at
-      `, [b.id, b.title, b.raidId, b.bossId ?? null, b.difficulty, b.seasonVersion, b.contentText, b.importCode ?? null, b.description, b.authorId, b.isHidden ? 1 : 0, b.isFeatured ? 1 : 0, b.viewCount ?? 0, b.likeCount ?? 0, b.createdAt, b.updatedAt])
+      `, [b.id, b.title, b.raidId, b.bossId ?? null, b.difficulty, b.seasonVersion, b.contentText, b.importCode ?? null, b.description, b.authorId, b.isHidden ? 1 : 0, b.hiddenBy ?? (b.isHidden ? 'admin' : null), b.isFeatured ? 1 : 0, b.viewCount ?? 0, b.likeCount ?? 0, b.createdAt, b.updatedAt])
     }
     for (const s of submissions) {
       await run(env, `
@@ -1519,6 +1708,10 @@ async function handle(request, env) {
         sets.push(`${col} = ?`)
         params.push(conv(body[key]))
       }
+    }
+    if ('isHidden' in body) {
+      sets.push('hidden_by = ?')
+      params.push(body.isHidden ? 'admin' : null)
     }
     sets.push('updated_at = ?')
     params.push(today(), id)
