@@ -31,6 +31,7 @@ import {
 } from '../api/hooks'
 import { difficultyLabel, formatDate } from '../lib/format'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
+import { copyToClipboard } from '../lib/clipboard'
 import {
   Avatar,
   Button,
@@ -1245,6 +1246,7 @@ function AccountRow({
   const [isResetting, setIsResetting] = useState(false)
   const [password, setPassword] = useState('')
   const [issuedPassword, setIssuedPassword] = useState('')
+  const [copyNotice, setCopyNotice] = useState('')
   const trimmedPassword = password.trim()
   const canReset = trimmedPassword.length >= 8 && !busy
   const authorName = account.author?.name ?? '未绑定作者'
@@ -1254,6 +1256,7 @@ function AccountRow({
   function handleGenerate() {
     setPassword(generateTemporaryPassword())
     setIssuedPassword('')
+    setCopyNotice('')
   }
 
   function handleReset(e: React.FormEvent) {
@@ -1262,9 +1265,16 @@ function AccountRow({
     const nextPassword = trimmedPassword
     onResetPassword(nextPassword, () => {
       setIssuedPassword(nextPassword)
+      setCopyNotice('')
       setPassword('')
       setIsResetting(false)
     })
+  }
+
+  async function copyIssuedPassword() {
+    if (!issuedPassword) return
+    const copied = await copyToClipboard(issuedPassword)
+    setCopyNotice(copied ? '新密码已复制。' : '复制失败，请手动选中新密码。')
   }
 
   return (
@@ -1285,9 +1295,15 @@ function AccountRow({
           {account.lastLoginAt && <span>最后登录：{formatDate(account.lastLoginAt)}</span>}
         </div>
         {issuedPassword && (
-          <p className="ps-admin__success" role="status">
-            已重置。请把新密码「{issuedPassword}」发给用户；离开本行后后台不会再显示它。
-          </p>
+          <div className="ps-admin__issued-password" role="status">
+            <p className="ps-admin__success">
+              已重置。请把新密码「{issuedPassword}」发给用户；离开本行后后台不会再显示它。
+            </p>
+            <Button variant="secondary" size="sm" onClick={copyIssuedPassword}>
+              复制新密码
+            </Button>
+            {copyNotice && <p className="ps-admin__success">{copyNotice}</p>}
+          </div>
         )}
       </div>
 
@@ -1305,6 +1321,7 @@ function AccountRow({
               onChange={(e) => {
                 setPassword(e.target.value)
                 setIssuedPassword('')
+                setCopyNotice('')
               }}
               placeholder="至少 8 位"
               autoComplete="off"
@@ -1316,6 +1333,7 @@ function AccountRow({
                 onClick={() => {
                   setIsResetting(false)
                   setPassword('')
+                  setCopyNotice('')
                 }}
                 disabled={busy}
               >
@@ -1336,6 +1354,7 @@ function AccountRow({
             onClick={() => {
               setIsResetting(true)
               setIssuedPassword('')
+              setCopyNotice('')
             }}
           >
             重置密码

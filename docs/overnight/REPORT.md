@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.93s
+✓ built in 1.91s
 
 1..48
 # tests 48
@@ -1263,16 +1263,17 @@ vite v5.4.21 building for production...
 
 ✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:153:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.2s)
 ✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:428:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.5s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:492:1 › creator can change password from dashboard and log in with the new password (1.9s)
-✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:745:1 › creator dashboard explains duplicate content screening and keeps retry editable (1.6s)
-✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1056:1 › visitor can check submission receipt and open the approved board (1.0s)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1090:1 › visitor rejected receipt can return to a clean resubmission form (614ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1119:1 › visitor spam receipt can return to a clean resubmission form (553ms)
-✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1142:1 › visitor withdrawn receipt can return to a clean resubmission form (584ms)
-✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1168:1 › submission receipt rate limit shows a visible visitor-facing error (601ms)
-✓  23 [chromium] › tests/e2e/ugc-smoke.spec.ts:1225:1 › duplicate visitor submission explains that the same content will not enter review twice (1.1s)
-✓  27 [chromium] › tests/e2e/ugc-smoke.spec.ts:1399:1 › creator direct publish screens unsafe content in dashboard (881ms)
-27 passed (1.1m)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:492:1 › creator can change password from dashboard and log in with the new password (1.7s)
+✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › admin can reset a creator password and the creator can log in again (1.7s)
+✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:748:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.5s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1059:1 › visitor can check submission receipt and open the approved board (985ms)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1093:1 › visitor rejected receipt can return to a clean resubmission form (588ms)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1122:1 › visitor spam receipt can return to a clean resubmission form (625ms)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1145:1 › visitor withdrawn receipt can return to a clean resubmission form (608ms)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1171:1 › submission receipt rate limit shows a visible visitor-facing error (10.6s)
+✓  23 [chromium] › tests/e2e/ugc-smoke.spec.ts:1228:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
+✓  27 [chromium] › tests/e2e/ugc-smoke.spec.ts:1402:1 › creator direct publish screens unsafe content in dashboard (807ms)
+27 passed (1.2m)
 ```
 
 ## 高风险 diff
@@ -1288,6 +1289,7 @@ vite v5.4.21 building for production...
 - `server/index.mjs`：新增 raid/boss 关系校验，并禁止管理员把板关联到不存在的作者；需人工确认历史数据里是否存在旧的 boss 为空、错配或孤儿作者记录，必要时做一次只读巡检。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
+- `src/pages/Admin.tsx`：管理员重置创作者密码后新增“复制新密码”；需人工确认明文临时密码仅短暂展示在当前账号行的安全取舍符合运营预期。
 - `src/pages/Creator.tsx`：创作者登录页新增“还差”状态提示；需人工确认登录页信息密度仍然简洁。
 - `src/pages/Creator.tsx`：创作者登录/修改密码错误会在继续输入后清理；需人工确认错误消失时机足够符合直觉。
 - `src/pages/Creator.tsx`：资料保存、直发发布和编辑保存的旧状态会在继续输入后清理；需人工确认成功提示保留/消失时机足够符合直觉。

@@ -739,6 +739,17 @@
   color: var(--color-gold);
 }
 
+.ps-admin__issued-password {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ps-admin__issued-password .ps-admin__success {
+  margin: 0;
+}
+
 /* ---------- 操作区：靠右主按钮 ---------- */
 .ps-admin__actions {
   display: flex;

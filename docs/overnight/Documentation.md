@@ -3241,6 +3241,48 @@ vite v5.4.21 building for production...
 27 passed (1.1m)
 ```
 
+### UGC 生态补缺口：管理员重置密码后可复制新密码
+```text
+管理员 / 创作者用户探索:
+本项目不做邮箱、短信、第三方登录；创作者忘记密码时，只能找管理员重置。
+后台原本会显示“请把新密码发给用户”，但没有复制按钮。管理员需要手动选中新密码，容易漏字符，账号救援链路不够稳。
+
+已修复：
+- 创作者账号行重置密码成功后显示“复制新密码”
+- 点击后走全站统一 copyToClipboard
+- 成功显示“新密码已复制。”
+- 复制失败时提示“复制失败，请手动选中新密码。”
+- 不改变重置密码接口、临时密码生成规则和“离开本行后不再显示”的安全提示
+
+决策记录：
+- 只在已重置且仍显示本次临时密码时提供复制按钮；不持久化、不回查、不在审计日志里保存明文密码。
+- 这是管理员救援创作者账号的操作闭环，不扩大公开侧功能。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "admin can reset a creator password"
+
+Running 1 test using 1 worker
+·
+1 passed (8.8s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › admin can reset a creator password and the creator can log in again (1.7s)
+27 passed (1.2m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
