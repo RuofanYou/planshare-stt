@@ -1551,6 +1551,41 @@ vite v5.4.21 building for production...
 11 passed (36.5s)
 ```
 
+### UGC 生态补缺口：作者页点赞聚合同步
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "author page likes"
+
+Running 1 test using 1 worker
+·
+1 passed (2.5s)
+```
+
+```text
+行为:
+访客打开作者主页，记录“获赞”统计。
+在作者主页作品卡点击“点赞”。
+作品卡变为“已点赞”，作者页“获赞”统计同步 +1。
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.11s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓  8 [chromium] › tests/e2e/ugc-smoke.spec.ts:528:1 › author page likes update author aggregate stats (518ms)
+✓ 11 [chromium] › tests/e2e/ugc-smoke.spec.ts:613:1 › creator dashboard blocks self-restore for boards hidden by admin reports (709ms)
+✓ 12 [chromium] › tests/e2e/ugc-smoke.spec.ts:664:1 › creator direct publish screens unsafe content in dashboard (1.0s)
+12 passed (37.4s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

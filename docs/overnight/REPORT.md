@@ -1265,6 +1265,7 @@ Playwright:
 - `src/pages/BoardDetail.tsx`：访客点赞显示改为以后端返回 likeCount 真值收敛；需人工确认乐观反馈和刷新后计数一致。
 - `src/components/BoardCard.tsx` 与 `src/components/LikeButton.tsx`：列表卡片点赞从本地 mock 改为后端持久化；需人工确认首页、团本页、作者页的卡片排序和点赞反馈符合预期。
 - `src/pages/Author.tsx` 与 `src/components/GuildCard.tsx`：创作者公会资料保存后会公开展示并支持复制联系方式；需人工确认公开范围符合运营预期。
+- `src/api/hooks.ts`：点赞后会刷新作者详情缓存，保证作者页“获赞”聚合实时更新；需人工确认高频点赞下缓存刷新成本可接受。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。
 - `src/lib/clipboard.ts`：抽出剪贴板 fallback 给详情页和创作者后台共用；需人工复核旧详情页复制 toast 行为未退化。
 - `src/pages/Creator.tsx`：编辑草稿存储在浏览器 localStorage，并按 board id 隔离；需人工复核多账号共用同一浏览器时是否符合运营预期。

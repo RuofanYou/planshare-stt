@@ -100,8 +100,8 @@ export function useAuthor(authorId: string | undefined) {
 /* ============================ 变更（mutation） ============================ */
 
 /**
- * 点赞：后端持久化 +1。成功后失效所有 boards 列表与该板详情，
- * 让点赞数与排序由后端真值重算（不本地猜测）。
+ * 点赞：后端持久化 +1。成功后失效列表、详情和作者详情，
+ * 让点赞数、排序与作者聚合统计都由后端真值重算。
  */
 export function useLikeBoard() {
   const qc = useQueryClient()
@@ -110,6 +110,7 @@ export function useLikeBoard() {
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['boards'] })
       qc.invalidateQueries({ queryKey: ['board', result.id] })
+      qc.invalidateQueries({ queryKey: ['author'] })
     },
   })
 }

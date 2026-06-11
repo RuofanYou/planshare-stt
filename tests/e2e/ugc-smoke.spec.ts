@@ -525,6 +525,21 @@ test('home search finds boards by boss and author names', async ({ page }) => {
   await expect(page.locator('.ps-detail__author', { hasText: '妮可' })).toBeVisible()
 })
 
+test('author page likes update author aggregate stats', async ({ page }) => {
+  await page.goto('/author/a-nike')
+  await expect(page.getByRole('heading', { name: '妮可' })).toBeVisible()
+
+  const likesStat = page.locator('.ps-author__stat', { hasText: '获赞' })
+  const likesText = (await likesStat.locator('.ps-author__stat-num').textContent()) ?? ''
+  const likesBefore = Number(likesText.replace(/[^\d]/g, ''))
+  expect(Number.isFinite(likesBefore)).toBeTruthy()
+
+  const firstCard = page.locator('.ps-card').first()
+  await firstCard.getByRole('button', { name: '点赞' }).click()
+  await expect(firstCard.getByRole('button', { name: '已点赞' })).toBeVisible()
+  await expect(likesStat.locator('.ps-author__stat-num')).toContainText(String(likesBefore + 1))
+})
+
 test('submit draft survives reload without saving password or contact', async ({ page }) => {
   const runId = Date.now().toString(36)
   const draftTitle = `草稿保护 ${runId}`
