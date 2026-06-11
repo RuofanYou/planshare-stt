@@ -2483,6 +2483,53 @@ vite v5.4.21 building for production...
 18 passed (53.7s)
 ```
 
+### UGC 生态补缺口：创作者危险操作改为页面内二次确认
+```text
+普通创作者探索:
+创作者后台有两个容易误点的动作：撤回待审投稿、下架已发布战术板。
+原行为使用浏览器原生 confirm 弹窗，虽然能阻止误点，但体验割裂，也会阻塞内置浏览器预览。
+后台管理台同类下架/删除已经是页面内确认，所以创作者侧也收敛成一致的页面内确认。
+
+已修复：
+- 点“撤回投稿”先显示页面内确认条，点“取消”保持待审核，点“确认撤回”才撤回
+- 点“下架”先显示页面内确认条，点“取消”保持已发布，点“确认下架”才下架
+- 下架后仍保留“恢复发布”，管理员隐藏的板仍不能由创作者自行恢复
+- 不再依赖浏览器原生 confirm 弹窗
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "withdraw a pending"
+
+Running 1 test using 1 worker
+·
+1 passed (6.6s)
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (13.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.9s)
+✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:557:1 › creator can withdraw a pending submission from dashboard (4.3s)
+18 passed (59.6s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

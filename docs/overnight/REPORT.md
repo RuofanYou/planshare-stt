@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.90s
+✓ built in 1.91s
 
 1..47
 # tests 47
@@ -1261,11 +1261,11 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.5s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:387:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.3s)
-✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:890:1 › report rate limit shows a visible visitor-facing error (1.9s)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1024:1 › creator direct publish screens unsafe content in dashboard (775ms)
-18 passed (53.7s)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.9s)
+✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:557:1 › creator can withdraw a pending submission from dashboard (4.3s)
+✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:900:1 › report rate limit shows a visible visitor-facing error (1.8s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1034:1 › creator direct publish screens unsafe content in dashboard (734ms)
+18 passed (59.6s)
 ```
 
 ## 高风险 diff
@@ -1304,6 +1304,7 @@ vite v5.4.21 building for production...
 - `src/pages/Creator.tsx`：编辑草稿存储在浏览器 localStorage，并按 board id 隔离；需人工复核多账号共用同一浏览器时是否符合运营预期。
 - `src/pages/Creator.tsx`：资料草稿存储在浏览器 localStorage，并按 author id 隔离；需人工复核公会联系方式本地暂存的隐私预期。
 - `src/pages/Creator.tsx` 与 `src/pages/Creator.css`：创作者后台新增资料/直发/编辑草稿清空按钮；需人工确认按钮文案足够明确，不会让用户误删仍想保留的本机草稿。
+- `src/pages/Creator.tsx` 与 `src/pages/Creator.css`：创作者撤回投稿、下架战术板从原生 confirm 改为页面内二次确认；需人工确认确认条位置和按钮文案足够醒目。
 - `src/pages/Creator.tsx`：新创作者审核期资料区按半公开、已公开但审核期、trusted 三种状态展示直发门槛；需人工确认 3 次门槛在运营上是否仍合适。
 - `src/pages/Creator.tsx`：系统拦截的创作者投稿现在可“修改后重投”，并把 `content_blacklist` 翻译成“内容风险”；需人工确认被拦截内容回填到本机草稿符合治理预期。
 - `server/ugc-ready.test.mjs` 与 `tests/e2e/ugc-smoke.spec.ts`：举报治理新增“驳回举报不隐藏公开板”的回归覆盖；需人工确认后台驳回文案和运营操作权限符合预期。

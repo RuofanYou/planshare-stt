@@ -129,6 +129,29 @@
   margin-top: var(--space-2);
 }
 
+.ps-creator__confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-strong);
+}
+
+.ps-creator__confirm p {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-creator__confirm .ps-creator__actions {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
 .ps-creator__form {
   display: flex;
   flex-direction: column;
@@ -309,6 +332,7 @@
   .ps-creator__field-grid,
   .ps-creator__section-head,
   .ps-creator__board-top,
+  .ps-creator__confirm,
   .ps-creator__draft-bar,
   .ps-creator__submission-top {
     align-items: flex-start;

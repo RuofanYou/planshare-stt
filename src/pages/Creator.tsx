@@ -413,10 +413,11 @@ function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }
   const status = submissionStatusMeta(submission)
   const withdrawSubmission = useWithdrawCreatorSubmission()
   const navigate = useNavigate()
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false)
 
   function withdraw() {
-    if (!window.confirm('确定撤回这条待审投稿？撤回后管理员不会再审核它。')) return
     withdrawSubmission.mutate(submission.id)
+    setConfirmWithdraw(false)
   }
 
   function retrySubmission() {
@@ -476,13 +477,31 @@ function CreatorSubmissionItem({ submission }: { submission: CreatorSubmission }
           <Button
             variant="ghost"
             size="sm"
-            onClick={withdraw}
+            onClick={() => setConfirmWithdraw(true)}
             disabled={withdrawSubmission.isPending}
           >
             {withdrawSubmission.isPending ? '撤回中…' : '撤回投稿'}
           </Button>
         )}
       </div>
+      {confirmWithdraw && submission.status === 'pending' && (
+        <div className="ps-creator__confirm glass-strong" role="alertdialog">
+          <p>确定撤回这条待审投稿？撤回后管理员不会再审核它。</p>
+          <div className="ps-creator__actions">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setConfirmWithdraw(false)}
+              disabled={withdrawSubmission.isPending}
+            >
+              取消
+            </Button>
+            <Button variant="primary" size="sm" onClick={withdraw} disabled={withdrawSubmission.isPending}>
+              确认撤回
+            </Button>
+          </div>
+        </div>
+      )}
       {withdrawSubmission.error && (
         <p className="ps-creator__error" role="alert">
           {(withdrawSubmission.error as Error).message}
@@ -1036,6 +1055,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   const [description, setDescription] = useState(initialEditDraft.description)
   const [contentText, setContentText] = useState(initialEditDraft.contentText)
   const [copyNotice, setCopyNotice] = useState('')
+  const [confirmHide, setConfirmHide] = useState(false)
   const missingEditItems = [
     title.trim() === '' ? '标题' : '',
     contentText.trim() === '' ? '战术正文' : '',
@@ -1084,8 +1104,8 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   }
 
   function hideBoard() {
-    if (!window.confirm('确定下架这个战术板？下架后不会公开展示，但可以随时恢复发布。')) return
     deleteBoard.mutate(board.id)
+    setConfirmHide(false)
   }
 
   function discardEditDraft() {
@@ -1103,6 +1123,10 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   }
 
   const hiddenByAdmin = board.isHidden && board.hiddenBy === 'admin'
+
+  useEffect(() => {
+    if (board.isHidden || hiddenByAdmin) setConfirmHide(false)
+  }, [board.isHidden, hiddenByAdmin])
 
   return (
     <article className="ps-creator__board">
@@ -1202,7 +1226,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={hideBoard}
+                  onClick={() => setConfirmHide(true)}
                   disabled={deleteBoard.isPending}
                 >
                   {deleteBoard.isPending ? '下架中…' : '下架'}
@@ -1210,6 +1234,24 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
               </>
             )}
           </div>
+          {confirmHide && !board.isHidden && !hiddenByAdmin && (
+            <div className="ps-creator__confirm glass-strong" role="alertdialog">
+              <p>确定下架这个战术板？下架后不会公开展示，但可以随时恢复发布。</p>
+              <div className="ps-creator__actions">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setConfirmHide(false)}
+                  disabled={deleteBoard.isPending}
+                >
+                  取消
+                </Button>
+                <Button variant="primary" size="sm" onClick={hideBoard} disabled={deleteBoard.isPending}>
+                  确认下架
+                </Button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </article>
