@@ -1817,6 +1817,7 @@ app.post('/api/boards/:id/reports', (req, reply) => {
   const reason = cleanText(req.body?.reason)
   if (!REPORT_REASONS.has(reason)) return reply.code(400).send({ error: '字段无效：reason' })
   const detail = optionalText(req.body?.detail)
+  if (reason === 'other' && !detail) return reply.code(400).send({ error: '选择其它原因时请补充说明' })
   const id = `rp-${randomBytes(8).toString('hex')}`
   stmt.insertReport.run({
     id,

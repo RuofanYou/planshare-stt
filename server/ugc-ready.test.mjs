@@ -225,6 +225,14 @@ test('reports flow through admin queue, can hide boards, and admin actions are a
   assert.equal(report.body.boardTitle, board.title)
   assert.equal(report.body.boardContent, board.contentText)
 
+  const emptyOther = await requestJson(server.baseUrl, `/api/boards/${board.id}/reports`, {
+    method: 'POST',
+    headers: { 'X-Real-IP': '198.51.100.79' },
+    body: JSON.stringify({ reason: 'other' }),
+  })
+  assert.equal(emptyOther.res.status, 400)
+  assert.equal(emptyOther.body.error, '选择其它原因时请补充说明')
+
   const admin = await adminToken(server.baseUrl)
   const reports = await requestJson(server.baseUrl, '/api/admin/reports', {
     headers: { Authorization: `Bearer ${admin}` },

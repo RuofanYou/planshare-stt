@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.91s
+✓ built in 1.89s
 
 1..47
 # tests 47
@@ -1261,11 +1261,11 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.9s)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.4s)
 ✓   6 [chromium] › tests/e2e/ugc-smoke.spec.ts:557:1 › creator can withdraw a pending submission from dashboard (4.3s)
-✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:900:1 › report rate limit shows a visible visitor-facing error (1.8s)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1034:1 › creator direct publish screens unsafe content in dashboard (734ms)
-18 passed (59.6s)
+✓  16 [chromium] › tests/e2e/ugc-smoke.spec.ts:924:1 › visitor can report a board and admin can hide it from public pages (10.0s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1037:1 › creator direct publish screens unsafe content in dashboard (899ms)
+18 passed (1.0m)
 ```
 
 ## 高风险 diff
@@ -1298,6 +1298,7 @@ vite v5.4.21 building for production...
 - `src/pages/Submit.tsx` 与 `tests/e2e/ugc-smoke.spec.ts`：创作者用户名格式改为提交前拦截；需人工确认“登录用户名格式”文案足够直观。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：登录创作者进入投稿页时隐藏重复申请入口并提示会进入本人审核进度；需人工确认“游客投稿”和“创作者继续投稿”的文案边界足够清楚。
 - `src/pages/BoardDetail.tsx`：举报成功提示改为“已进入管理员处理队列”；需人工确认治理流程说明足够清楚。
+- `src/pages/BoardDetail.tsx` 与 `server/index.mjs`：举报理由为“其它”时必须补充说明；需人工确认该门槛不会挡住有价值的简短举报。
 - `src/pages/BoardDetail.tsx`：公开板 404 且后端返回 `board not found` 时显示“已不可见”；需人工确认下架/隐藏/不存在统一文案可接受。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。
 - `src/lib/clipboard.ts`：抽出剪贴板 fallback 给详情页和创作者后台共用；需人工复核旧详情页复制 toast 行为未退化。

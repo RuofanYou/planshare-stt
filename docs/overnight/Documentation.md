@@ -2530,6 +2530,52 @@ vite v5.4.21 building for production...
 18 passed (59.6s)
 ```
 
+### UGC 生态补缺口：举报“其它”必须补充说明
+```text
+普通浏览用户探索:
+举报理由里有“其它”，但此前可以不写任何说明就提交。
+这类举报进入后台后管理员无法判断，开放 UGC 后会制造治理噪音。
+
+已修复：
+- 前端选择“其它”时，补充说明变为必填
+- 空说明时页面显示“选择其它原因时请补充说明。”，提交按钮禁用
+- 填写说明后才允许提交
+- 后端 `/api/boards/:id/reports` 同步拒绝空说明，避免绕过前端
+```
+
+```text
+node --test --test-concurrency=1 server/ugc-ready.test.mjs
+
+1..5
+# tests 5
+# pass 5
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor can report"
+
+Running 1 test using 1 worker
+·
+1 passed (12.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.89s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓  16 [chromium] › tests/e2e/ugc-smoke.spec.ts:924:1 › visitor can report a board and admin can hide it from public pages (10.0s)
+18 passed (1.0m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

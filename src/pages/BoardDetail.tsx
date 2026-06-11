@@ -259,6 +259,8 @@ export default function BoardDetail() {
   const [reportReason, setReportReason] = useState<(typeof REPORT_REASONS)[number]['value']>('wrong-info')
   const [reportDetail, setReportDetail] = useState('')
   const [reportDone, setReportDone] = useState(false)
+  const reportDetailRequired = reportReason === 'other'
+  const reportDetailMissing = reportDetailRequired && reportDetail.trim() === ''
   function flashToast(message = '已复制到剪贴板') {
     setToastText(message)
     window.setTimeout(() => setToastText(''), TOAST_DURATION)
@@ -319,6 +321,7 @@ export default function BoardDetail() {
   function submitReport(e: React.FormEvent) {
     e.preventDefault()
     if (!board || reportBoard.isPending) return
+    if (reportDetailMissing) return
     reportBoard.mutate(
       {
         boardId: board.id,
@@ -533,7 +536,7 @@ export default function BoardDetail() {
                     ))}
                   </select>
                   <label className="ps-detail__report-label" htmlFor="ps-report-detail">
-                    补充说明
+                    {reportDetailRequired ? '补充说明（必填）' : '补充说明'}
                   </label>
                   <textarea
                     id="ps-report-detail"
@@ -543,12 +546,17 @@ export default function BoardDetail() {
                     rows={3}
                     maxLength={200}
                   />
+                  {reportDetailMissing && (
+                    <p className="ps-detail__report-error" role="alert">
+                      选择其它原因时请补充说明。
+                    </p>
+                  )}
                   {reportBoard.error && (
                     <p className="ps-detail__report-error" role="alert">
                       {(reportBoard.error as Error).message}
                     </p>
                   )}
-                  <Button type="submit" variant="primary" size="sm" disabled={reportBoard.isPending}>
+                  <Button type="submit" variant="primary" size="sm" disabled={reportBoard.isPending || reportDetailMissing}>
                     {reportBoard.isPending ? '提交中…' : '提交举报'}
                   </Button>
                 </form>

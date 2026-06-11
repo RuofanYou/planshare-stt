@@ -933,7 +933,10 @@ test('visitor can report a board and admin can hide it from public pages', async
   await expect(page.getByRole('heading', { name: dismissedCase.board.title })).toBeVisible()
   await page.getByRole('button', { name: '举报' }).click()
   await page.locator('#ps-report-reason').selectOption('other')
+  await expect(page.getByText('选择其它原因时请补充说明。')).toBeVisible()
+  await expect(page.getByRole('button', { name: '提交举报' })).toBeDisabled()
   await page.locator('#ps-report-detail').fill(dismissDetail)
+  await expect(page.getByRole('button', { name: '提交举报' })).toBeEnabled()
   await page.getByRole('button', { name: '提交举报' }).click()
   await expect(page.getByText('举报已提交，已进入管理员处理队列。')).toBeVisible()
 
