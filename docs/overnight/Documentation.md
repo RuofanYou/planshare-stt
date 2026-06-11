@@ -3198,6 +3198,47 @@ vite v5.4.21 building for production...
 24 passed (1.1m)
 ```
 
+### UGC 生态补缺口：投稿未通过后可重新投稿
+```text
+普通浏览用户探索:
+游客拿投稿编号查询状态时，如果投稿被驳回、被系统拦截或已撤回，页面原来只展示失败状态。
+小白看到“未通过”后不知道下一步是回首页、重新填表，还是联系管理员，开放 UGC 后会形成断点。
+
+已修复：
+- rejected / spam / withdrawn 状态显示“重新投稿”
+- 点击后清空投稿编号、清空查询结果、移除 URL 上的 receipt 参数
+- 回到干净投稿表单，并重新显示“还差”缺项提示
+- 不回填原投稿正文、联系方式或来源信息
+
+决策记录：
+- 公开投稿编号只用于状态查询，不用于反查正文或联系方式；因此重新投稿从空表单开始，保护投稿隐私。
+- approved 状态的 URL 自动查询已由既有 Playwright 覆盖；本轮新增 rejected 手动查询后重投，覆盖小白最常见的“拿编号来查”路径。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor rejected receipt"
+
+Running 1 test using 1 worker
+·
+1 passed (2.7s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.94s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1072:1 › visitor rejected receipt can return to a clean resubmission form (564ms)
+25 passed (1.0m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

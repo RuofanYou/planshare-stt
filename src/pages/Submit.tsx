@@ -57,6 +57,10 @@ function receiptStatusTone(status: SubmissionStatus) {
   return ''
 }
 
+function receiptCanResubmit(status: SubmissionStatus) {
+  return status === 'rejected' || status === 'spam' || status === 'withdrawn'
+}
+
 interface SubmitDraft {
   title: string
   raidId: string
@@ -142,7 +146,7 @@ export default function Submit() {
   const receiptLookup = useSubmissionReceipt()
   const creatorSession = useCreatorSession()
   const creatorMeQuery = useCreatorMe(creatorSession.isAuthed)
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const templateBoardId = searchParams.get('from') || ''
   const contextRaidId = searchParams.get('raidId') || ''
   const contextBossId = searchParams.get('bossId') || ''
@@ -479,6 +483,13 @@ export default function Submit() {
     receiptLookup.mutate(nextReceiptId)
   }
 
+  function startNewSubmissionFromReceipt() {
+    receiptLookup.reset()
+    setReceiptId('')
+    setReceiptLocalError('')
+    setSearchParams({})
+  }
+
   return (
     <div className="container ps-submit">
       <motion.header
@@ -566,6 +577,11 @@ export default function Submit() {
             {receiptLookup.data.status === 'approved' && receiptLookup.data.boardId && (
               <Button variant="primary" to={`/board/${receiptLookup.data.boardId}`}>
                 打开战术板
+              </Button>
+            )}
+            {receiptCanResubmit(receiptLookup.data.status) && (
+              <Button variant="secondary" onClick={startNewSubmissionFromReceipt}>
+                重新投稿
               </Button>
             )}
           </div>

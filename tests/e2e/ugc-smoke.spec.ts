@@ -1069,6 +1069,44 @@ test('visitor can check submission receipt and open the approved board', async (
   await expect(page.getByRole('heading', { name: title })).toBeVisible()
 })
 
+test('visitor rejected receipt can return to a clean resubmission form', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const reviewNote = `请补充时间轴 ${runId}`
+  const created = await request.post('/api/submissions', {
+    headers: { 'X-Forwarded-For': `198.51.100.${(Math.abs(hashSuffix(`receiptreject_${runId}`)) % 100) + 60}` },
+    data: {
+      title: `游客驳回状态 ${runId}`,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `游客驳回状态 ${runId}`,
+      contentText: `P1 驳回状态 ${runId}\nP2 集合`,
+      submitterName: `驳回游客 ${runId}`,
+      wantsCreatorProfile: false,
+    },
+  })
+  expect(created.status()).toBe(201)
+  const submission = await created.json()
+  const admin = await adminToken(request)
+  const rejected = await request.post(`/api/admin/submissions/${submission.id}/reject`, {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { note: reviewNote },
+  })
+  expect(rejected.ok()).toBeTruthy()
+
+  await page.goto('/submit')
+  await page.getByLabel('投稿编号').fill(submission.id)
+  await page.getByRole('button', { name: '查询' }).click()
+  await expect(page.getByText('未通过', { exact: true })).toBeVisible()
+  await expect(page.getByText(`管理员备注：${reviewNote}`)).toBeVisible()
+  await page.getByRole('button', { name: '重新投稿' }).click()
+  await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByText('未通过', { exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('投稿编号')).toHaveValue('')
+  await expect(page.getByText('还差：标题、团本、BOSS、投稿署名、战术正文')).toBeVisible()
+})
+
 test('submission receipt rate limit shows a visible visitor-facing error', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const sourceIp = `198.51.100.${(Math.abs(hashSuffix(`receiptlimit_${runId}`)) % 40) + 180}`
