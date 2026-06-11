@@ -1423,7 +1423,7 @@ vite v5.4.21 building for production...
 31 passed (1.5m)
 ```
 
-### 最新最终验证
+### 上一轮最终验证
 ```text
 npm run verify
 
@@ -1446,7 +1446,31 @@ vite v5.4.21 building for production...
 31 passed (1.5m)
 ```
 
+### 最新最终验证
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.0s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:488:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.5s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1188:1 › admin board restore requires confirmation before returning to public pages (994ms)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1307:1 › submit draft survives reload without saving password or contact (2.4s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1602:1 › visitor can report a board and admin can hide it from public pages (10.1s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1728:1 › creator direct publish screens unsafe content in dashboard (832ms)
+32 passed (1.4m)
+```
+
 ## 高风险 diff
+- `src/pages/Admin.tsx`：管理员“上架”已下架战术板新增页面内二次确认；需人工确认后台高频维护时多一步确认符合运营预期。
 - `src/pages/Creator.tsx`：创作者“恢复发布”新增页面内二次确认；需人工确认恢复公开前多一步确认符合高频维护体验。
 - `src/pages/Submit.tsx`、`src/pages/Creator.tsx`：游客投稿草稿、创作者资料草稿、直发草稿、编辑草稿新增页面内二次确认；需人工确认多一步确认不会明显拖慢高频创作，但能避免误清长篇战术正文。
 - `src/pages/admin/ReportsSection.tsx`：驳回举报新增页面内二次确认；需人工确认举报处理效率和“误驳回也要防呆”的运营取舍符合预期。

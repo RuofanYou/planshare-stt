@@ -502,7 +502,7 @@ function BoardsSection({
 
 /* ============================================================
    单块战术板行：信息 + 操作（编辑 / 精选 / 上下架 / 删除）
-   下架、删除走行内玻璃二次确认。
+   上架、下架、删除走行内玻璃二次确认。
    ============================================================ */
 function BoardRow({
   board,
@@ -525,8 +525,15 @@ function BoardRow({
   onDelete: () => void
   busy: boolean
 }) {
-  // 行内确认：'hide' 下架确认 / 'delete' 删除确认 / null 无
-  const [confirm, setConfirm] = useState<'hide' | 'delete' | null>(null)
+  // 行内确认：公开状态和删除都会影响用户可见内容，统一防误点。
+  const [confirm, setConfirm] = useState<'hide' | 'restore' | 'delete' | null>(null)
+  const confirmText =
+    confirm === 'delete'
+      ? `确认删除「${board.title}」？删除后不可恢复。`
+      : confirm === 'restore'
+        ? `确认上架「${board.title}」？上架后会重新出现在公开列表和详情页。`
+        : `确认下架「${board.title}」？下架后公开列表不再显示。`
+  const confirmButtonText = confirm === 'delete' ? '删除' : confirm === 'restore' ? '上架' : '下架'
 
   return (
     <GlassCard
@@ -569,9 +576,7 @@ function BoardRow({
         {confirm ? (
           <div className="ps-admin__confirm glass-strong" role="alertdialog">
             <span className="ps-admin__confirm-text">
-              {confirm === 'delete'
-                ? `确认删除「${board.title}」？删除后不可恢复。`
-                : `确认下架「${board.title}」？下架后公开列表不再显示。`}
+              {confirmText}
             </span>
             <div className="ps-admin__confirm-actions">
               <Button
@@ -592,7 +597,7 @@ function BoardRow({
                 }}
                 disabled={busy}
               >
-                {confirm === 'delete' ? '删除' : '下架'}
+                {confirmButtonText}
               </Button>
             </div>
           </div>
@@ -618,7 +623,7 @@ function BoardRow({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onToggleHidden}
+                onClick={() => setConfirm('restore')}
                 disabled={busy}
               >
                 上架

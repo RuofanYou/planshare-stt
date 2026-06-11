@@ -1185,6 +1185,39 @@ test('admin resource deletion requires confirmation before removing bosses and r
   await expect(raidRow).toHaveCount(0)
 })
 
+test('admin board restore requires confirmation before returning to public pages', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const { admin, board } = await createAdminBoard(request, `restore_${runId}`)
+  const hide = await request.put(`/api/boards/${board.id}`, {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { isHidden: true },
+  })
+  expect(hide.ok()).toBeTruthy()
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+
+  const boardRow = page.locator('.ps-admin__row-card', { hasText: board.title })
+  await expect(boardRow.getByText('已下架')).toBeVisible()
+  await boardRow.getByRole('button', { name: '上架' }).click()
+  await expect(boardRow.getByRole('alertdialog')).toContainText(`确认上架「${board.title}」？`)
+  await boardRow.getByRole('alertdialog').getByRole('button', { name: '取消' }).click()
+  await expect(boardRow.getByRole('alertdialog')).toHaveCount(0)
+  await expect(boardRow.getByText('已下架')).toBeVisible()
+
+  const stillHidden = await request.get(`/api/boards/${board.id}`)
+  expect(stillHidden.status()).toBe(404)
+
+  await boardRow.getByRole('button', { name: '上架' }).click()
+  await boardRow.getByRole('alertdialog').getByRole('button', { name: '上架' }).click()
+  await expect(boardRow.getByText('已下架')).toHaveCount(0)
+  await expect(boardRow.getByRole('button', { name: '下架' })).toBeVisible()
+
+  await page.goto(`/board/${board.id}`)
+  await expect(page.getByRole('heading', { name: board.title })).toBeVisible()
+})
+
 test('author page likes update author aggregate stats', async ({ page }) => {
   await page.goto('/author/a-nike')
   await expect(page.getByRole('heading', { name: '妮可' })).toBeVisible()

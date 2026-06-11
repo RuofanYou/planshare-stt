@@ -3763,6 +3763,49 @@ vite v5.4.21 building for production...
 31 passed (1.5m)
 ```
 
+### UGC 生态补缺口：管理员上架需要二次确认
+```text
+管理员 / 浏览用户探索:
+创作者“恢复发布”已经补了确认，但管理员后台对已下架战术板点“上架”仍是一键公开。
+UGC 开放后，管理员上架会让内容重新进入公开列表和详情页；误点会影响所有浏览用户。
+
+已修复：
+- 管理员后台已下架战术板点击“上架”先显示页面内确认条。
+- 确认文案说明上架后会重新出现在公开列表和详情页。
+- 点击“取消”仍保持已下架，公开详情接口仍返回不可见。
+- 点击确认条内“上架”才真正公开。
+
+决策记录：
+- 管理员上架和创作者恢复发布都是公开侧写操作；两边保持一致防误点。
+- 不改后端接口和数据结构，只扩展后台板列表行内确认状态。
+```
+
+```text
+CI=1 npx playwright test --grep "admin board restore requires confirmation"
+
+Running 1 test using 1 worker
+·
+1 passed (3.3s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1188:1 › admin board restore requires confirmation before returning to public pages (994ms)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1602:1 › visitor can report a board and admin can hide it from public pages (10.1s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1728:1 › creator direct publish screens unsafe content in dashboard (832ms)
+32 passed (1.4m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
