@@ -21,6 +21,7 @@ export default function LikeButton({ count, size = 'default', onLike }: LikeButt
   const [liked, setLiked] = useState(false)
   const [pending, setPending] = useState(false)
   const [display, setDisplay] = useState(count)
+  const [error, setError] = useState('')
   const reduce = useReducedMotion()
   const iconSize = size === 'compact' ? 14 : 16
 
@@ -29,6 +30,7 @@ export default function LikeButton({ count, size = 'default', onLike }: LikeButt
   }, [count, liked, pending])
 
   async function handleClick() {
+    setError('')
     if (!onLike) {
       setLiked((value) => {
         const next = !value
@@ -48,47 +50,55 @@ export default function LikeButton({ count, size = 'default', onLike }: LikeButt
     } catch {
       setLiked(false)
       setDisplay(count)
+      setError('点赞失败，请稍后再试。')
     } finally {
       setPending(false)
     }
   }
 
   return (
-    <button
-      type="button"
-      className={`ps-like ps-like--${size}${liked ? ' is-liked' : ''}`}
-      aria-pressed={liked}
-      aria-label={liked ? '已点赞' : '点赞'}
-      disabled={pending}
-      onClick={() => void handleClick()}
-    >
-      {/* 心形：已赞实心 + 切换时一次 scale 微动（呼应 visionOS 触感） */}
-      <motion.span
-        className="ps-like__icon"
-        animate={reduce ? undefined : { scale: liked ? [1, 1.25, 1] : 1 }}
-        transition={{ duration: dur.base, ease: easeEpic }}
+    <span className="ps-like-wrap">
+      <button
+        type="button"
+        className={`ps-like ps-like--${size}${liked ? ' is-liked' : ''}`}
+        aria-pressed={liked}
+        aria-label={liked ? '已点赞' : '点赞'}
+        disabled={pending}
+        onClick={() => void handleClick()}
       >
-        <Icon name="heart" size={iconSize} filled={liked} />
-      </motion.span>
-      {/* 数字 count-up 微动：切换时旧值上移淡出、新值下方滑入 */}
-      <span className="ps-like__count">
-        {reduce ? (
-          display
-        ) : (
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={display}
-              className="ps-like__count-val"
-              initial={{ y: liked ? 8 : -8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: liked ? -8 : 8, opacity: 0 }}
-              transition={{ duration: dur.fast, ease: easeEpic }}
-            >
-              {display}
-            </motion.span>
-          </AnimatePresence>
-        )}
-      </span>
-    </button>
+        {/* 心形：已赞实心 + 切换时一次 scale 微动（呼应 visionOS 触感） */}
+        <motion.span
+          className="ps-like__icon"
+          animate={reduce ? undefined : { scale: liked ? [1, 1.25, 1] : 1 }}
+          transition={{ duration: dur.base, ease: easeEpic }}
+        >
+          <Icon name="heart" size={iconSize} filled={liked} />
+        </motion.span>
+        {/* 数字 count-up 微动：切换时旧值上移淡出、新值下方滑入 */}
+        <span className="ps-like__count">
+          {reduce ? (
+            display
+          ) : (
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={display}
+                className="ps-like__count-val"
+                initial={{ y: liked ? 8 : -8, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: liked ? -8 : 8, opacity: 0 }}
+                transition={{ duration: dur.fast, ease: easeEpic }}
+              >
+                {display}
+              </motion.span>
+            </AnimatePresence>
+          )}
+        </span>
+      </button>
+      {error && (
+        <span className="ps-like__error" role="status">
+          {error}
+        </span>
+      )}
+    </span>
   )
 }

@@ -2885,6 +2885,44 @@ vite v5.4.21 building for production...
 19 passed (1.2m)
 ```
 
+### UGC 生态补缺口：点赞失败不再静默
+```text
+普通浏览用户探索:
+用户在首页卡片或详情页点赞时，如果网络/API 失败，原来只会把数字回滚，没有任何解释。
+小白会以为自己没点上，或者页面坏了。
+
+已修复：
+- 首页/作者页卡片点赞失败时显示“点赞失败，请稍后再试。”
+- 详情页侧栏点赞失败时显示同样的可见提示
+- 失败后点赞数回滚到后端原值
+- 失败提示带 role=status，读屏也能感知
+- 不改变成功点赞语义；成功后仍只允许本会话内点一次，后端真值继续接管
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "like actions show"
+
+Running 1 test using 1 worker
+·
+1 passed (3.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:834:1 › like actions show a visible failure state when the API rejects the click (629ms)
+20 passed (56.3s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

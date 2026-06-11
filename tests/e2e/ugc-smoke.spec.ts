@@ -831,6 +831,32 @@ test('author page likes update author aggregate stats', async ({ page }) => {
   await expect(likesStat.locator('.ps-author__stat-num')).toContainText(String(likesBefore + 1))
 })
 
+test('like actions show a visible failure state when the API rejects the click', async ({ page }) => {
+  await page.route('**/api/boards/*/like', (route) =>
+    route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'like failed' }),
+    }),
+  )
+
+  await page.goto('/')
+  const firstCard = page.locator('.ps-card').first()
+  const cardLike = firstCard.getByRole('button', { name: '点赞' })
+  const cardLikeBeforeText = ((await cardLike.textContent()) ?? '').trim()
+  await cardLike.click()
+  await expect(firstCard.getByRole('status').getByText('点赞失败，请稍后再试。')).toBeVisible()
+  await expect(firstCard.getByRole('button', { name: '点赞' })).toContainText(cardLikeBeforeText)
+
+  const href = await firstCard.locator('.ps-card__link').getAttribute('href')
+  expect(href).toBeTruthy()
+  await page.goto(href!)
+  const detailLike = page.locator('.ps-detail__meta-block--like')
+  await expect(detailLike.getByRole('button', { name: '点赞' })).toBeVisible()
+  await detailLike.getByRole('button', { name: '点赞' }).click()
+  await expect(detailLike.getByRole('status').getByText('点赞失败，请稍后再试。')).toBeVisible()
+})
+
 test('copy actions show a visible failure state when clipboard is blocked', async ({ page }) => {
   await page.addInitScript(() => {
     const blockedClipboard = {

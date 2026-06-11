@@ -96,10 +96,12 @@ function PersistedLike({
   // 本会话内已点过赞则不再重复 +1（与全站「点一次」语义一致；刷新还原由后端真值接管）
   const [liked, setLiked] = useState(false)
   const [display, setDisplay] = useState(count)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     setLiked(false)
     setDisplay(count)
+    setError('')
   }, [boardId])
 
   useEffect(() => {
@@ -107,6 +109,7 @@ function PersistedLike({
   }, [count, liked, likeBoard.isPending])
 
   function handleLike() {
+    setError('')
     if (liked || likeBoard.isPending) return
     setLiked(true) // 乐观更新：先点亮 + 数字 +1
     setDisplay(count + 1)
@@ -115,45 +118,53 @@ function PersistedLike({
       onError: () => {
         setLiked(false)
         setDisplay(count)
+        setError('点赞失败，请稍后再试。')
       },
     })
   }
 
   return (
-    <button
-      type="button"
-      className={`ps-like ps-like--default${liked ? ' is-liked' : ''}`}
-      aria-pressed={liked}
-      aria-label={liked ? '已点赞' : '点赞'}
-      disabled={likeBoard.isPending && !liked}
-      onClick={handleLike}
-    >
-      <motion.span
-        className="ps-like__icon"
-        animate={reduce ? undefined : { scale: liked ? [1, 1.25, 1] : 1 }}
-        transition={{ duration: dur.base, ease: easeEpic }}
+    <span className="ps-like-wrap">
+      <button
+        type="button"
+        className={`ps-like ps-like--default${liked ? ' is-liked' : ''}`}
+        aria-pressed={liked}
+        aria-label={liked ? '已点赞' : '点赞'}
+        disabled={likeBoard.isPending && !liked}
+        onClick={handleLike}
       >
-        <Icon name="heart" size={16} filled={liked} />
-      </motion.span>
-      <span className="ps-like__count">
-        {reduce ? (
-          display
-        ) : (
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={display}
-              className="ps-like__count-val"
-              initial={{ y: liked ? 8 : -8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: liked ? -8 : 8, opacity: 0 }}
-              transition={{ duration: dur.fast, ease: easeEpic }}
-            >
-              {display}
-            </motion.span>
-          </AnimatePresence>
-        )}
-      </span>
-    </button>
+        <motion.span
+          className="ps-like__icon"
+          animate={reduce ? undefined : { scale: liked ? [1, 1.25, 1] : 1 }}
+          transition={{ duration: dur.base, ease: easeEpic }}
+        >
+          <Icon name="heart" size={16} filled={liked} />
+        </motion.span>
+        <span className="ps-like__count">
+          {reduce ? (
+            display
+          ) : (
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={display}
+                className="ps-like__count-val"
+                initial={{ y: liked ? 8 : -8, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: liked ? -8 : 8, opacity: 0 }}
+                transition={{ duration: dur.fast, ease: easeEpic }}
+              >
+                {display}
+              </motion.span>
+            </AnimatePresence>
+          )}
+        </span>
+      </button>
+      {error && (
+        <span className="ps-like__error" role="status">
+          {error}
+        </span>
+      )}
+    </span>
   )
 }
 
