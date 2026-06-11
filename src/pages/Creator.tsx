@@ -655,6 +655,7 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
   const [guildRecruit, setGuildRecruit] = useState(initialDraft.guildRecruit)
   const [guildContact, setGuildContact] = useState(initialDraft.guildContact)
   const [profileCopyNotice, setProfileCopyNotice] = useState('')
+  const [confirmClearProfileDraft, setConfirmClearProfileDraft] = useState(false)
   const profileDraft = { name, bio, guildName, guildRecruit, guildContact }
   const hasProfileDraft = hasCreatorProfileDraftContent(author, profileDraft)
 
@@ -690,6 +691,7 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
   function clearProfileStatus() {
     if (updateProfile.error || updateProfile.isSuccess) updateProfile.reset()
     if (profileCopyNotice) setProfileCopyNotice('')
+    if (confirmClearProfileDraft) setConfirmClearProfileDraft(false)
   }
 
   function resetProfileDraft() {
@@ -701,6 +703,7 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
     setGuildName(current.guildName)
     setGuildRecruit(current.guildRecruit)
     setGuildContact(current.guildContact)
+    setConfirmClearProfileDraft(false)
   }
 
   async function copyAuthorLink() {
@@ -722,11 +725,24 @@ function CreatorProfileEditor({ author, canDirectPublish }: { author: Author; ca
       <div className="ps-creator__draft-bar">
         <p className="ps-creator__notice">资料草稿会自动保存在本机；保存成功后清空。</p>
         {hasProfileDraft && !updateProfile.isSuccess && (
-          <button type="button" className="ps-creator__draft-clear" onClick={resetProfileDraft}>
+          <button type="button" className="ps-creator__draft-clear" onClick={() => setConfirmClearProfileDraft(true)}>
             清空资料草稿
           </button>
         )}
       </div>
+      {hasProfileDraft && !updateProfile.isSuccess && confirmClearProfileDraft && (
+        <div className="ps-creator__confirm glass-strong" role="alertdialog">
+          <p>确认清空资料草稿？会恢复为上次已保存的作者主页资料。</p>
+          <div className="ps-creator__actions">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmClearProfileDraft(false)}>
+              取消
+            </Button>
+            <Button type="button" variant="primary" size="sm" onClick={resetProfileDraft}>
+              确认清空
+            </Button>
+          </div>
+        </div>
+      )}
       <form className="ps-creator__form" onSubmit={submitProfile}>
         <label className="ps-creator__label" htmlFor="creator-name">作者名</label>
         <input
@@ -965,6 +981,7 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
   const [description, setDescription] = useState(initialDraft.description)
   const [contentText, setContentText] = useState(initialDraft.contentText)
   const [createCopyNotice, setCreateCopyNotice] = useState('')
+  const [confirmClearCreateDraft, setConfirmClearCreateDraft] = useState(false)
 
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
@@ -1006,6 +1023,7 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
   function clearCreateStatus() {
     if (createBoard.error || createBoard.isSuccess) createBoard.reset()
     if (createCopyNotice) setCreateCopyNotice('')
+    if (confirmClearCreateDraft) setConfirmClearCreateDraft(false)
   }
 
   function resetCreateForm(clearStatus = true) {
@@ -1017,6 +1035,7 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
     setDifficulty('mythic')
     setDescription('')
     setContentText('')
+    setConfirmClearCreateDraft(false)
   }
 
   function submitBoard(e: React.FormEvent) {
@@ -1052,11 +1071,24 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
           <div className="ps-creator__draft-bar">
             <p className="ps-creator__panel-copy">直发草稿会自动保存在本机；成功发布后清空。</p>
             {hasCreateFormContent && !createBoard.isSuccess && (
-              <button type="button" className="ps-creator__draft-clear" onClick={() => resetCreateForm()}>
+              <button type="button" className="ps-creator__draft-clear" onClick={() => setConfirmClearCreateDraft(true)}>
                 清空直发草稿
               </button>
             )}
           </div>
+          {hasCreateFormContent && !createBoard.isSuccess && confirmClearCreateDraft && (
+            <div className="ps-creator__confirm glass-strong" role="alertdialog">
+              <p>确认清空直发草稿？标题、团本、BOSS 和战术正文都会恢复为空。</p>
+              <div className="ps-creator__actions">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmClearCreateDraft(false)}>
+                  取消
+                </Button>
+                <Button type="button" variant="primary" size="sm" onClick={() => resetCreateForm()}>
+                  确认清空
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
         <Button variant="secondary" to="/submit">
           游客投稿页
@@ -1221,6 +1253,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   const [contentText, setContentText] = useState(initialEditDraft.contentText)
   const [copyNotice, setCopyNotice] = useState('')
   const [confirmHide, setConfirmHide] = useState(false)
+  const [confirmDiscardEditDraft, setConfirmDiscardEditDraft] = useState(false)
   const missingEditItems = [
     title.trim() === '' ? '标题' : '',
     contentText.trim() === '' ? '战术正文' : '',
@@ -1262,6 +1295,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
       {
         onSuccess: () => {
           clearCreatorBoardEditDraft(board.id)
+          setConfirmDiscardEditDraft(false)
           setEditing(false)
         },
       },
@@ -1279,6 +1313,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
     setTitle(board.title)
     setDescription(board.description)
     setContentText(board.contentText)
+    setConfirmDiscardEditDraft(false)
     setEditing(false)
   }
 
@@ -1313,11 +1348,24 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
           <div className="ps-creator__draft-bar">
             <p className="ps-creator__notice">编辑草稿会自动保存在本机；保存成功后清空。</p>
             {hasEditDraft && (
-              <button type="button" className="ps-creator__draft-clear" onClick={discardEditDraft}>
+              <button type="button" className="ps-creator__draft-clear" onClick={() => setConfirmDiscardEditDraft(true)}>
                 放弃编辑草稿
               </button>
             )}
           </div>
+          {hasEditDraft && confirmDiscardEditDraft && (
+            <div className="ps-creator__confirm glass-strong" role="alertdialog">
+              <p>确认放弃编辑草稿？会恢复为当前已发布的标题、简介和战术正文。</p>
+              <div className="ps-creator__actions">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDiscardEditDraft(false)}>
+                  取消
+                </Button>
+                <Button type="button" variant="primary" size="sm" onClick={discardEditDraft}>
+                  确认放弃
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="ps-creator__field">
             <label className="ps-creator__label" htmlFor={`creator-edit-title-${board.id}`}>标题</label>
             <input
@@ -1367,7 +1415,14 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
             <Button type="submit" variant="primary" disabled={!canSave}>
               {updateBoard.isPending ? '保存中…' : '保存修改'}
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setConfirmDiscardEditDraft(false)
+                setEditing(false)
+              }}
+            >
               取消
             </Button>
           </div>

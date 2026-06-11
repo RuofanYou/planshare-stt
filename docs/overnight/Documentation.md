@@ -3675,6 +3675,50 @@ vite v5.4.21 building for production...
 31 passed (1.6m)
 ```
 
+### UGC 生态补缺口：清空草稿需要二次确认
+```text
+普通投稿用户 / 创作者用户探索:
+投稿页和创作者后台都已经有本机草稿自动保存，但“清空草稿 / 放弃编辑草稿”原来是一键清空。
+UGC 开放后，战术正文通常很长；误点清空会让用户直接丢掉正在整理的内容，这是比按钮文案更实际的卡点。
+
+已修复：
+- 游客投稿页“清空草稿”先显示页面内确认条。
+- 创作者资料草稿“清空资料草稿”先显示页面内确认条。
+- 创作者直发草稿“清空直发草稿”先显示页面内确认条。
+- 创作者编辑已有战术板时，“放弃编辑草稿”先显示页面内确认条。
+- 点击“取消”不会清空；点击“确认清空 / 确认放弃”才真正清掉本机草稿或恢复已保存内容。
+
+决策记录：
+- 草稿清空属于不可逆的本机数据丢弃动作，和下架、撤回、审核负向处理一样需要防误点。
+- 不改 localStorage key 和数据结构，只在 UI 层增加确认，避免影响旧草稿读取。
+```
+
+```text
+CI=1 npx playwright test --grep "creator self-service promotion uses the visible submission flow|submit draft survives reload"
+
+Running 2 tests using 1 worker
+··
+2 passed (12.3s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.95s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:482:1 › creator self-service promotion uses the visible submission flow for all three approvals (6.8s)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1268:1 › submit draft survives reload without saving password or contact (2.4s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1689:1 › creator direct publish screens unsafe content in dashboard (5.8s)
+31 passed (1.5m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

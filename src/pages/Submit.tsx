@@ -183,6 +183,7 @@ export default function Submit() {
   const [receiptCopyStatus, setReceiptCopyStatus] = useState('')
   const [receiptId, setReceiptId] = useState(receiptParam)
   const [receiptLocalError, setReceiptLocalError] = useState('')
+  const [confirmClearDraft, setConfirmClearDraft] = useState(false)
   const creatorNamePrefilled = useRef(false)
 
   const raidDetailQuery = useRaid(raidId || undefined)
@@ -398,6 +399,7 @@ export default function Submit() {
     setSubmittedKind('')
     setSubmittedStatus('')
     setSubmittedSpamReason('')
+    setConfirmClearDraft(false)
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -528,11 +530,24 @@ export default function Submit() {
           草稿会自动保存在本机；密码和联系方式不会保存。
         </p>
         {hasVisibleDraft && !submittedId && (
-          <button type="button" className="ps-submit__draft-clear" onClick={clearDraft}>
+          <button type="button" className="ps-submit__draft-clear" onClick={() => setConfirmClearDraft(true)}>
             清空草稿
           </button>
         )}
       </div>
+      {hasVisibleDraft && !submittedId && confirmClearDraft && (
+        <div className="ps-submit__draft-confirm glass-strong" role="alertdialog">
+          <p>确认清空本机草稿？标题、团本、署名和战术正文都会恢复为空。</p>
+          <div className="ps-submit__draft-confirm-actions">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmClearDraft(false)}>
+              取消
+            </Button>
+            <Button type="button" variant="primary" size="sm" onClick={clearDraft}>
+              确认清空
+            </Button>
+          </div>
+        </div>
+      )}
 
       <section className="ps-submit__receipt-lookup glass" aria-labelledby="ps-submit-receipt-title">
         <div className="ps-submit__receipt-head">
