@@ -1247,6 +1247,7 @@ function AccountRow({
   const [password, setPassword] = useState('')
   const [issuedPassword, setIssuedPassword] = useState('')
   const [copyNotice, setCopyNotice] = useState('')
+  const [confirmSuspend, setConfirmSuspend] = useState(false)
   const trimmedPassword = password.trim()
   const canReset = trimmedPassword.length >= 8 && !busy
   const authorName = account.author?.name ?? '未绑定作者'
@@ -1355,6 +1356,7 @@ function AccountRow({
               setIsResetting(true)
               setIssuedPassword('')
               setCopyNotice('')
+              setConfirmSuspend(false)
             }}
           >
             重置密码
@@ -1364,10 +1366,45 @@ function AccountRow({
           variant={isSuspended ? 'primary' : 'secondary'}
           size="sm"
           disabled={statusBusy || isResetting}
-          onClick={() => onUpdateStatus(isSuspended ? 'active' : 'suspended')}
+          onClick={() => {
+            if (isSuspended) {
+              setConfirmSuspend(false)
+              onUpdateStatus('active')
+              return
+            }
+            setConfirmSuspend(true)
+          }}
         >
           {statusBusy ? (isSuspended ? '恢复中…' : '暂停中…') : isSuspended ? '恢复账号' : '暂停账号'}
         </Button>
+        {confirmSuspend && !isSuspended && (
+          <div className="ps-admin__confirm glass-strong" role="alertdialog">
+            <span className="ps-admin__confirm-text">
+              确定暂停这个创作者账号？暂停后该用户会被强制退出，恢复前不能登录。
+            </span>
+            <div className="ps-admin__confirm-actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setConfirmSuspend(false)}
+                disabled={statusBusy}
+              >
+                取消
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setConfirmSuspend(false)
+                  onUpdateStatus('suspended')
+                }}
+                disabled={statusBusy}
+              >
+                确认暂停
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </GlassCard>
   )

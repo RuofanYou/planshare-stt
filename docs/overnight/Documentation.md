@@ -3283,6 +3283,48 @@ vite v5.4.21 building for production...
 27 passed (1.2m)
 ```
 
+### UGC 生态补缺口：暂停创作者账号需要二次确认
+```text
+管理员 / 创作者用户探索:
+后台“暂停账号”会撤销创作者会话并阻止登录。原来这个按钮一点击就生效，管理员误点会立刻把创作者锁出后台。
+创作者侧虽然可以由管理员恢复，但开放 UGC 后治理动作需要防误触。
+
+已修复：
+- 点击“暂停账号”先显示页面内确认条
+- 点击“取消”不会改变账号状态
+- 只有点击“确认暂停”才真正暂停账号
+- 暂停后创作者登录仍显示“账号已被暂停，请联系管理员”
+- “恢复账号”保留一键恢复，因为它是解除限制动作
+
+决策记录：
+- 不使用浏览器原生 confirm，沿用项目已有页面内 alertdialog 风格，和创作者撤回/下架、后台删除确认保持一致。
+- 本轮只给暂停加确认；恢复账号保持快速操作，方便管理员纠正误封。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "admin can suspend and restore"
+
+Running 1 test using 1 worker
+·
+1 passed (4.6s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:577:1 › admin can suspend and restore a creator account (2.6s)
+27 passed (1.2m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

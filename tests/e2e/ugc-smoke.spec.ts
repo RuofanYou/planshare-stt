@@ -586,6 +586,12 @@ test('admin can suspend and restore a creator account', async ({ page, request }
   const accountRow = page.locator('.ps-admin__row-card', { hasText: creator.username })
   await expect(accountRow.getByText('正常')).toBeVisible()
   await accountRow.getByRole('button', { name: '暂停账号' }).click()
+  await expect(accountRow.getByRole('alertdialog')).toContainText('确定暂停这个创作者账号？')
+  await accountRow.getByRole('button', { name: '取消' }).click()
+  await expect(accountRow.getByRole('alertdialog')).toHaveCount(0)
+  await expect(accountRow.getByText('正常')).toBeVisible()
+  await accountRow.getByRole('button', { name: '暂停账号' }).click()
+  await accountRow.getByRole('button', { name: '确认暂停' }).click()
   await expect(accountRow.getByText('已暂停')).toBeVisible()
   await expect(accountRow.getByRole('button', { name: '恢复账号' })).toBeVisible()
 

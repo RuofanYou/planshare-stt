@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.91s
+✓ built in 1.92s
 
 1..48
 # tests 48
@@ -1261,18 +1261,19 @@ vite v5.4.21 building for production...
 # pass 48
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:153:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.2s)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:153:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.3s)
 ✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:428:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.5s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:492:1 › creator can change password from dashboard and log in with the new password (1.7s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:492:1 › creator can change password from dashboard and log in with the new password (1.8s)
 ✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › admin can reset a creator password and the creator can log in again (1.7s)
-✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:748:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.5s)
-✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1059:1 › visitor can check submission receipt and open the approved board (985ms)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1093:1 › visitor rejected receipt can return to a clean resubmission form (588ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1122:1 › visitor spam receipt can return to a clean resubmission form (625ms)
-✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1145:1 › visitor withdrawn receipt can return to a clean resubmission form (608ms)
-✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1171:1 › submission receipt rate limit shows a visible visitor-facing error (10.6s)
-✓  23 [chromium] › tests/e2e/ugc-smoke.spec.ts:1228:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
-✓  27 [chromium] › tests/e2e/ugc-smoke.spec.ts:1402:1 › creator direct publish screens unsafe content in dashboard (807ms)
+✓   5 [chromium] › tests/e2e/ugc-smoke.spec.ts:577:1 › admin can suspend and restore a creator account (2.6s)
+✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:754:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.4s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1065:1 › visitor can check submission receipt and open the approved board (6.1s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1099:1 › visitor rejected receipt can return to a clean resubmission form (617ms)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1128:1 › visitor spam receipt can return to a clean resubmission form (605ms)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1151:1 › visitor withdrawn receipt can return to a clean resubmission form (625ms)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1177:1 › submission receipt rate limit shows a visible visitor-facing error (575ms)
+✓  23 [chromium] › tests/e2e/ugc-smoke.spec.ts:1234:1 › duplicate visitor submission explains that the same content will not enter review twice (1.1s)
+✓  27 [chromium] › tests/e2e/ugc-smoke.spec.ts:1408:1 › creator direct publish screens unsafe content in dashboard (776ms)
 27 passed (1.2m)
 ```
 
@@ -1280,7 +1281,7 @@ vite v5.4.21 building for production...
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
 - `playwright.config.ts`：使用 `localhost:5183` 和 `/tmp` 临时 SQLite，避免本机端口与生产数据冲突。
-- `src/pages/Admin.tsx` 与 `src/api/*`：后台新增创作者账号暂停/恢复按钮，直接影响创作者登录权限；需人工确认运营流程和误操作恢复预期。
+- `src/pages/Admin.tsx` 与 `src/api/*`：后台创作者账号暂停/恢复直接影响创作者登录权限；暂停已改为页面内二次确认，需人工确认运营流程和误操作恢复预期。
 - `src/pages/Admin.tsx`：后台新增审计日志页，会展示 audit detail JSON；需人工确认后台可见信息范围符合运营预期。
 - `server/index.mjs`、`src/pages/Creator.tsx`、`src/data/types.ts`：新增 `boards.hidden_by` 区分创作者自助下架与管理员隐藏；需人工确认旧隐藏板默认处理和管理员误隐藏后的恢复流程。
 - `server/index.mjs`、`src/pages/admin/ReportsSection.tsx`、`src/data/types.ts`：举报新增板内容快照并在后台展示；需人工确认正文摘录长度和后台可见信息范围符合运营预期。
