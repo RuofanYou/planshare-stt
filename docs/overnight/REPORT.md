@@ -1492,7 +1492,7 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
-### 最新最终验证
+### 上一轮最终验证
 ```text
 npm run verify
 
@@ -1515,7 +1515,39 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### 最新最终验证
+```text
+CI=1 npx playwright test --grep "UGC smoke: browse, copy, submit, approve, publish, and creator direct post"
+
+Running 1 test using 1 worker
+·
+1 passed (15.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.1s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:489:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.3s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1189:1 › admin board curation and restore require confirmation before changing public exposure (2.3s)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1342:1 › submit draft survives reload without saving password or contact (2.3s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1637:1 › visitor can report a board and admin can hide it from public pages (11.0s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1768:1 › creator direct publish screens unsafe content in dashboard (793ms)
+32 passed (1.4m)
+```
+
 ## 高风险 diff
+- `src/pages/Creator.tsx`：创作者编辑公开战术板保存成功后新增行内“修改已保存。”提示；需人工确认提示停留到下次编辑前的节奏符合创作者连续维护习惯。
 - `src/pages/BoardDetail.tsx`：举报表单新增“取消举报”，取消会重置表单；需人工确认这符合治理入口的体验预期，不会误导用户以为已提交。
 - `src/pages/Admin.tsx`：管理员“设为精选 / 取消精选”新增页面内二次确认；需人工确认首页精选运营时多一步确认符合效率预期。
 - `src/pages/Admin.tsx`：管理员“上架”已下架战术板新增页面内二次确认；需人工确认后台高频维护时多一步确认符合运营预期。

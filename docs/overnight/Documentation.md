@@ -3893,6 +3893,52 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### UGC 生态补缺口：创作者编辑公开板后明确提示已保存
+```text
+创作者用户探索:
+创作者直发后进入“我的战术板”，点击“编辑”修改公开内容，再点“保存修改”。
+原来公开板数据确实保存了，但页面只是退出编辑态并显示新标题，没有明确说“保存成功”。
+普通用户容易以为没保存，反复点击、刷新或去公开页确认；UGC 自循环里，创作者维护内容必须有清楚反馈。
+
+已修复：
+- 创作者保存公开板修改成功后，在该战术板行内显示“修改已保存。”。
+- 原来“复制链接”的提示保留，但改成通用的战术板操作提示。
+- 再次进入编辑时会清掉旧提示，避免用户误以为下一次编辑也已经保存。
+- E2E 主链路新增断言：创作者直发、编辑、保存后必须看到“修改已保存。”。
+
+决策记录：
+- 这不是新增业务状态，只是把已经成功的保存结果明确告诉用户，不新增后端字段。
+- 反馈复用现有 `.ps-creator__notice` 视觉令牌，不硬编码新颜色或样式。
+```
+
+```text
+CI=1 npx playwright test --grep "UGC smoke: browse, copy, submit, approve, publish, and creator direct post"
+
+Running 1 test using 1 worker
+·
+1 passed (15.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.1s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:489:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.3s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1189:1 › admin board curation and restore require confirmation before changing public exposure (2.3s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1637:1 › visitor can report a board and admin can hide it from public pages (11.0s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1768:1 › creator direct publish screens unsafe content in dashboard (793ms)
+32 passed (1.4m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

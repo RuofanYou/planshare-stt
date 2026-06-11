@@ -1251,7 +1251,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   const [title, setTitle] = useState(initialEditDraft.title)
   const [description, setDescription] = useState(initialEditDraft.description)
   const [contentText, setContentText] = useState(initialEditDraft.contentText)
-  const [copyNotice, setCopyNotice] = useState('')
+  const [boardNotice, setBoardNotice] = useState('')
   const [confirmHide, setConfirmHide] = useState(false)
   const [confirmRestore, setConfirmRestore] = useState(false)
   const [confirmDiscardEditDraft, setConfirmDiscardEditDraft] = useState(false)
@@ -1298,6 +1298,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
           clearCreatorBoardEditDraft(board.id)
           setConfirmDiscardEditDraft(false)
           setEditing(false)
+          setBoardNotice('修改已保存。')
         },
       },
     )
@@ -1316,6 +1317,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   function discardEditDraft() {
     clearCreatorBoardEditDraft(board.id)
     if (updateBoard.error) updateBoard.reset()
+    if (boardNotice) setBoardNotice('')
     setTitle(board.title)
     setDescription(board.description)
     setContentText(board.contentText)
@@ -1326,7 +1328,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   async function copyBoardLink() {
     const origin = window.location.origin
     const copied = await copyToClipboard(`${origin}/board/${board.id}`)
-    setCopyNotice(copied ? '链接已复制。' : '复制失败，请打开公开页后从地址栏复制。')
+    setBoardNotice(copied ? '链接已复制。' : '复制失败，请打开公开页后从地址栏复制。')
   }
 
   const hiddenByAdmin = board.isHidden && board.hiddenBy === 'admin'
@@ -1440,9 +1442,15 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
           {hiddenByAdmin && (
             <p className="ps-creator__notice">该战术板已被管理员隐藏，不能自行恢复发布。</p>
           )}
-          {copyNotice && <p className="ps-creator__notice">{copyNotice}</p>}
+          {boardNotice && <p className="ps-creator__notice">{boardNotice}</p>}
           <div className="ps-creator__actions">
-            <Button variant="secondary" onClick={() => setEditing(true)}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (boardNotice) setBoardNotice('')
+                setEditing(true)
+              }}
+            >
               编辑
             </Button>
             {hiddenByAdmin ? null : board.isHidden ? (

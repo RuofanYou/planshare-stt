@@ -457,6 +457,7 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await reloadedDirectBoardRow.getByLabel('战术正文').fill('P1 创作者直发修订\nP2 结束')
   await reloadedDirectBoardRow.getByRole('button', { name: '保存修改' }).click()
   await expect(reloadedDirectBoardRow.getByText(`${directTitle} 修订`)).toBeVisible()
+  await expect(reloadedDirectBoardRow.getByText('修改已保存。')).toBeVisible()
   await expect(
     page.evaluate(() =>
       Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_edit_draft_v1')).length,
