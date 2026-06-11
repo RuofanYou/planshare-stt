@@ -3410,6 +3410,48 @@ vite v5.4.21 building for production...
 29 passed (1.3m)
 ```
 
+### UGC 生态补缺口：举报隐藏板需要二次确认
+```text
+管理员 / 浏览用户 / 创作者用户探索:
+举报队列里的“隐藏板”会让公开列表和详情页立刻不可见，并且管理员隐藏的创作者板不能由创作者自行恢复。
+原来管理员点一次“隐藏板”就生效，误点会直接误伤公开内容。
+
+已修复：
+- 点击“隐藏板”先显示页面内确认条
+- 确认文案说明隐藏后公开不可见，且创作者不能自行恢复
+- 点击“取消”不会处理举报，状态仍是待处理
+- 点击“确认隐藏”才真正隐藏公开板
+- “驳回举报”保持一键处理，因为它不会隐藏公开内容
+
+决策记录：
+- 不改变后端举报处理语义，只把高风险隐藏动作加确认。
+- 继续复用后台 `ps-admin__confirm` alertdialog 样式，和批量审核、资源删除、账号暂停保持一致。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor can report a board"
+
+Running 1 test using 1 worker
+·
+1 passed (12.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.95s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  27 [chromium] › tests/e2e/ugc-smoke.spec.ts:1416:1 › visitor can report a board and admin can hide it from public pages (10.2s)
+29 passed (1.3m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

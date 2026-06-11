@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useAdminReports, useDismissReport, useHideBoardFromReport } from '../../api/hooks'
 import { formatDate } from '../../lib/format'
@@ -13,6 +14,7 @@ export function ReportsSection({
   const reportsQuery = useAdminReports()
   const hideBoard = useHideBoardFromReport()
   const dismissReport = useDismissReport()
+  const [confirmHideReportId, setConfirmHideReportId] = useState('')
 
   function guard(error: unknown) {
     if (isUnauthorized(error)) onLogout()
@@ -56,6 +58,7 @@ export function ReportsSection({
               const isPending = report.status === 'pending'
               const boardTitle = report.boardTitle ?? `战术板 ${report.boardId}`
               const boardContent = report.boardContent?.trim()
+              const isConfirmingHide = confirmHideReportId === report.id
               const busy =
                 (hideBoard.isPending && hideBoard.variables?.id === report.id) ||
                 (dismissReport.isPending && dismissReport.variables?.id === report.id)
@@ -95,12 +98,7 @@ export function ReportsSection({
                             variant="primary"
                             size="sm"
                             disabled={busy}
-                            onClick={() =>
-                              hideBoard.mutate(
-                                { id: report.id, note: '后台处理举报隐藏' },
-                                { onError: guard },
-                              )
-                            }
+                            onClick={() => setConfirmHideReportId(report.id)}
                           >
                             隐藏板
                           </Button>
@@ -111,13 +109,49 @@ export function ReportsSection({
                             onClick={() =>
                               dismissReport.mutate(
                                 { id: report.id, note: '后台驳回举报' },
-                                { onError: guard },
+                                {
+                                  onSuccess: () => setConfirmHideReportId(''),
+                                  onError: guard,
+                                },
                               )
                             }
                           >
                             驳回举报
                           </Button>
                         </>
+                      )}
+                      {isPending && isConfirmingHide && (
+                        <div className="ps-admin__confirm glass-strong" role="alertdialog">
+                          <span className="ps-admin__confirm-text">
+                            确认隐藏「{boardTitle}」？隐藏后公开列表和详情页都会不可见，创作者不能自行恢复。
+                          </span>
+                          <div className="ps-admin__confirm-actions">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setConfirmHideReportId('')}
+                              disabled={busy}
+                            >
+                              取消
+                            </Button>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() =>
+                                hideBoard.mutate(
+                                  { id: report.id, note: '后台处理举报隐藏' },
+                                  {
+                                    onSuccess: () => setConfirmHideReportId(''),
+                                    onError: guard,
+                                  },
+                                )
+                              }
+                              disabled={busy}
+                            >
+                              {busy ? '隐藏中…' : '确认隐藏'}
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </GlassCard>
