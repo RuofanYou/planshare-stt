@@ -4,6 +4,7 @@ import type {
   AdminBoard,
   AdminAuthor,
   AdminCreatorAccount,
+  AuditLog,
   AuthorInput,
   CreateBoardInput,
   Difficulty,
@@ -15,6 +16,7 @@ import {
   useAdminBoards,
   useAdminAuthors,
   useAdminCreatorAccounts,
+  useAdminAuditLogs,
   useAdminSubmissions,
   useUpdateCreatorAccountStatus,
   useRaids,
@@ -140,7 +142,7 @@ function LoginGate({ onLoggedIn }: { onLoggedIn: (token: string) => void }) {
 /* ============================================================
    管理台主体（已登录）
    ============================================================ */
-type Tab = 'boards' | 'authors' | 'submissions' | 'reports' | 'resources'
+type Tab = 'boards' | 'authors' | 'submissions' | 'reports' | 'resources' | 'audit'
 
 function Console({
   onLogout,
@@ -234,6 +236,15 @@ function Console({
         >
           团本
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'audit'}
+          className={tab === 'audit' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
+          onClick={() => setTab('audit')}
+        >
+          审计
+        </button>
       </motion.div>
 
       {tab === 'boards' ? (
@@ -244,6 +255,8 @@ function Console({
         <SubmissionsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
       ) : tab === 'reports' ? (
         <ReportsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+      ) : tab === 'audit' ? (
+        <AuditSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
       ) : (
         <ResourcesSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
       )}
@@ -1008,6 +1021,115 @@ function BoardForm({
 /* ============================================================
    账号管理：创作者账号列表 + 人工重置密码
    ============================================================ */
+function AuditSection({
+  isUnauthorized,
+  onLogout,
+}: {
+  isUnauthorized: (error: unknown) => boolean
+  onLogout: () => void
+}) {
+  const reduce = useReducedMotion()
+  const auditQuery = useAdminAuditLogs()
+
+  function guard(error: unknown) {
+    if (isUnauthorized(error)) onLogout()
+  }
+
+  if (auditQuery.isLoading) return <ListSkeleton />
+
+  if (auditQuery.isError) {
+    guard(auditQuery.error)
+    return (
+      <EmptyState
+        icon="error"
+        text={(auditQuery.error as Error)?.message ?? '审计日志加载失败。'}
+        actionLabel="重新加载"
+        onAction={() => auditQuery.refetch()}
+      />
+    )
+  }
+
+  const logs = auditQuery.data ?? []
+
+  return (
+    <div className="ps-admin__section">
+      <section className="ps-admin__list-block" aria-label="审计日志">
+        <SectionHeading
+          eyebrow="治理追溯"
+          title="审计日志"
+          size="h2"
+          trailing={logs.length > 0 ? `最近 ${logs.length} 条` : undefined}
+        />
+        {logs.length === 0 ? (
+          <EmptyState icon="empty" text="暂无审计日志。" />
+        ) : (
+          <motion.ul
+            className="ps-admin__rows"
+            variants={reduce ? undefined : staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
+            {logs.map((log) => (
+              <motion.li key={log.id} variants={reduce ? undefined : staggerItem}>
+                <AuditLogRow log={log} />
+              </motion.li>
+            ))}
+          </motion.ul>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function AuditLogRow({ log }: { log: AuditLog }) {
+  const detailText = log.detail ? JSON.stringify(log.detail) : ''
+
+  return (
+    <GlassCard tone="glass" as="div" className="ps-admin__row-card">
+      <div className="ps-admin__row-main">
+        <div className="ps-admin__row-flags">
+          <Tag variant={log.actorType === 'admin' ? 'gold' : 'neutral'}>
+            {log.actorType === 'admin' ? '管理员' : '创作者'}
+          </Tag>
+          <Tag variant="neutral">{auditActionLabel(log.action)}</Tag>
+        </div>
+        <p className="ps-admin__row-title">{log.action}</p>
+        <p className="ps-admin__row-path">
+          {log.entityType}
+          {log.entityId ? ` · ${log.entityId}` : ''}
+        </p>
+        <div className="ps-admin__row-meta">
+          <span>时间：{formatDate(log.createdAt)}</span>
+          {log.actorId && <span>操作者：{log.actorId}</span>}
+          {detailText && <span>详情：{detailText}</span>}
+        </div>
+      </div>
+    </GlassCard>
+  )
+}
+
+function auditActionLabel(action: string) {
+  if (action === 'creator_account_update') return '账号状态'
+  if (action === 'creator_account_reset_password') return '重置密码'
+  if (action === 'creator_password_update') return '修改密码'
+  if (action === 'creator_board_publish') return '创作者发布'
+  if (action === 'creator_board_hide') return '创作者下架'
+  if (action === 'creator_submission_withdraw') return '撤回投稿'
+  if (action === 'submission_approve') return '审核通过'
+  if (action === 'submission_rejected') return '驳回投稿'
+  if (action === 'submission_spam') return '标记垃圾'
+  if (action === 'report_hide_board') return '举报隐藏'
+  if (action === 'report_dismiss') return '驳回举报'
+  if (action === 'board_create') return '新建战术板'
+  if (action === 'board_update') return '更新战术板'
+  if (action === 'board_delete') return '删除战术板'
+  if (action === 'author_create') return '新建作者'
+  if (action === 'author_update') return '更新作者'
+  if (action === 'raid_upsert' || action === 'raid_update') return '团本'
+  if (action === 'boss_upsert' || action === 'boss_update') return 'BOSS'
+  return '其它'
+}
+
 function AccountsPanel({
   isUnauthorized,
   onLogout,

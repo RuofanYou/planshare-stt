@@ -42,6 +42,7 @@
 - 浏览用户治理闭环补测：普通访客在详情页举报后，管理员可在后台举报队列隐藏该板，公开详情页随后返回不可见。
 - 创作者账号救援闭环补测：创作者忘记密码时，管理员可在后台账号区重置密码；旧密码失效，新密码能重新登录。
 - 创作者治理闭环补缺口：后端已有暂停/恢复创作者账号能力，后台账号区补“暂停账号/恢复账号”按钮；暂停会撤销会话并阻止登录，恢复后可重新登录。
+- 管理员治理追溯补缺口：后台新增“审计”页展示最近审计日志，能看到账号状态、重置密码、举报处理、审核等治理动作。
 
 ## 验证输出
 
@@ -1060,6 +1061,62 @@ Playwright:
 管理员进入“创作者”页，在账号行点击“暂停账号”，状态变为“已暂停”并显示“恢复账号”。
 被暂停创作者登录时显示“账号已被暂停，请联系管理员”。
 管理员点击“恢复账号”后状态回到“正常”，创作者可重新登录并看到“投稿进度”。
+```
+
+### UGC 生态补缺口：后台审计日志可视化
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.57s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "admin can suspend"
+
+Running 1 test using 1 worker
+·
+1 passed (4.7s)
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 9 tests using 1 worker
+·········
+9 passed (33.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.07s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:105:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (8.0s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:270:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.1s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:321:1 › creator can change password from dashboard and log in with the new password (1.9s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:359:1 › admin can reset a creator password and the creator can log in again (1.4s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:387:1 › admin can suspend and restore a creator account (2.3s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:425:1 › creator can withdraw a pending submission from dashboard (1.6s)
+✓  7 [chromium] › tests/e2e/ugc-smoke.spec.ts:451:1 › home search finds boards by boss and author names (2.8s)
+✓  8 [chromium] › tests/e2e/ugc-smoke.spec.ts:470:1 › submit draft survives reload without saving password or contact (950ms)
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:502:1 › visitor can report a board and admin can hide it from public pages (9.0s)
+9 passed (32.2s)
+```
+
+```text
+Playwright:
+管理员暂停并恢复创作者账号后，进入“审计”页。
+页面显示“审计日志”，并能在状态为 active 的审计行看到 `creator_account_update`。
 ```
 
 ## 已知问题
