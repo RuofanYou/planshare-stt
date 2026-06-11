@@ -293,3 +293,25 @@ test('admin rejection and spam actions do not publish boards', async (t) => {
   assert.equal(boards.body.some((board) => board.title === '会被驳回'), false)
   assert.equal(boards.body.some((board) => board.title === '会被标垃圾'), false)
 })
+
+test('submission receipt lookup is rate limited per client', async (t) => {
+  const server = await startServer()
+  t.after(() => server.stop())
+
+  const created = await requestJson(server.baseUrl, '/api/submissions', {
+    method: 'POST',
+    body: JSON.stringify(validSubmission({ title: '状态查询限流' })),
+  })
+  assert.equal(created.res.status, 201)
+
+  const headers = { 'X-Forwarded-For': '198.51.100.88' }
+  for (let index = 0; index < 30; index += 1) {
+    const receipt = await requestJson(server.baseUrl, `/api/submissions/${created.body.id}/receipt`, { headers })
+    assert.equal(receipt.res.status, 200)
+    assert.equal(receipt.body.status, 'pending')
+  }
+
+  const blocked = await requestJson(server.baseUrl, `/api/submissions/${created.body.id}/receipt`, { headers })
+  assert.equal(blocked.res.status, 429)
+  assert.equal(blocked.body.error, '查询太频繁，请稍后再试')
+})

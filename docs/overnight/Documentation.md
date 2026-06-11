@@ -3065,6 +3065,56 @@ vite v5.4.21 building for production...
 23 passed (1.1m)
 ```
 
+### UGC 生态补缺口：投稿编号查询接口限流
+```text
+普通浏览用户探索:
+投稿编号查询是公开接口。它让游客能自助查状态，但如果不限流，开放 UGC 后可能被脚本反复扫编号或压接口。
+
+已修复：
+- GET /api/submissions/:id/receipt 增加持久化限流
+- 同一来源每小时最多查询 30 次
+- 不存在的投稿编号也会计入限流，避免被用于枚举
+- 前端查询面板会显示“查询太频繁，请稍后再试”
+- 不改变正常查询、投稿、审核、公开板跳转流程
+
+决策记录：
+- 限流粒度沿用现有 sourceKey / X-Forwarded-For 语义，和投稿、举报、点赞防线一致。
+- 阈值先设为 30 次 / 小时：足够正常用户偶尔刷新状态，也能挡住明显脚本扫号。
+```
+
+```text
+node --test --test-concurrency=1 server/submissions.test.mjs
+
+1..9
+# tests 9
+# pass 9
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "submission receipt rate limit"
+
+Running 1 test using 1 worker
+·
+1 passed (2.7s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1063:1 › submission receipt rate limit shows a visible visitor-facing error (5.6s)
+24 passed (1.2m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

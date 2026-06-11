@@ -1060,6 +1060,40 @@ test('visitor can check submission receipt and open the approved board', async (
   await expect(page.getByRole('heading', { name: title })).toBeVisible()
 })
 
+test('submission receipt rate limit shows a visible visitor-facing error', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const sourceIp = `198.51.100.${(Math.abs(hashSuffix(`receiptlimit_${runId}`)) % 40) + 180}`
+  const created = await request.post('/api/submissions', {
+    headers: { 'X-Forwarded-For': sourceIp },
+    data: {
+      title: `状态查询限流 ${runId}`,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `状态查询限流 ${runId}`,
+      contentText: `P1 状态查询限流 ${runId}\nP2 集合`,
+      submitterName: `限流游客 ${runId}`,
+      wantsCreatorProfile: false,
+    },
+  })
+  expect(created.status()).toBe(201)
+  const body = await created.json()
+
+  for (let index = 0; index < 30; index += 1) {
+    const receipt = await request.get(`/api/submissions/${body.id}/receipt`, {
+      headers: { 'X-Forwarded-For': sourceIp },
+    })
+    expect(receipt.status()).toBe(200)
+  }
+
+  await page.setExtraHTTPHeaders({ 'X-Forwarded-For': sourceIp })
+  await page.goto('/submit')
+  await page.getByLabel('投稿编号').fill(body.id)
+  await page.getByRole('button', { name: '查询' }).click()
+  await expect(page.getByRole('alert')).toContainText('查询太频繁，请稍后再试')
+})
+
 test('spam-screened visitor submission stays editable and is not described as queued', async ({ page }) => {
   const runId = Date.now().toString(36)
   const spamTitle = `游客拦截提示 ${runId}`

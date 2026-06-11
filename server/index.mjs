@@ -1481,6 +1481,10 @@ app.get('/api/creator/submissions', { preHandler: requireCreatorAuth }, (req) =>
 
 // GET /api/submissions/:id/receipt -> 游客凭投稿编号查询有限审核状态。
 app.get('/api/submissions/:id/receipt', (req, reply) => {
+  const clientKey = getClientKey(req)
+  const limit = hitPersistentRateLimit(`receipt:${clientKey}`, { limit: 30, windowMs: 60 * 60 * 1000 })
+  if (!limit.allowed) return rateLimitReply(reply, limit, '查询太频繁，请稍后再试')
+
   const id = cleanText(req.params.id)
   if (!id) return reply.code(400).send({ error: '请填写投稿编号' })
   const submission = stmt.submissionById.get(id)
