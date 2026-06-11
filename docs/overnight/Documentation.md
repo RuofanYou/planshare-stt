@@ -2278,6 +2278,35 @@ Running 1 test using 1 worker
 1 passed (3.9s)
 ```
 
+### UGC 生态补缺口：误举报可驳回且不误伤公开板
+```text
+普通浏览用户探索:
+举报通道已有“隐藏板”和“驳回举报”两种后台处理动作，但自动化只覆盖了隐藏板。
+UGC 治理不能只会下架，误举报被驳回后公开板必须继续可访问，并且后台要有 `report_dismiss` 审计证据。
+
+已补验证：
+- 后端集成测试：驳回举报返回 dismissed；原板 `/api/boards/:id` 仍 200；审计日志包含 `report_dismiss`
+- Playwright：访客举报 -> 管理员驳回举报 -> 页面显示“已驳回” -> 回到公开板详情仍能看到标题
+- 原有“隐藏板后公开详情 404”路径继续覆盖
+```
+
+```text
+node --test --test-concurrency=1 server/ugc-ready.test.mjs
+
+1..5
+# tests 5
+# pass 5
+# fail 0
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor can report"
+
+Running 1 test using 1 worker
+·
+1 passed (12.0s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

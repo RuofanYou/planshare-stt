@@ -1284,6 +1284,7 @@ Playwright:
 - `src/pages/Creator.tsx` 与 `src/pages/Creator.css`：创作者后台新增资料/直发/编辑草稿清空按钮；需人工确认按钮文案足够明确，不会让用户误删仍想保留的本机草稿。
 - `src/pages/Creator.tsx`：新创作者审核期资料区按半公开、已公开但审核期、trusted 三种状态展示直发门槛；需人工确认 3 次门槛在运营上是否仍合适。
 - `src/pages/Creator.tsx`：系统拦截的创作者投稿现在可“修改后重投”，并把 `content_blacklist` 翻译成“内容风险”；需人工确认被拦截内容回填到本机草稿符合治理预期。
+- `server/ugc-ready.test.mjs` 与 `tests/e2e/ugc-smoke.spec.ts`：举报治理新增“驳回举报不隐藏公开板”的回归覆盖；需人工确认后台驳回文案和运营操作权限符合预期。
 - `server/index.mjs` 与 `src/data/types.ts`：投稿状态新增 `withdrawn`；需人工复核运营报表或外部脚本是否假设投稿状态只有四种。
 - `server/index.mjs` 与 `src/pages/Creator.tsx`：创作者投稿进度现在返回并使用原投稿正文，用于“修改后重投”；需人工复核该数据只暴露给投稿所属创作者。
 - `server/index.mjs`：驳回/spam 投稿现在保留 `author_id`，让创作者可以看到失败状态；需确认这符合运营上“失败记录对创作者可见”的预期。

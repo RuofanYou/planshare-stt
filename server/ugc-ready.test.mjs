@@ -235,6 +235,25 @@ test('reports flow through admin queue, can hide boards, and admin actions are a
   assert.equal(queuedReport.boardTitle, board.title)
   assert.equal(queuedReport.boardContent, board.contentText)
 
+  const dismissReport = await requestJson(server.baseUrl, `/api/boards/${board.id}/reports`, {
+    method: 'POST',
+    headers: { 'X-Real-IP': '198.51.100.78' },
+    body: JSON.stringify({ reason: 'other', detail: '误报验证' }),
+  })
+  assert.equal(dismissReport.res.status, 201)
+
+  const dismissed = await requestJson(server.baseUrl, `/api/admin/reports/${dismissReport.body.id}/dismiss`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${admin}` },
+    body: JSON.stringify({ note: '确认误报' }),
+  })
+  assert.equal(dismissed.res.status, 200)
+  assert.equal(dismissed.body.status, 'dismissed')
+
+  const stillPublic = await requestJson(server.baseUrl, `/api/boards/${board.id}`)
+  assert.equal(stillPublic.res.status, 200)
+  assert.equal(stillPublic.body.board.id, board.id)
+
   const hidden = await requestJson(server.baseUrl, `/api/admin/reports/${report.body.id}/hide-board`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${admin}` },
@@ -251,6 +270,7 @@ test('reports flow through admin queue, can hide boards, and admin actions are a
   })
   assert.equal(audit.res.status, 200)
   assert.equal(audit.body.some((item) => item.action === 'report_hide_board'), true)
+  assert.equal(audit.body.some((item) => item.action === 'report_dismiss'), true)
 })
 
 test('admin can manage raids and bosses and deletion checks block linked content', async (t) => {

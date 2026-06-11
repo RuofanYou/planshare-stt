@@ -811,8 +811,18 @@ test('submit draft survives reload without saving password or contact', async ({
 test('visitor can report a board and admin can hide it from public pages', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const { board } = await createAdminBoard(request, runId)
+  const dismissedCase = await createAdminBoard(request, `dismiss_${runId}`)
   const detail = `E2E 举报说明 ${runId}`
+  const dismissDetail = `E2E 误报说明 ${runId}`
   const snapshotContent = `P1 举报测试 ${runId}`
+
+  await page.goto(`/board/${dismissedCase.board.id}`)
+  await expect(page.getByRole('heading', { name: dismissedCase.board.title })).toBeVisible()
+  await page.getByRole('button', { name: '举报' }).click()
+  await page.locator('#ps-report-reason').selectOption('other')
+  await page.locator('#ps-report-detail').fill(dismissDetail)
+  await page.getByRole('button', { name: '提交举报' }).click()
+  await expect(page.getByText('举报已提交，已进入管理员处理队列。')).toBeVisible()
 
   await page.goto(`/board/${board.id}`)
   await expect(page.getByRole('heading', { name: board.title })).toBeVisible()
@@ -833,6 +843,16 @@ test('visitor can report a board and admin can hide it from public pages', async
   await page.goto('/admin')
   await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '举报' }).click()
+  const dismissedRow = page.locator('.ps-admin__row-card', { hasText: dismissedCase.board.id })
+  await expect(dismissedRow.getByText(dismissDetail)).toBeVisible()
+  await dismissedRow.getByRole('button', { name: '驳回举报' }).click()
+  await expect(dismissedRow.getByText('已驳回')).toBeVisible()
+
+  await page.goto(`/board/${dismissedCase.board.id}`)
+  await expect(page.getByRole('heading', { name: dismissedCase.board.title })).toBeVisible()
+
+  await page.goto('/admin')
   await page.getByRole('tab', { name: '举报' }).click()
   const reportRow = page.locator('.ps-admin__row-card', { hasText: board.id })
   await expect(reportRow.getByText(detail)).toBeVisible()
