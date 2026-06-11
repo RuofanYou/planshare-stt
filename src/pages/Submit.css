@@ -316,6 +316,13 @@
   gap: var(--space-3);
 }
 
+.ps-submit__receipt-status {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
 .ps-submit__ready {
   margin: 0;
   padding: var(--space-3) var(--space-4);

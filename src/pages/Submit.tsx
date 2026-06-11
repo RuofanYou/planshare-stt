@@ -5,6 +5,7 @@ import type { Difficulty, SubmissionStatus } from '../data/types'
 import { useBoard, useCreateSubmission, useCreatorMe, useCreatorSession, useRaid, useRaids } from '../api/hooks'
 import { Button, SectionHeading, Tag } from '../components/ui'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
+import { copyToClipboard } from '../lib/clipboard'
 import './Submit.css'
 
 const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
@@ -138,6 +139,7 @@ export default function Submit() {
   const [submittedKind, setSubmittedKind] = useState<'regular' | 'creator' | 'creatorSubmission' | ''>('')
   const [submittedStatus, setSubmittedStatus] = useState<SubmissionStatus | ''>('')
   const [submittedSpamReason, setSubmittedSpamReason] = useState('')
+  const [receiptCopyStatus, setReceiptCopyStatus] = useState('')
   const creatorNamePrefilled = useRef(false)
 
   const raidDetailQuery = useRaid(raidId || undefined)
@@ -353,6 +355,7 @@ export default function Submit() {
     setSubmittedKind('')
     setSubmittedStatus('')
     setSubmittedSpamReason('')
+    setReceiptCopyStatus('')
     if (!canSubmit) {
       setLocalError(
         wantsCreatorProfile
@@ -390,6 +393,7 @@ export default function Submit() {
           setSubmittedId(submission.id)
           setSubmittedStatus(submission.status)
           setSubmittedSpamReason(submission.spamReason ?? '')
+          setReceiptCopyStatus('')
           setSubmittedKind(
             requestedCreator && submission.creatorAuth?.token
               ? 'creator'
@@ -407,6 +411,12 @@ export default function Submit() {
         },
       },
     )
+  }
+
+  async function copySubmittedId() {
+    if (!submittedId) return
+    const copied = await copyToClipboard(submittedId)
+    setReceiptCopyStatus(copied ? '已复制投稿编号。' : '复制失败，请手动记录投稿编号。')
   }
 
   return (
@@ -804,13 +814,16 @@ export default function Submit() {
               {submittedStatus === 'spam'
                 ? `投稿已被系统拦截，未进入人工审核：${spamReasonLabel(submittedSpamReason)}。请修改后重新提交。`
                 : submittedKind === 'creator'
-                  ? `账号已创建，投稿已进入审核：${submittedId}。`
+                  ? `账号已创建，投稿已进入审核。投稿编号：${submittedId}。`
                   : submittedKind === 'creatorSubmission'
-                    ? `投稿已进入你的创作者审核进度：${submittedId}。`
-                    : `投稿已进入审核，不会立刻公开：${submittedId}`}
+                    ? `投稿已进入你的创作者审核进度。投稿编号：${submittedId}。`
+                    : `投稿已进入审核，不会立刻公开。投稿编号：${submittedId}。`}
             </p>
             {submittedStatus !== 'spam' && (
               <div className="ps-submit__success-actions">
+                <Button variant="secondary" onClick={copySubmittedId}>
+                  复制投稿编号
+                </Button>
                 {(submittedKind === 'creator' || submittedKind === 'creatorSubmission') && (
                   <Button variant="secondary" to="/creator">
                     进入创作者后台
@@ -820,6 +833,11 @@ export default function Submit() {
                   回首页浏览
                 </Button>
               </div>
+            )}
+            {submittedStatus !== 'spam' && receiptCopyStatus && (
+              <p className="ps-submit__receipt-status" role="status">
+                {receiptCopyStatus}
+              </p>
             )}
           </motion.div>
         )}

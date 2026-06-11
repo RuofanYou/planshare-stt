@@ -2729,6 +2729,44 @@ vite v5.4.21 building for production...
 19 passed (54.9s)
 ```
 
+### UGC 生态补缺口：游客投稿成功后可复制投稿编号
+```text
+普通浏览用户探索:
+游客不一定想注册创作者账号，但他也可能提交一份战术板。
+原成功提示只把投稿 ID 混在一句话里；小白不一定知道这是后续询问进度的凭证，也不方便复制。
+
+已修复：
+- 普通投稿、创作者申请投稿、创作者审核期投稿成功后都显示“投稿编号：xxx”
+- 成功区新增“复制投稿编号”按钮
+- 复制成功显示“已复制投稿编号。”
+- 复制失败显示“复制失败，请手动记录投稿编号。”
+- 不改变审核流；游客仍不会拥有创作者后台，编号只作为和管理员沟通的凭证
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "submit draft survives reload"
+
+Running 1 test using 1 worker
+·
+1 passed (4.3s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓  14 [chromium] › tests/e2e/ugc-smoke.spec.ts:862:1 › submit draft survives reload without saving password or contact (2.3s)
+19 passed (1.0m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

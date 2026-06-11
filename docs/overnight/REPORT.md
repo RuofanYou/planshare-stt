@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.92s
+✓ built in 1.91s
 
 1..47
 # tests 47
@@ -1261,12 +1261,12 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (10.7s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.6s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:456:1 › creator can change password from dashboard and log in with the new password (1.8s)
-✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:917:1 › spam-screened visitor submission stays editable and is not described as queued (1.1s)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1076:1 › creator direct publish screens unsafe content in dashboard (752ms)
-19 passed (54.9s)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (16.7s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.4s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:456:1 › creator can change password from dashboard and log in with the new password (1.6s)
+✓  14 [chromium] › tests/e2e/ugc-smoke.spec.ts:862:1 › submit draft survives reload without saving password or contact (2.3s)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1080:1 › creator direct publish screens unsafe content in dashboard (752ms)
+19 passed (1.0m)
 ```
 
 ## 高风险 diff
@@ -1296,6 +1296,7 @@ vite v5.4.21 building for production...
 - `src/pages/Home.tsx` 与 `src/pages/Home.css`：首页搜索空结果新增“投稿补一份”入口；需人工确认空结果引导不会打扰只想浏览的用户。
 - `src/pages/Category.tsx` 与 `src/pages/Submit.tsx`：团本/BOSS 空态新增“投稿补一份”并通过 query 预选团本和 BOSS；需人工确认从空态转投稿的上下文文案足够明确。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿成功区新增“回首页浏览”；需人工确认成功后的下一步入口符合运营期望。
+- `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿成功区新增“复制投稿编号”；需人工确认游客是否需要更完整的公开查询页，当前只提供沟通凭证。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿页本机草稿新增“清空草稿”按钮；需人工确认共享电脑/误填场景下这个按钮的位置和文案不会造成误删疑虑。
 - `src/pages/Submit.tsx` 与 `tests/e2e/ugc-smoke.spec.ts`：投稿返回 spam 时改为系统拦截提示且保留表单内容；需人工确认“未进入人工审核”的措辞足够清楚。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：申请创作者新增“确认密码”并阻止两次密码不一致提交；需人工确认多一个必填框不会明显提高首次投稿阻力。
