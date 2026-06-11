@@ -100,6 +100,10 @@ function CreatorLogin({ reduce, onLogin }: { reduce: boolean; onLogin: (token: s
     )
   }
 
+  function clearLoginError() {
+    if (loginMutation.error) loginMutation.reset()
+  }
+
   return (
     <div className="container ps-creator ps-creator--login">
       <motion.div
@@ -121,7 +125,10 @@ function CreatorLogin({ reduce, onLogin }: { reduce: boolean; onLogin: (token: s
               className="ps-creator__input"
               autoComplete="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              onChange={(e) => {
+                setUsername(e.target.value.toLowerCase())
+                clearLoginError()
+              }}
               required
             />
             <label className="ps-creator__label" htmlFor="creator-password">密码</label>
@@ -131,7 +138,10 @@ function CreatorLogin({ reduce, onLogin }: { reduce: boolean; onLogin: (token: s
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                clearLoginError()
+              }}
               required
             />
             {loginMutation.error && (
@@ -339,6 +349,11 @@ function CreatorSecurityPanel() {
     )
   }
 
+  function clearPasswordErrors() {
+    setLocalError('')
+    if (updatePassword.error) updatePassword.reset()
+  }
+
   return (
     <GlassCard tone="glass" className="ps-creator__panel">
       <Tag variant="gold">账号安全</Tag>
@@ -356,7 +371,7 @@ function CreatorSecurityPanel() {
           value={currentPassword}
           onChange={(e) => {
             setCurrentPassword(e.target.value)
-            setLocalError('')
+            clearPasswordErrors()
           }}
         />
         <label className="ps-creator__label" htmlFor="creator-next-password">新密码</label>
@@ -368,7 +383,7 @@ function CreatorSecurityPanel() {
           value={nextPassword}
           onChange={(e) => {
             setNextPassword(e.target.value)
-            setLocalError('')
+            clearPasswordErrors()
           }}
         />
         <label className="ps-creator__label" htmlFor="creator-confirm-password">确认新密码</label>
@@ -380,7 +395,7 @@ function CreatorSecurityPanel() {
           value={confirmPassword}
           onChange={(e) => {
             setConfirmPassword(e.target.value)
-            setLocalError('')
+            clearPasswordErrors()
           }}
         />
         {(passwordMismatch || localError || updatePassword.error) && (

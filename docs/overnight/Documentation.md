@@ -2767,6 +2767,43 @@ vite v5.4.21 building for production...
 19 passed (1.0m)
 ```
 
+### UGC 生态补缺口：创作者账号错误不会在修正后残留
+```text
+普通创作者探索:
+登录输错密码后，用户改成正确密码时，旧的“用户名或密码错误”如果还挂着，会让人误以为仍然错。
+修改密码时输错当前密码后，用户改成正确当前密码时，旧的“当前密码不正确”也不该继续显示。
+
+已修复：
+- 创作者登录表单在用户名或密码变化后清掉上一次登录错误
+- 修改密码表单在当前密码、新密码、确认新密码变化后清掉上一次接口错误和本地错误
+- 错误刚返回时不会被立刻清掉；只有用户继续修改输入时才清理
+- 浏览器测试覆盖“错误出现 -> 修改输入 -> 旧错误消失 -> 下一步成功”
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator can change password"
+
+Running 1 test using 1 worker
+·
+1 passed (4.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.96s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:456:1 › creator can change password from dashboard and log in with the new password (1.7s)
+19 passed (1.0m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

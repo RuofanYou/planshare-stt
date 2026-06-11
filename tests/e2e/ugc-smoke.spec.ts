@@ -486,6 +486,7 @@ test('creator can change password from dashboard and log in with the new passwor
   await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
 
   await page.getByLabel('当前密码').fill(creator.password)
+  await expect(page.getByText('当前密码不正确')).toHaveCount(0)
   await page.getByLabel('确认新密码').fill('mismatch-password')
   await expect(page.getByText('两次新密码不一致。')).toBeVisible()
   await expect(page.getByRole('button', { name: '更新密码' })).toBeDisabled()
@@ -501,6 +502,7 @@ test('creator can change password from dashboard and log in with the new passwor
   await expect(page.getByText('用户名或密码错误')).toBeVisible()
 
   await page.getByLabel('密码').fill(nextPassword)
+  await expect(page.getByText('用户名或密码错误')).toHaveCount(0)
   await page.getByRole('button', { name: '登录' }).click()
   await expect(page.getByRole('heading', { name: '后台' })).toBeVisible()
 })
