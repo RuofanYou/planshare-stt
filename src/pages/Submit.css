@@ -270,6 +270,10 @@
   line-height: var(--lh-caption);
 }
 
+.ps-submit__hint.is-error {
+  color: var(--color-ember-bright);
+}
+
 .ps-submit__error,
 .ps-submit__success {
   margin: 0;

@@ -187,7 +187,8 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await page.getByRole('radio', { name: /申请创作者/ }).click()
   await page.getByLabel('作者名 / 投稿署名').fill('E2E 创作者')
   await page.getByLabel('用户名').fill(creatorUsername)
-  await page.getByLabel('密码').fill('creator-password-123')
+  await page.getByLabel('密码', { exact: true }).fill('creator-password-123')
+  await page.getByLabel('确认密码').fill('creator-password-123')
   await page.getByLabel('战术正文').fill(`P1 E2E 分散 ${runId}\nP2 E2E 集合`)
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText(/账号已创建，投稿已进入审核/)).toBeVisible()
@@ -389,7 +390,8 @@ test('creator application guardrails handle missing fields, invalid usernames, a
     await page.getByRole('radio', { name: /申请创作者/ }).click()
     await page.getByLabel('作者名 / 投稿署名').fill(`防呆创作者 ${runId}`)
     await page.getByLabel('用户名').fill(username)
-    await page.getByLabel('密码').fill('creator-password-123')
+    await page.getByLabel('密码', { exact: true }).fill('creator-password-123')
+    await page.getByLabel('确认密码').fill('creator-password-123')
     await page.getByLabel('战术正文').fill(`P1 防呆验证 ${title}\nP2 集合`)
   }
 
@@ -409,11 +411,17 @@ test('creator application guardrails handle missing fields, invalid usernames, a
   await page.getByLabel('作者名 / 投稿署名').fill(`防呆创作者 ${runId}`)
   await page.getByLabel('用户名').fill(`short_${runId}`)
   await expect(page.getByText('用于以后登录创作者后台，至少 8 位。')).toBeVisible()
-  await page.getByLabel('密码').fill('1234567')
+  await page.getByLabel('密码', { exact: true }).fill('1234567')
   await expect(page.getByText('密码至少 8 位，还差 1 位。')).toBeVisible()
   await page.getByLabel('战术正文').fill('P1 缺密码')
   await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
   await expect(page.getByText('还差：登录密码至少 8 位')).toBeVisible()
+
+  await page.getByLabel('密码', { exact: true }).fill('creator-password-123')
+  await page.getByLabel('确认密码').fill('creator-password-456')
+  await expect(page.getByText('两次密码不一致。')).toBeVisible()
+  await expect(page.getByText('还差：确认密码一致')).toBeVisible()
+  await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
 
   await page.goto('/submit')
   await fillCreatorApplication(`非法用户名防呆 ${runId}`, 'Bad Name')
@@ -661,7 +669,8 @@ test('submit draft survives reload without saving password or contact', async ({
   await page.getByRole('radio', { name: /申请创作者/ }).click()
   await page.getByLabel('作者名 / 投稿署名').fill(`草稿作者 ${runId}`)
   await page.getByLabel('用户名').fill(`draft_${runId}`)
-  await page.getByLabel('密码').fill('creator-password-123')
+  await page.getByLabel('密码', { exact: true }).fill('creator-password-123')
+  await page.getByLabel('确认密码').fill('creator-password-123')
   await page.getByLabel('联系方式（可选）', { exact: true }).fill('secret-contact')
   await page.getByLabel('战术正文').fill(`P1 草稿保护 ${runId}\nP2 集合`)
 
@@ -672,7 +681,8 @@ test('submit draft survives reload without saving password or contact', async ({
   await expect(page.locator('#ps-submit-boss')).toHaveValue('b-averzian')
   await expect(page.getByLabel('作者名 / 投稿署名')).toHaveValue(`草稿作者 ${runId}`)
   await expect(page.getByLabel('用户名')).toHaveValue(`draft_${runId}`)
-  await expect(page.getByLabel('密码')).toHaveValue('')
+  await expect(page.getByLabel('密码', { exact: true })).toHaveValue('')
+  await expect(page.getByLabel('确认密码')).toHaveValue('')
   await expect(page.getByLabel('联系方式（可选）', { exact: true })).toHaveValue('')
   await expect(page.getByLabel('战术正文')).toHaveValue(`P1 草稿保护 ${runId}\nP2 集合`)
 

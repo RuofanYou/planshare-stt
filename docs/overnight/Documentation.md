@@ -2017,6 +2017,65 @@ vite v5.4.21 building for production...
 13 passed (49.2s)
 ```
 
+### UGC 生态补缺口：创作者注册确认密码
+```text
+普通创作者探索:
+申请创作者时原本只输入一次密码。因为本项目明确不做邮箱/短信/第三方登录，用户如果第一次注册时手滑输错密码，账号创建后就可能无法自助登录，只能找管理员重置。
+已新增“确认密码”字段；两次密码不一致时：
+- 页面显示“两次密码不一致。”
+- 提交按钮保持禁用
+- “还差”提示会显示“确认密码一致”
+
+密码和确认密码仍不写入投稿草稿，刷新后都会清空。
+```
+
+```text
+Browser 覆盖:
+内置浏览器打开 http://localhost:5183/submit，点击“申请创作者”后确认：
+{
+  "hasPassword": true,
+  "hasConfirm": true,
+  "hasConfirmHint": true,
+  "hasNoDraftPasswordCopy": true
+}
+
+控制台只有既有 React Router v7 future warning 和 THREE.Clock deprecated warning，没有本轮新增错误。
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.89s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator application guardrails|submit draft"
+
+Running 2 tests using 1 worker
+··
+2 passed (6.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:382:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.1s)
+✓  10 [chromium] › tests/e2e/ugc-smoke.spec.ts:660:1 › submit draft survives reload without saving password or contact (1.9s)
+13 passed (39.7s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

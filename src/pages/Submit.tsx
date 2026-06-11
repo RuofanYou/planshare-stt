@@ -114,6 +114,7 @@ export default function Submit() {
   const [wantsCreatorProfile, setWantsCreatorProfile] = useState(initialDraft.current.wantsCreatorProfile)
   const [creatorUsername, setCreatorUsername] = useState(initialDraft.current.creatorUsername)
   const [creatorPassword, setCreatorPassword] = useState('')
+  const [creatorPasswordConfirm, setCreatorPasswordConfirm] = useState('')
   const [contact, setContact] = useState('')
   const [creatorBio, setCreatorBio] = useState(initialDraft.current.creatorBio)
   const [creatorGuildName, setCreatorGuildName] = useState(initialDraft.current.creatorGuildName)
@@ -131,6 +132,14 @@ export default function Submit() {
     wantsCreatorProfile && creatorPassword.length > 0 && creatorPassword.length < 8
       ? `密码至少 8 位，还差 ${8 - creatorPassword.length} 位。`
       : '用于以后登录创作者后台，至少 8 位。'
+  const creatorPasswordMismatch =
+    wantsCreatorProfile &&
+    creatorPassword.length >= 8 &&
+    creatorPasswordConfirm.length > 0 &&
+    creatorPassword !== creatorPasswordConfirm
+  const creatorPasswordConfirmHint = creatorPasswordMismatch
+    ? '两次密码不一致。'
+    : '再输入一次，避免账号创建后无法登录。'
   const missingSubmitItems = [
     title.trim() === '' ? '标题' : '',
     raidId === '' ? '团本' : '',
@@ -138,6 +147,9 @@ export default function Submit() {
     submitterName.trim() === '' ? (wantsCreatorProfile ? '作者名' : '投稿署名') : '',
     wantsCreatorProfile && creatorUsername.trim() === '' ? '登录用户名' : '',
     wantsCreatorProfile && creatorPassword.length < 8 ? '登录密码至少 8 位' : '',
+    wantsCreatorProfile && creatorPassword.length >= 8 && creatorPassword !== creatorPasswordConfirm
+      ? '确认密码一致'
+      : '',
     contentText.trim() === '' ? '战术正文' : '',
   ].filter(Boolean)
   const canSubmit = missingSubmitItems.length === 0 && !pending
@@ -228,6 +240,7 @@ export default function Submit() {
     setWantsCreatorProfile(false)
     setCreatorUsername('')
     setCreatorPassword('')
+    setCreatorPasswordConfirm('')
     setContact('')
     setCreatorBio('')
     setCreatorGuildName('')
@@ -252,7 +265,7 @@ export default function Submit() {
     if (!canSubmit) {
       setLocalError(
         wantsCreatorProfile
-          ? '申请创作者需要填写用户名和至少 8 位密码。'
+          ? '申请创作者需要填写用户名、至少 8 位密码，并确认两次密码一致。'
           : '请补全必填项。',
       )
       return
@@ -515,6 +528,27 @@ export default function Submit() {
                   />
                   <p className="ps-submit__hint" id="ps-submit-password-hint">
                     {creatorPasswordHint}
+                  </p>
+                </div>
+                <div className="ps-submit__field">
+                  <label className="ps-submit__label" htmlFor="ps-submit-password-confirm">
+                    确认密码
+                  </label>
+                  <input
+                    id="ps-submit-password-confirm"
+                    className="ps-submit__input"
+                    type="password"
+                    autoComplete="new-password"
+                    aria-describedby="ps-submit-password-confirm-hint"
+                    value={creatorPasswordConfirm}
+                    onChange={(e) => setCreatorPasswordConfirm(e.target.value)}
+                    placeholder="再输入一次"
+                  />
+                  <p
+                    className={creatorPasswordMismatch ? 'ps-submit__hint is-error' : 'ps-submit__hint'}
+                    id="ps-submit-password-confirm-hint"
+                  >
+                    {creatorPasswordConfirmHint}
                   </p>
                 </div>
                 <div className="ps-submit__field ps-submit__field--wide">
