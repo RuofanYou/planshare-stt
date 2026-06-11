@@ -3939,6 +3939,51 @@ vite v5.4.21 building for production...
 32 passed (1.4m)
 ```
 
+### UGC 生态补缺口：修改密码成功提示不会滞留到下一次输入
+```text
+创作者用户探索:
+创作者在后台修改密码成功后，页面会显示“密码已更新。”。
+如果他马上又开始输入下一次修改，旧成功提示原来还留在页面上。
+普通用户会误以为刚输入的新内容也已经生效，账号安全类操作不能留下这种假成功反馈。
+
+已修复：
+- 修改密码表单继续输入当前密码、新密码或确认密码时，会同时清掉旧错误和旧成功提示。
+- 原有“当前密码错误”“两次新密码不一致”清理逻辑保持不变。
+- E2E 覆盖：修改密码成功后再次输入，必须看不到“密码已更新。”。
+
+决策记录：
+- 这是前端提示状态修正，不改变密码接口、安全策略或会话撤销逻辑。
+- 复用现有 mutation reset 语义，不新增状态机。
+```
+
+```text
+CI=1 npx playwright test --grep "creator can change password from dashboard and log in with the new password"
+
+Running 1 test using 1 worker
+·
+1 passed (4.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.3s)
+✓   4 [chromium] › tests/e2e/ugc-smoke.spec.ts:610:1 › creator can change password from dashboard and log in with the new password (1.7s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1191:1 › admin board curation and restore require confirmation before changing public exposure (2.3s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1639:1 › visitor can report a board and admin can hide it from public pages (11.1s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1770:1 › creator direct publish screens unsafe content in dashboard (767ms)
+32 passed (1.5m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

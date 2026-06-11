@@ -364,9 +364,9 @@ function CreatorSecurityPanel() {
     )
   }
 
-  function clearPasswordErrors() {
+  function clearPasswordStatus() {
     setLocalError('')
-    if (updatePassword.error) updatePassword.reset()
+    if (updatePassword.error || updatePassword.isSuccess) updatePassword.reset()
   }
 
   return (
@@ -386,7 +386,7 @@ function CreatorSecurityPanel() {
           value={currentPassword}
           onChange={(e) => {
             setCurrentPassword(e.target.value)
-            clearPasswordErrors()
+            clearPasswordStatus()
           }}
         />
         <label className="ps-creator__label" htmlFor="creator-next-password">新密码</label>
@@ -398,7 +398,7 @@ function CreatorSecurityPanel() {
           value={nextPassword}
           onChange={(e) => {
             setNextPassword(e.target.value)
-            clearPasswordErrors()
+            clearPasswordStatus()
           }}
         />
         <label className="ps-creator__label" htmlFor="creator-confirm-password">确认新密码</label>
@@ -410,7 +410,7 @@ function CreatorSecurityPanel() {
           value={confirmPassword}
           onChange={(e) => {
             setConfirmPassword(e.target.value)
-            clearPasswordErrors()
+            clearPasswordStatus()
           }}
         />
         {(passwordMismatch || localError || updatePassword.error) && (

@@ -648,6 +648,8 @@ test('creator can change password from dashboard and log in with the new passwor
   await page.getByLabel('确认新密码').fill(nextPassword)
   await page.getByRole('button', { name: '更新密码' }).click()
   await expect(page.getByText('密码已更新。')).toBeVisible()
+  await page.getByLabel('当前密码').fill(nextPassword)
+  await expect(page.getByText('密码已更新。')).toHaveCount(0)
 
   await page.getByRole('button', { name: '退出登录' }).click()
   await page.getByLabel('用户名').fill(creator.username)
