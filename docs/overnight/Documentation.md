@@ -3216,11 +3216,11 @@ vite v5.4.21 building for production...
 ```
 
 ```text
-CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "visitor rejected receipt"
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "receipt can return to a clean resubmission form"
 
-Running 1 test using 1 worker
-·
-1 passed (2.7s)
+Running 3 tests using 1 worker
+···
+3 passed (4.0s)
 ```
 
 ```text
@@ -3228,15 +3228,17 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.94s
+✓ built in 1.93s
 
 1..48
 # tests 48
 # pass 48
 # fail 0
 
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1072:1 › visitor rejected receipt can return to a clean resubmission form (564ms)
-25 passed (1.0m)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1090:1 › visitor rejected receipt can return to a clean resubmission form (614ms)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1119:1 › visitor spam receipt can return to a clean resubmission form (553ms)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1142:1 › visitor withdrawn receipt can return to a clean resubmission form (584ms)
+27 passed (1.1m)
 ```
 
 ## 已知问题

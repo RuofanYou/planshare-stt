@@ -1253,7 +1253,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 1.94s
+✓ built in 1.93s
 
 1..48
 # tests 48
@@ -1261,16 +1261,18 @@ vite v5.4.21 building for production...
 # pass 48
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.0s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:410:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:474:1 › creator can change password from dashboard and log in with the new password (1.7s)
-✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:727:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.3s)
-✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1038:1 › visitor can check submission receipt and open the approved board (909ms)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1072:1 › visitor rejected receipt can return to a clean resubmission form (564ms)
-✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1110:1 › submission receipt rate limit shows a visible visitor-facing error (597ms)
-✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1167:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
-✓  25 [chromium] › tests/e2e/ugc-smoke.spec.ts:1341:1 › creator direct publish screens unsafe content in dashboard (672ms)
-25 passed (1.0m)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:153:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.2s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:428:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.5s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:492:1 › creator can change password from dashboard and log in with the new password (1.9s)
+✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:745:1 › creator dashboard explains duplicate content screening and keeps retry editable (1.6s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1056:1 › visitor can check submission receipt and open the approved board (1.0s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1090:1 › visitor rejected receipt can return to a clean resubmission form (614ms)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1119:1 › visitor spam receipt can return to a clean resubmission form (553ms)
+✓  20 [chromium] › tests/e2e/ugc-smoke.spec.ts:1142:1 › visitor withdrawn receipt can return to a clean resubmission form (584ms)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1168:1 › submission receipt rate limit shows a visible visitor-facing error (601ms)
+✓  23 [chromium] › tests/e2e/ugc-smoke.spec.ts:1225:1 › duplicate visitor submission explains that the same content will not enter review twice (1.1s)
+✓  27 [chromium] › tests/e2e/ugc-smoke.spec.ts:1399:1 › creator direct publish screens unsafe content in dashboard (881ms)
+27 passed (1.1m)
 ```
 
 ## 高风险 diff

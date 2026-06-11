@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
 const ADMIN_PASSWORD = 'test-admin-password'
 
@@ -103,6 +103,24 @@ async function approvePending(request: APIRequestContext, token: string, id: str
   })
   expect(res.ok()).toBeTruthy()
   return res.json()
+}
+
+async function expectReceiptCanStartCleanResubmission(
+  page: Page,
+  submissionId: string,
+  statusLabel: string,
+  statusCopy: string,
+) {
+  await page.goto('/submit')
+  await page.getByLabel('投稿编号').fill(submissionId)
+  await page.getByRole('button', { name: '查询' }).click()
+  await expect(page.getByText(statusLabel, { exact: true })).toBeVisible()
+  await expect(page.getByText(statusCopy, { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '重新投稿' }).click()
+  await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByText(statusLabel, { exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('投稿编号')).toHaveValue('')
+  await expect(page.getByText('还差：标题、团本、BOSS、投稿署名、战术正文')).toBeVisible()
 }
 
 async function createAdminBoard(request: APIRequestContext, suffix: string) {
@@ -1095,16 +1113,56 @@ test('visitor rejected receipt can return to a clean resubmission form', async (
   })
   expect(rejected.ok()).toBeTruthy()
 
-  await page.goto('/submit')
-  await page.getByLabel('投稿编号').fill(submission.id)
-  await page.getByRole('button', { name: '查询' }).click()
-  await expect(page.getByText('未通过', { exact: true })).toBeVisible()
-  await expect(page.getByText(`管理员备注：${reviewNote}`)).toBeVisible()
-  await page.getByRole('button', { name: '重新投稿' }).click()
-  await expect(page).toHaveURL(/\/submit$/)
-  await expect(page.getByText('未通过', { exact: true })).toHaveCount(0)
-  await expect(page.getByLabel('投稿编号')).toHaveValue('')
-  await expect(page.getByText('还差：标题、团本、BOSS、投稿署名、战术正文')).toBeVisible()
+  await expectReceiptCanStartCleanResubmission(page, submission.id, '未通过', `管理员备注：${reviewNote}`)
+})
+
+test('visitor spam receipt can return to a clean resubmission form', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const created = await request.post('/api/submissions', {
+    headers: { 'X-Forwarded-For': `198.51.100.${(Math.abs(hashSuffix(`receiptspam_${runId}`)) % 100) + 70}` },
+    data: {
+      title: `游客拦截状态 ${runId}`,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `游客拦截状态 ${runId}`,
+      contentText: `这是一条博 彩广告 ${runId}`,
+      submitterName: `拦截游客 ${runId}`,
+      wantsCreatorProfile: false,
+    },
+  })
+  expect(created.status()).toBe(201)
+  const submission = await created.json()
+  expect(submission.status).toBe('spam')
+
+  await expectReceiptCanStartCleanResubmission(page, submission.id, '被系统拦截', '未进入人工审核：内容风险。')
+})
+
+test('visitor withdrawn receipt can return to a clean resubmission form', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `rw_${runId}`)
+  expect(creator.token).toBeTruthy()
+
+  const admin = await adminToken(request)
+  const submissions = await request.get('/api/admin/submissions', {
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  expect(submissions.ok()).toBeTruthy()
+  const submission = (await submissions.json()).find((item: { title: string }) => item.title === creator.title)
+  expect(submission?.id).toBeTruthy()
+
+  const withdrawn = await request.post(`/api/creator/submissions/${submission.id}/withdraw`, {
+    headers: { Authorization: `Bearer ${creator.token}` },
+  })
+  expect(withdrawn.ok()).toBeTruthy()
+
+  await expectReceiptCanStartCleanResubmission(
+    page,
+    submission.id,
+    '已撤回',
+    '这份投稿已撤回，需要重新提交才会进入审核。',
+  )
 })
 
 test('submission receipt rate limit shows a visible visitor-facing error', async ({ page, request }) => {
