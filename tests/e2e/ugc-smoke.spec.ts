@@ -344,6 +344,34 @@ test('creator can change password from dashboard and log in with the new passwor
   await expect(page.getByRole('heading', { name: '后台' })).toBeVisible()
 })
 
+test('admin can reset a creator password and the creator can log in again', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `reset_${runId}`)
+  const resetPassword = `creator-reset-${runId}`
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '创作者' }).click()
+
+  const accountRow = page.locator('.ps-admin__row-card', { hasText: creator.username })
+  await expect(accountRow).toBeVisible()
+  await accountRow.getByRole('button', { name: '重置密码' }).click()
+  await accountRow.getByLabel('新密码').fill(resetPassword)
+  await accountRow.getByRole('button', { name: '确认重置' }).click()
+  await expect(accountRow.getByText(`已重置。请把新密码「${resetPassword}」发给用户；离开本行后后台不会再显示它。`)).toBeVisible()
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByText('用户名或密码错误')).toBeVisible()
+
+  await page.getByLabel('密码').fill(resetPassword)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+})
+
 test('creator can withdraw a pending submission from dashboard', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const creator = await createCreatorApplication(request, `withdraw_${runId}`)
