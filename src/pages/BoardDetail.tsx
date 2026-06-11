@@ -354,6 +354,7 @@ export default function BoardDetail() {
         onSuccess: () => {
           setReportDone(true)
           setReportOpen(false)
+          setReportReason('wrong-info')
           setReportDetail('')
         },
       },

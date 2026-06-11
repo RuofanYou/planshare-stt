@@ -4037,6 +4037,51 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### UGC 生态补缺口：举报成功后重开表单回到默认理由
+```text
+浏览用户探索:
+用户在详情页举报时，如果选择“其它原因”并填写说明，提交成功后表单会关闭。
+原来再次点击“举报”时仍保留“其它原因”，但说明已经清空，提交按钮会禁用。
+普通用户可能误以为举报表单坏了，或者不知道必须重新填写说明。
+
+已修复：
+- 举报提交成功后，举报理由重置为默认的“信息有误”。
+- 再次打开举报表单时是干净状态，不会继承上一份举报的“其它原因”必填门槛。
+- 取消举报原有的清空逻辑保持不变。
+- E2E 覆盖：选择“其它原因”提交成功后再次打开，理由必须回到默认值。
+
+决策记录：
+- 这是前端表单状态修复，不改变举报落库、限流或后台处理队列。
+- 成功后仍显示“举报已提交，已进入管理员处理队列”，只是下一次打开表单不继承旧理由。
+```
+
+```text
+CI=1 npx playwright test --grep "visitor can report a board and admin can hide it from public pages"
+
+Running 1 test using 1 worker
+·
+1 passed (13.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.9s)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1344:1 › submit draft survives reload without saving password or contact (1.6s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1645:1 › visitor can report a board and admin can hide it from public pages (11.1s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1780:1 › creator direct publish screens unsafe content in dashboard (899ms)
+32 passed (1.5m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
