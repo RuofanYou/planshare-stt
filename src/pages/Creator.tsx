@@ -626,7 +626,7 @@ function CreatorProfileEditor({ author }: { author: Author }) {
       <p className="ps-creator__panel-copy">
         {author.visibility === 'approved'
           ? '资料会展示在作者主页；上方可直接发布和维护你的战术板。'
-          : '资料可半公开展示；首个战术板通过审核后会开放直接发布。'}
+          : '资料可半公开展示；前 3 个战术板通过审核后会开放直接发布。'}
       </p>
       <div className="ps-creator__draft-bar">
         <p className="ps-creator__notice">资料草稿会自动保存在本机；保存成功后清空。</p>

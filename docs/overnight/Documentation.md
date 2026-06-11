@@ -2187,6 +2187,63 @@ vite v5.4.21 building for production...
 14 passed (48.7s)
 ```
 
+### UGC 生态补缺口：新创作者直发门槛文案一致
+```text
+普通创作者探索:
+从 /submit 真实申请创作者后进入 /creator，后台上半部分写“首个战术板通过审核后会开放直接发布”，下方审核状态又写“前 3 个战术板通过审核后开放直发、编辑、下架和恢复发布”。
+实际业务规则是累计 3 次审核通过后才晋升 trusted。旧文案会让新手误以为 1 次通过就能直发。
+
+已统一改为“资料可半公开展示；前 3 个战术板通过审核后会开放直接发布。”，并在 UGC 主链 E2E 加断言：
+- 新创作者后台必须显示 3 次门槛文案
+- 不允许再出现“首个战术板通过审核后会开放直接发布。”
+```
+
+```text
+Browser 覆盖:
+内置浏览器以普通用户路径提交创作者申请后进入 http://localhost:5183/creator：
+{
+  "hasThree": true,
+  "hasOldOne": false,
+  "snippet": "资料可半公开展示；前 3 个战术板通过审核后会开放直接发布。"
+}
+
+控制台只有既有 React Router v7 future warning 和 THREE.Clock deprecated warning，没有本轮新增错误。
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (13.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.89s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (10.4s)
+✓  14 [chromium] › tests/e2e/ugc-smoke.spec.ts:848:1 › creator direct publish screens unsafe content in dashboard (739ms)
+14 passed (42.1s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

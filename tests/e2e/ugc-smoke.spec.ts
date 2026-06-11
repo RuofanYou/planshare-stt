@@ -202,6 +202,8 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
   await expect(page.getByText(firstTitle)).toBeVisible()
   await expect(page.getByText('待审核', { exact: true })).toBeVisible()
+  await expect(page.getByText('资料可半公开展示；前 3 个战术板通过审核后会开放直接发布。')).toBeVisible()
+  await expect(page.getByText('首个战术板通过审核后会开放直接发布。')).toHaveCount(0)
 
   await page.goto('/admin')
   await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
