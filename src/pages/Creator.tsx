@@ -1253,6 +1253,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   const [contentText, setContentText] = useState(initialEditDraft.contentText)
   const [copyNotice, setCopyNotice] = useState('')
   const [confirmHide, setConfirmHide] = useState(false)
+  const [confirmRestore, setConfirmRestore] = useState(false)
   const [confirmDiscardEditDraft, setConfirmDiscardEditDraft] = useState(false)
   const missingEditItems = [
     title.trim() === '' ? '标题' : '',
@@ -1307,6 +1308,11 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
     setConfirmHide(false)
   }
 
+  function restoreBoard() {
+    updateBoard.mutate({ id: board.id, patch: { isHidden: false } })
+    setConfirmRestore(false)
+  }
+
   function discardEditDraft() {
     clearCreatorBoardEditDraft(board.id)
     if (updateBoard.error) updateBoard.reset()
@@ -1327,6 +1333,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
 
   useEffect(() => {
     if (board.isHidden || hiddenByAdmin) setConfirmHide(false)
+    if (!board.isHidden || hiddenByAdmin) setConfirmRestore(false)
   }, [board.isHidden, hiddenByAdmin])
 
   return (
@@ -1343,7 +1350,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
         </Tag>
       </div>
 
-      {editing ? (
+        {editing ? (
         <form className="ps-creator__form" onSubmit={saveBoard}>
           <div className="ps-creator__draft-bar">
             <p className="ps-creator__notice">编辑草稿会自动保存在本机；保存成功后清空。</p>
@@ -1441,7 +1448,7 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
             {hiddenByAdmin ? null : board.isHidden ? (
               <Button
                 variant="primary"
-                onClick={() => updateBoard.mutate({ id: board.id, patch: { isHidden: false } })}
+                onClick={() => setConfirmRestore(true)}
                 disabled={updateBoard.isPending}
               >
                 {updateBoard.isPending ? '恢复中…' : '恢复发布'}
@@ -1464,6 +1471,24 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
               </>
             )}
           </div>
+          {confirmRestore && board.isHidden && !hiddenByAdmin && (
+            <div className="ps-creator__confirm glass-strong" role="alertdialog">
+              <p>确定恢复发布这个战术板？恢复后会重新出现在公开列表和详情页。</p>
+              <div className="ps-creator__actions">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setConfirmRestore(false)}
+                  disabled={updateBoard.isPending}
+                >
+                  取消
+                </Button>
+                <Button variant="primary" size="sm" onClick={restoreBoard} disabled={updateBoard.isPending}>
+                  确认恢复
+                </Button>
+              </div>
+            </div>
+          )}
           {confirmHide && !board.isHidden && !hiddenByAdmin && (
             <div className="ps-creator__confirm glass-strong" role="alertdialog">
               <p>确定下架这个战术板？下架后不会公开展示，但可以随时恢复发布。</p>

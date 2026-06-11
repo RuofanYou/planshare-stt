@@ -3719,6 +3719,50 @@ vite v5.4.21 building for production...
 31 passed (1.5m)
 ```
 
+### UGC 生态补缺口：恢复发布需要二次确认
+```text
+创作者用户探索:
+“下架”已经有二次确认，但“恢复发布”原来是一键公开。
+UGC 开放后，恢复发布会让创作者已下架的战术板重新进入公开列表和详情页；误点会把不想公开的内容重新放出去。
+
+已修复：
+- 点击“恢复发布”先显示页面内确认条。
+- 确认文案说明恢复后会重新出现在公开列表和详情页。
+- 点击“取消”仍保持已下架。
+- 点击“确认恢复”才真正重新公开。
+- 管理员隐藏的板仍然不能由创作者自行恢复发布。
+
+决策记录：
+- 恢复发布是公开侧写操作，和下架一样需要防误点。
+- 不改后端权限模型；仍复用创作者更新板接口，只在前端 UI 层增加确认。
+```
+
+```text
+CI=1 npx playwright test --grep "UGC smoke: browse, copy, submit, approve, publish, and creator direct post"
+
+Running 1 test using 1 worker
+·
+1 passed (15.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.9s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1644:1 › creator dashboard blocks self-restore for boards hidden by admin reports (587ms)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1695:1 › creator direct publish screens unsafe content in dashboard (808ms)
+31 passed (1.5m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
