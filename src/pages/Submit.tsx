@@ -610,11 +610,16 @@ export default function Submit() {
                 ? `账号已创建，投稿已进入审核：${submittedId}。`
                 : `投稿已进入审核，不会立刻公开：${submittedId}`}
             </p>
-            {submittedKind === 'creator' && (
-              <Button variant="secondary" to="/creator">
-                进入创作者后台
+            <div className="ps-submit__success-actions">
+              {submittedKind === 'creator' && (
+                <Button variant="secondary" to="/creator">
+                  进入创作者后台
+                </Button>
+              )}
+              <Button variant="secondary" to="/">
+                回首页浏览
               </Button>
-            )}
+            </div>
           </motion.div>
         )}
 

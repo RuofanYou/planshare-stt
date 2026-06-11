@@ -264,6 +264,12 @@
   margin: 0;
 }
 
+.ps-submit__success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .ps-submit__ready {
   margin: 0;
   padding: var(--space-3) var(--space-4);

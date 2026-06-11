@@ -1779,6 +1779,51 @@ vite v5.4.21 building for production...
 13 passed (43.8s)
 ```
 
+### UGC 生态补缺口：投稿成功后的回流入口
+```text
+普通用户探索:
+普通投稿成功后原本只有“投稿已进入审核”的文字，没有下一步按钮。
+已新增：
+- 普通投稿成功后显示“回首页浏览”。
+- 申请创作者成功后保留“进入创作者后台”，同时也显示“回首页浏览”。
+```
+
+```text
+Browser/Playwright 覆盖:
+本地普通投稿成功后：
+{
+  "hasHomeLink": true,
+  "url": "http://localhost:5183/"
+}
+说明“回首页浏览”可见并能跳回首页。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke|submit draft"
+
+Running 2 tests using 1 worker
+··
+2 passed (14.6s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (10.8s)
+✓  10 [chromium] › tests/e2e/ugc-smoke.spec.ts:604:1 › submit draft survives reload without saving password or contact (1.9s)
+13 passed (43.2s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

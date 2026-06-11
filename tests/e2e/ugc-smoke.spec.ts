@@ -191,6 +191,8 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await page.getByLabel('战术正文').fill(`P1 E2E 分散 ${runId}\nP2 E2E 集合`)
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText(/账号已创建，投稿已进入审核/)).toBeVisible()
+  await expect(page.getByRole('link', { name: '进入创作者后台' })).toBeVisible()
+  await expect(page.getByRole('link', { name: '回首页浏览' })).toBeVisible()
 
   const creatorToken = await page.evaluate(() => localStorage.getItem('planshare_creator_token'))
   expect(creatorToken).toBeTruthy()
@@ -629,6 +631,10 @@ test('submit draft survives reload without saving password or contact', async ({
   await expect(page.getByText('信息已补齐，可以提交审核。')).toBeVisible()
   await page.getByRole('button', { name: '提交审核' }).click()
   await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
+  await expect(page.getByRole('link', { name: '回首页浏览' })).toBeVisible()
+  await page.getByRole('link', { name: '回首页浏览' }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { name: '找一块能直接用的战术板' })).toBeVisible()
   await expect(page.evaluate(() => localStorage.getItem('planshare_submit_draft_v1'))).resolves.toBeNull()
 })
 
