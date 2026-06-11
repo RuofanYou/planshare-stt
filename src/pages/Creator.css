@@ -229,6 +229,23 @@
   color: var(--color-success);
 }
 
+.ps-creator__ready {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-creator__ready.is-ready {
+  color: var(--color-success);
+  border-color: var(--color-gold-glow);
+  background: var(--glass-strong);
+}
+
 @media (max-width: 760px) {
   .ps-creator__head {
     align-items: stretch;

@@ -268,11 +268,13 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await page.goto('/creator')
   await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
   await expect(page.getByText('直发草稿会自动保存在本机；成功发布后清空。')).toBeVisible()
+  await expect(page.getByText('还差：标题、团本、BOSS、战术正文')).toBeVisible()
   await page.getByLabel('标题').fill(directTitle)
   await page.locator('#creator-board-raid').selectOption('r-voidspire')
   await page.locator('#creator-board-boss').selectOption('b-averzian')
   await page.locator('#creator-board-description').fill(`E2E 直发草稿 ${runId}`)
   await page.getByLabel('战术正文').fill('P1 创作者直发\nP2 结束')
+  await expect(page.getByText('信息已补齐，可以直接发布。')).toBeVisible()
 
   await page.reload()
   await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
@@ -297,6 +299,7 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await directBoardRow.getByRole('button', { name: '编辑' }).click()
   await expect(directBoardRow.getByText('编辑草稿会自动保存在本机；保存成功后清空。')).toBeVisible()
+  await expect(directBoardRow.getByText('信息已补齐，可以保存修改。')).toBeVisible()
   await directBoardRow.getByLabel('标题').fill(`${directTitle} 修订`)
   await directBoardRow.getByLabel('战术正文').fill('P1 创作者直发修订\nP2 结束')
 

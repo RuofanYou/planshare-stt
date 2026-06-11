@@ -1685,6 +1685,55 @@ vite v5.4.21 building for production...
 13 passed (36.5s)
 ```
 
+### UGC 生态补缺口：创作者直发 / 编辑缺项实时提示
+```text
+普通用户探索:
+正式创作者后台“直接发布”和“保存修改”按钮禁用时，也需要告诉创作者还差哪一项。
+已新增：
+- 空直发表单显示“还差：标题、团本、BOSS、战术正文”。
+- 直发表单补齐后显示“信息已补齐，可以直接发布。”。
+- 编辑已发布板时显示“信息已补齐，可以保存修改。”；标题或正文为空时显示对应缺项。
+```
+
+```text
+Browser/Playwright 覆盖:
+本地 API 创建 preview_mq8vj30b 创作者并完成 3 次审核晋升。
+独立 Playwright 注入本地 token 后打开 /creator：
+{
+  "readiness": [
+    "还差：标题、团本、BOSS、战术正文"
+  ],
+  "directDisabled": true,
+  "url": "http://localhost:5183/creator"
+}
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (12.8s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (10.7s)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:715:1 › creator direct publish screens unsafe content in dashboard (750ms)
+13 passed (37.4s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

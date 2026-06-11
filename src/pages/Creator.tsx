@@ -808,12 +808,22 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
 
   const raidDetailQuery = useRaid(raidId || undefined)
   const bosses = raidDetailQuery.data?.bosses ?? []
-  const canCreate =
-    title.trim() !== '' &&
-    raidId !== '' &&
-    bossId !== '' &&
-    contentText.trim() !== '' &&
-    !createBoard.isPending
+  const missingCreateItems = [
+    title.trim() === '' ? '标题' : '',
+    raidId === '' ? '团本' : '',
+    bossId === '' ? 'BOSS' : '',
+    contentText.trim() === '' ? '战术正文' : '',
+  ].filter(Boolean)
+  const canCreate = missingCreateItems.length === 0 && !createBoard.isPending
+  const hasCreateFormContent = Boolean(
+    title.trim() || raidId || bossId || description.trim() || contentText.trim(),
+  )
+  const createReadinessText =
+    missingCreateItems.length > 0
+      ? `还差：${missingCreateItems.join('、')}`
+      : createBoard.isPending
+        ? '正在发布，请稍候。'
+        : '信息已补齐，可以直接发布。'
 
   useEffect(() => {
     writeCreatorBoardDraft(creatorId, {
@@ -959,6 +969,11 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
           </p>
         )}
         {createBoard.isSuccess && <p className="ps-creator__notice">战术板已发布。</p>}
+        {(!createBoard.isSuccess || hasCreateFormContent) && (
+          <p className={canCreate ? 'ps-creator__ready is-ready' : 'ps-creator__ready'} role="status">
+            {createReadinessText}
+          </p>
+        )}
         <div className="ps-creator__actions">
           <Button type="submit" variant="primary" disabled={!canCreate}>
             {createBoard.isPending ? '发布中…' : '直接发布'}
@@ -993,6 +1008,17 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
   const [description, setDescription] = useState(initialEditDraft.description)
   const [contentText, setContentText] = useState(initialEditDraft.contentText)
   const [copyNotice, setCopyNotice] = useState('')
+  const missingEditItems = [
+    title.trim() === '' ? '标题' : '',
+    contentText.trim() === '' ? '战术正文' : '',
+  ].filter(Boolean)
+  const canSave = missingEditItems.length === 0 && !updateBoard.isPending
+  const editReadinessText =
+    missingEditItems.length > 0
+      ? `还差：${missingEditItems.join('、')}`
+      : updateBoard.isPending
+        ? '正在保存，请稍候。'
+        : '信息已补齐，可以保存修改。'
 
   useEffect(() => {
     if (editing) return
@@ -1090,8 +1116,11 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
               {(updateBoard.error as Error).message}
             </p>
           )}
+          <p className={canSave ? 'ps-creator__ready is-ready' : 'ps-creator__ready'} role="status">
+            {editReadinessText}
+          </p>
           <div className="ps-creator__actions">
-            <Button type="submit" variant="primary" disabled={updateBoard.isPending || !title.trim() || !contentText.trim()}>
+            <Button type="submit" variant="primary" disabled={!canSave}>
               {updateBoard.isPending ? '保存中…' : '保存修改'}
             </Button>
             <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
