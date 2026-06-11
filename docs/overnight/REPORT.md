@@ -1546,7 +1546,7 @@ vite v5.4.21 building for production...
 32 passed (1.4m)
 ```
 
-### 最新最终验证
+### 上一轮最终验证
 ```text
 CI=1 npx playwright test --grep "creator can change password from dashboard and log in with the new password"
 
@@ -1577,7 +1577,45 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### 最新最终验证
+```text
+CI=1 npx playwright test --grep "submit draft survives reload without saving password or contact"
+
+Running 1 test using 1 worker
+·
+1 passed (4.0s)
+```
+
+```text
+CI=1 npx playwright test --grep "UGC smoke: browse, copy, submit, approve, publish, and creator direct post"
+
+Running 1 test using 1 worker
+·
+1 passed (18.5s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.0s)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1344:1 › submit draft survives reload without saving password or contact (1.7s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1645:1 › visitor can report a board and admin can hide it from public pages (10.9s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1776:1 › creator direct publish screens unsafe content in dashboard (662ms)
+32 passed (1.5m)
+```
+
 ## 高风险 diff
+- `src/pages/Submit.tsx`：投稿成功或被系统拦截后，用户开始编辑下一份投稿会清掉旧结果提示；需人工确认“用户编辑即开始新投稿”的交互理解符合运营预期。
 - `src/pages/Creator.tsx`：创作者修改密码成功后，继续输入会清掉旧成功提示；需人工确认成功提示消失时机符合“继续编辑代表开始新操作”的理解。
 - `src/pages/Creator.tsx`：创作者编辑公开战术板保存成功后新增行内“修改已保存。”提示；需人工确认提示停留到下次编辑前的节奏符合创作者连续维护习惯。
 - `src/pages/BoardDetail.tsx`：举报表单新增“取消举报”，取消会重置表单；需人工确认这符合治理入口的体验预期，不会误导用户以为已提交。

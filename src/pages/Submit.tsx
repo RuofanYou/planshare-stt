@@ -360,10 +360,10 @@ export default function Submit() {
     if (localError) setLocalError('')
     if (createSubmission.error) createSubmission.reset()
   }, [
+    createSubmission,
     editableFingerprint,
     pending,
     localError,
-    createSubmission,
   ])
 
   function handleRaidChange(next: string) {
@@ -465,6 +465,16 @@ export default function Submit() {
         },
       },
     )
+  }
+
+  function clearSubmittedResultForUserEdit(e: React.SyntheticEvent) {
+    if (!(e.nativeEvent as Event).isTrusted) return
+    if (!submittedId && !receiptCopyStatus) return
+    setSubmittedId('')
+    setSubmittedKind('')
+    setSubmittedStatus('')
+    setSubmittedSpamReason('')
+    setReceiptCopyStatus('')
   }
 
   async function copySubmittedId() {
@@ -612,6 +622,8 @@ export default function Submit() {
       <motion.form
         className="ps-submit__form glass"
         onSubmit={handleSubmit}
+        onInput={clearSubmittedResultForUserEdit}
+        onChange={clearSubmittedResultForUserEdit}
         variants={reduce ? undefined : staggerContainer}
         initial="hidden"
         animate="show"

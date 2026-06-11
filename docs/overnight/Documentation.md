@@ -3984,6 +3984,59 @@ vite v5.4.21 building for production...
 32 passed (1.5m)
 ```
 
+### UGC 生态补缺口：投稿成功后开始下一份会清掉旧结果
+```text
+浏览用户 / 创作者用户探索:
+投稿成功后页面会展示“已进入审核”和投稿编号。
+如果用户马上开始填下一份投稿，旧成功框原来还会留着，并且“还差什么”提示不会出现。
+普通用户会分不清当前页面是在展示上一份已提交结果，还是正在准备下一份投稿。
+
+已修复：
+- 投稿表单在用户真实输入或选择字段时，会清掉上一份投稿的成功/拦截图和复制编号提示。
+- 程序自动清空表单、创作者自动登录、创作者署名自动预填不会清掉刚提交成功的结果。
+- 修复过程中全量回归曾暴露：如果按“任意表单状态变化”清结果，会把创作者申请成功提示过早清掉；最终改为只响应真实用户输入事件。
+- E2E 覆盖：普通投稿成功并复制投稿编号后，开始填下一份投稿，旧成功提示消失，缺项提示恢复。
+
+决策记录：
+- 清掉的是前端展示状态，不撤销上一份投稿，不改投稿编号和后端审核状态。
+- 只在用户真实编辑时清理，避免自动登录/自动清表单这种系统动作误清成功反馈。
+```
+
+```text
+CI=1 npx playwright test --grep "submit draft survives reload without saving password or contact"
+
+Running 1 test using 1 worker
+·
+1 passed (4.0s)
+```
+
+```text
+CI=1 npx playwright test --grep "UGC smoke: browse, copy, submit, approve, publish, and creator direct post"
+
+Running 1 test using 1 worker
+·
+1 passed (18.5s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.0s)
+✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1344:1 › submit draft survives reload without saving password or contact (1.7s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1645:1 › visitor can report a board and admin can hide it from public pages (10.9s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1776:1 › creator direct publish screens unsafe content in dashboard (662ms)
+32 passed (1.5m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
