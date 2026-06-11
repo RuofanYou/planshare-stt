@@ -293,7 +293,7 @@ npm run verify
 
 vite v5.4.21 building for production...
 ✓ 571 modules transformed.
-✓ built in 2.02s
+✓ built in 1.91s
 
 1..47
 # tests 47
@@ -1261,13 +1261,14 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.5s)
-✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:392:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.4s)
-✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:456:1 › creator can change password from dashboard and log in with the new password (1.8s)
-✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:834:1 › like actions show a visible failure state when the API rejects the click (629ms)
-✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:980:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
-✓  21 [chromium] › tests/e2e/ugc-smoke.spec.ts:1154:1 › creator direct publish screens unsafe content in dashboard (842ms)
-21 passed (1.0m)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.4s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:401:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.0s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:465:1 › creator can change password from dashboard and log in with the new password (1.8s)
+✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:718:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.3s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1029:1 › spam-screened visitor submission stays editable and is not described as queued (1.1s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1052:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
+✓  22 [chromium] › tests/e2e/ugc-smoke.spec.ts:1226:1 › creator direct publish screens unsafe content in dashboard (720ms)
+22 passed (1.1m)
 ```
 
 ## 高风险 diff
@@ -1293,6 +1294,7 @@ vite v5.4.21 building for production...
 - `src/components/BoardCard.tsx` 与 `src/components/LikeButton.tsx`：列表卡片点赞从本地 mock 改为后端持久化；需人工确认首页、团本页、作者页的卡片排序和点赞反馈符合预期。
 - `src/components/LikeButton.tsx`、`src/components/LikeButton.css`、`src/pages/BoardDetail.tsx` 与 `src/pages/BoardDetail.css`：点赞失败现在显示可见错误；需人工确认卡片底栏空间在窄屏仍然不拥挤。
 - `src/pages/Submit.tsx`：重复正文拦截文案改为“系统不会重复进入审核”；需人工确认该措辞不会让用户误解为永久封禁。
+- `src/pages/Creator.tsx`：创作者后台重复正文拦截文案同步为“系统不会重复进入审核”；需人工确认该措辞在审核期创作者视角下足够清楚。
 - `src/pages/Author.tsx` 与 `src/components/GuildCard.tsx`：创作者公会资料保存后会公开展示并支持复制联系方式；需人工确认公开范围符合运营预期。
 - `src/api/hooks.ts`：点赞后会刷新作者详情缓存，保证作者页“获赞”聚合实时更新；需人工确认高频点赞下缓存刷新成本可接受。
 - `src/lib/clipboard.ts`、`src/components/CopyButton.tsx` 与 `src/pages/BoardDetail.tsx`：复制失败现在会被准确识别并提示用户手动复制；需人工确认各浏览器剪贴板权限失败时的提示符合预期。

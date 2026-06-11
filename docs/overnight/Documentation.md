@@ -2960,6 +2960,56 @@ vite v5.4.21 building for production...
 21 passed (1.0m)
 ```
 
+### UGC 生态补缺口：创作者后台重复正文拦截说清楚
+```text
+创作者用户探索:
+创作者在审核期内从后台看到被系统拦截的投稿时，投稿页已经说清楚“重复正文不会重复进入审核”，但后台投稿进度仍只显示“同一网络下重复正文”。
+小白从投稿页回到后台后会再次困惑：到底是不是还在排队、要不要继续等管理员。
+
+已修复：
+- 创作者后台 duplicate_content 文案统一为“同一网络下重复正文，系统不会重复进入审核”
+- 后台仍显示“被拦截 / 没有进入人工审核”，不把 spam 状态误说成待审核
+- 被拦截的重复正文投稿仍可点“修改后重投”，带回原表单内容
+- 修改正文后可以重新进入创作者审核进度
+
+决策记录：
+- 滥用/限流相关 E2E 用例必须显式设置独立 X-Forwarded-For。否则整套浏览器测试串跑时，不同用例会共享默认来源并误触投稿限流，导致测试没有测到目标防线。
+- 本次没有放宽后端限流；只修正测试前提，并统一创作者后台的人话提示。
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator dashboard explains duplicate"
+
+Running 1 test using 1 worker
+·
+1 passed (4.6s)
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "spam-screened visitor submission"
+
+Running 1 test using 1 worker
+·
+1 passed (3.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   9 [chromium] › tests/e2e/ugc-smoke.spec.ts:718:1 › creator dashboard explains duplicate content screening and keeps retry editable (2.3s)
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1029:1 › spam-screened visitor submission stays editable and is not described as queued (1.1s)
+22 passed (1.1m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

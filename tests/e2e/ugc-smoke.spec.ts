@@ -715,6 +715,77 @@ test('creator can fix and retry a spam-screened submission from dashboard', asyn
   await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
 })
 
+test('creator dashboard explains duplicate content screening and keeps retry editable', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `cdp_${runId}`)
+  const sourceIp = `203.0.113.${(Math.abs(hashSuffix(`creatordupe_${runId}`)) % 100) + 50}`
+  const duplicateContent = `P1 创作者重复正文 ${runId}\nP2 集合`
+  const firstTitle = `E2E 创作者重复首投 ${runId}`
+  const duplicateTitle = `E2E 创作者重复二投 ${runId}`
+
+  const first = await request.post('/api/submissions', {
+    headers: {
+      Authorization: `Bearer ${creator.token}`,
+      'X-Forwarded-For': sourceIp,
+    },
+    data: {
+      title: firstTitle,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `E2E 创作者重复首投 ${runId}`,
+      contentText: duplicateContent,
+      submitterName: `自助创作者 creatordupe_${runId}`,
+      wantsCreatorProfile: false,
+    },
+  })
+  expect(first.status()).toBe(201)
+  expect((await first.json()).status).toBe('pending')
+
+  const duplicate = await request.post('/api/submissions', {
+    headers: {
+      Authorization: `Bearer ${creator.token}`,
+      'X-Forwarded-For': sourceIp,
+    },
+    data: {
+      title: duplicateTitle,
+      raidId: 'r-voidspire',
+      bossId: 'b-averzian',
+      difficulty: 'mythic',
+      seasonVersion: 'S3',
+      description: `E2E 创作者重复二投 ${runId}`,
+      contentText: duplicateContent,
+      submitterName: `自助创作者 creatordupe_${runId}`,
+      wantsCreatorProfile: false,
+    },
+  })
+  expect(duplicate.status()).toBe(201)
+  const duplicateBody = await duplicate.json()
+  expect(duplicateBody.status).toBe('spam')
+  expect(duplicateBody.spamReason).toBe('duplicate_content')
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+
+  const duplicateRow = page.locator('.ps-creator__submission', { hasText: duplicateTitle })
+  await expect(duplicateRow.getByText('被拦截')).toBeVisible()
+  await expect(duplicateRow.getByText('系统拦截：同一网络下重复正文，系统不会重复进入审核')).toBeVisible()
+  await duplicateRow.getByRole('button', { name: '修改后重投' }).click()
+
+  await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByText(`已登录为 自助创作者 cdp_${runId}`)).toBeVisible()
+  await expect(page.getByLabel('标题')).toHaveValue(duplicateTitle)
+  await expect(page.getByLabel('战术正文')).toHaveValue(duplicateContent)
+
+  await page.getByLabel('战术正文').fill(`${duplicateContent}\nP3 明确补充一条新内容`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
+})
+
 test('creator can fix and retry an admin-spammed submission from dashboard', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const creator = await createCreatorApplication(request, `adminspam_${runId}`)
@@ -960,6 +1031,7 @@ test('spam-screened visitor submission stays editable and is not described as qu
   const spamTitle = `游客拦截提示 ${runId}`
   const spamContent = `这是一条博 彩广告 ${runId}`
 
+  await page.setExtraHTTPHeaders({ 'X-Forwarded-For': `198.51.100.${(Math.abs(hashSuffix(`spam_${runId}`)) % 100) + 150}` })
   await page.goto('/submit')
   await page.getByLabel('标题').fill(spamTitle)
   await page.locator('#ps-submit-raid').selectOption('r-voidspire')
