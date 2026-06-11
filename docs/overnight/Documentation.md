@@ -2307,6 +2307,28 @@ Running 1 test using 1 worker
 1 passed (12.0s)
 ```
 
+### UGC 生态补缺口：管理员驳回后创作者可按备注重投
+```text
+普通创作者探索:
+后端已经会把管理员驳回备注返回到创作者投稿进度，前端也有“修改后重投”，但缺少真实浏览器链路覆盖。
+对创作者自循环来说，被驳回不能只是一个失败状态，必须能看到原因、带回原稿、修改后重新进入审核。
+
+已补 Playwright：
+- 创建创作者投稿
+- 管理员后台点“驳回”
+- 创作者登录后看到“未通过”和“管理员备注：后台驳回”
+- 点“修改后重投”进入投稿页，标题、团本、BOSS、正文自动带回
+- 修改正文后重新提交，进入创作者审核进度
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "rejected submission"
+
+Running 1 test using 1 worker
+·
+1 passed (5.3s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

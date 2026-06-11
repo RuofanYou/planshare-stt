@@ -586,6 +586,44 @@ test('creator can withdraw a pending submission from dashboard', async ({ page, 
   await expect(page.getByText('待审核', { exact: true })).toBeVisible()
 })
 
+test('creator can fix and retry a rejected submission from dashboard', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `reject_${runId}`)
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '投稿审核' }).click()
+  const rejectedRow = page.locator('.ps-admin__row-card', { hasText: creator.title })
+  await expect(rejectedRow).toBeVisible()
+  await rejectedRow.getByRole('button', { name: '查看' }).click()
+  await rejectedRow.getByRole('button', { name: '驳回' }).click()
+  await expect(rejectedRow.getByText('已驳回', { exact: true })).toBeVisible()
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+
+  const rejectedCreatorRow = page.locator('.ps-creator__submission', { hasText: creator.title })
+  await expect(rejectedCreatorRow.getByText('未通过')).toBeVisible()
+  await expect(rejectedCreatorRow.getByText('管理员备注：后台驳回')).toBeVisible()
+  await rejectedCreatorRow.getByRole('button', { name: '修改后重投' }).click()
+
+  await expect(page).toHaveURL(/\/submit$/)
+  await expect(page.getByText(`已登录为 自助创作者 reject_${runId}`)).toBeVisible()
+  await expect(page.getByLabel('标题')).toHaveValue(creator.title)
+  await expect(page.locator('#ps-submit-raid')).toHaveValue('r-voidspire')
+  await expect(page.locator('#ps-submit-boss')).toHaveValue('b-averzian')
+  await expect(page.getByLabel('战术正文')).toHaveValue(creator.contentText)
+
+  await page.getByLabel('标题').fill(`${creator.title} 修正版`)
+  await page.getByLabel('战术正文').fill(`${creator.contentText}\nP3 按备注补充站位`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
+})
+
 test('creator can fix and retry a spam-screened submission from dashboard', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const creator = await createCreatorApplication(request, `retryspam_${runId}`)
