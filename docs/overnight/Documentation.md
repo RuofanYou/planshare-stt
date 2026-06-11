@@ -3781,11 +3781,11 @@ UGC 开放后，管理员上架会让内容重新进入公开列表和详情页�
 ```
 
 ```text
-CI=1 npx playwright test --grep "admin board restore requires confirmation"
+CI=1 npx playwright test --grep "admin board curation and restore require confirmation"
 
 Running 1 test using 1 worker
 ·
-1 passed (3.3s)
+1 passed (4.4s)
 ```
 
 ```text
@@ -3804,6 +3804,50 @@ vite v5.4.21 building for production...
 ✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1602:1 › visitor can report a board and admin can hide it from public pages (10.1s)
 ✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1728:1 › creator direct publish screens unsafe content in dashboard (832ms)
 32 passed (1.4m)
+```
+
+### UGC 生态补缺口：管理员精选需要二次确认
+```text
+管理员 / 浏览用户探索:
+首页精选区直接放大展示被标记为精选的战术板，但管理员后台“设为精选 / 取消精选”原来是一键切换。
+UGC 开放后，误点设为精选会把不该被推荐的内容推到首页；误点取消精选会让运营推荐位突然消失。
+
+已修复：
+- 点击“设为精选”先显示页面内确认条。
+- 点击“取消精选”先显示页面内确认条。
+- 确认文案说明精选板会进入首页精选区，取消精选会从首页精选区移除。
+- 点击“取消”不会改变精选状态。
+- 点击“确认设为精选 / 确认取消精选”才真正改变首页精选曝光。
+
+决策记录：
+- 精选不改变板是否公开，但会改变浏览用户第一屏曝光；它属于公开曝光操作，也需要防误点。
+- 和管理员上架共用同一个板列表行内确认状态，不新增后端接口或数据字段。
+```
+
+```text
+CI=1 npx playwright test --grep "admin board curation and restore require confirmation"
+
+Running 1 test using 1 worker
+·
+1 passed (4.4s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:1188:1 › admin board curation and restore require confirmation before changing public exposure (2.2s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1636:1 › visitor can report a board and admin can hide it from public pages (10.5s)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1762:1 › creator direct publish screens unsafe content in dashboard (713ms)
+32 passed (1.5m)
 ```
 
 ## 已知问题

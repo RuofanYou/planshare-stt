@@ -1185,24 +1185,58 @@ test('admin resource deletion requires confirmation before removing bosses and r
   await expect(raidRow).toHaveCount(0)
 })
 
-test('admin board restore requires confirmation before returning to public pages', async ({ page, request }) => {
+test('admin board curation and restore require confirmation before changing public exposure', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const { admin, board } = await createAdminBoard(request, `restore_${runId}`)
-  const hide = await request.put(`/api/boards/${board.id}`, {
-    headers: { Authorization: `Bearer ${admin}` },
-    data: { isHidden: true },
-  })
-  expect(hide.ok()).toBeTruthy()
 
   await page.goto('/admin')
   await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: '登录' }).click()
 
   const boardRow = page.locator('.ps-admin__row-card', { hasText: board.title })
+  await expect(boardRow).toBeVisible()
+  await expect(boardRow.getByText('精选', { exact: true })).toHaveCount(0)
+
+  await boardRow.getByRole('button', { name: '设为精选' }).click()
+  await expect(boardRow.getByRole('alertdialog')).toContainText(`确认把「${board.title}」设为精选？`)
+  await boardRow.getByRole('alertdialog').getByRole('button', { name: '取消', exact: true }).click()
+  await expect(boardRow.getByRole('alertdialog')).toHaveCount(0)
+  await expect(boardRow.getByText('精选', { exact: true })).toHaveCount(0)
+  const notFeatured = await request.get('/api/boards?featured=1')
+  expect(notFeatured.ok()).toBeTruthy()
+  expect((await notFeatured.json()).some((item: { id: string }) => item.id === board.id)).toBe(false)
+
+  await boardRow.getByRole('button', { name: '设为精选' }).click()
+  await boardRow.getByRole('alertdialog').getByRole('button', { name: '确认设为精选' }).click()
+  await expect(boardRow.getByText('精选', { exact: true })).toBeVisible()
+  const featured = await request.get('/api/boards?featured=1')
+  expect(featured.ok()).toBeTruthy()
+  expect((await featured.json()).some((item: { id: string }) => item.id === board.id)).toBe(true)
+
+  await boardRow.getByRole('button', { name: '取消精选' }).click()
+  await expect(boardRow.getByRole('alertdialog')).toContainText(`确认取消「${board.title}」的精选？`)
+  await boardRow.getByRole('alertdialog').getByRole('button', { name: '取消', exact: true }).click()
+  await expect(boardRow.getByRole('alertdialog')).toHaveCount(0)
+  await expect(boardRow.getByText('精选', { exact: true })).toBeVisible()
+
+  await boardRow.getByRole('button', { name: '取消精选' }).click()
+  await boardRow.getByRole('alertdialog').getByRole('button', { name: '确认取消精选' }).click()
+  await expect(boardRow.getByText('精选', { exact: true })).toHaveCount(0)
+  const unfeatured = await request.get('/api/boards?featured=1')
+  expect(unfeatured.ok()).toBeTruthy()
+  expect((await unfeatured.json()).some((item: { id: string }) => item.id === board.id)).toBe(false)
+
+  const hide = await request.put(`/api/boards/${board.id}`, {
+    headers: { Authorization: `Bearer ${admin}` },
+    data: { isHidden: true },
+  })
+  expect(hide.ok()).toBeTruthy()
+  await page.reload()
   await expect(boardRow.getByText('已下架')).toBeVisible()
+
   await boardRow.getByRole('button', { name: '上架' }).click()
   await expect(boardRow.getByRole('alertdialog')).toContainText(`确认上架「${board.title}」？`)
-  await boardRow.getByRole('alertdialog').getByRole('button', { name: '取消' }).click()
+  await boardRow.getByRole('alertdialog').getByRole('button', { name: '取消', exact: true }).click()
   await expect(boardRow.getByRole('alertdialog')).toHaveCount(0)
   await expect(boardRow.getByText('已下架')).toBeVisible()
 
