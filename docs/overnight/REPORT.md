@@ -1278,6 +1278,7 @@ Playwright:
 - `src/lib/clipboard.ts`：抽出剪贴板 fallback 给详情页和创作者后台共用；需人工复核旧详情页复制 toast 行为未退化。
 - `src/pages/Creator.tsx`：编辑草稿存储在浏览器 localStorage，并按 board id 隔离；需人工复核多账号共用同一浏览器时是否符合运营预期。
 - `src/pages/Creator.tsx`：资料草稿存储在浏览器 localStorage，并按 author id 隔离；需人工复核公会联系方式本地暂存的隐私预期。
+- `src/pages/Creator.tsx` 与 `src/pages/Creator.css`：创作者后台新增资料/直发/编辑草稿清空按钮；需人工确认按钮文案足够明确，不会让用户误删仍想保留的本机草稿。
 - `server/index.mjs` 与 `src/data/types.ts`：投稿状态新增 `withdrawn`；需人工复核运营报表或外部脚本是否假设投稿状态只有四种。
 - `server/index.mjs` 与 `src/pages/Creator.tsx`：创作者投稿进度现在返回并使用原投稿正文，用于“修改后重投”；需人工复核该数据只暴露给投稿所属创作者。
 - `server/index.mjs`：驳回/spam 投稿现在保留 `author_id`，让创作者可以看到失败状态；需确认这符合运营上“失败记录对创作者可见”的预期。

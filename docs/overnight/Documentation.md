@@ -1958,6 +1958,65 @@ vite v5.4.21 building for production...
 13 passed (36.6s)
 ```
 
+### UGC 生态补缺口：创作者后台草稿可放弃
+```text
+普通创作者探索:
+创作者后台的作者资料、直发战术板、编辑战术板都会自动保存在本机；这能防误关页面，但也会让“填错了想从头来”的用户卡住。
+尤其是编辑战术板：取消编辑后，下次再点编辑仍可能恢复旧草稿，用户会误以为取消没有生效。
+
+已新增：
+- 资料草稿：清空资料草稿
+- 直发草稿：清空直发草稿
+- 编辑草稿：放弃编辑草稿
+
+这些按钮只在确实存在本机草稿时出现，点击后会清掉对应 localStorage 草稿；“取消”仍只负责收起编辑，不偷偷丢草稿。
+```
+
+```text
+Browser 覆盖:
+内置浏览器打开 http://localhost:5183/creator，确认创作者入口页可见：
+- 用户名 / 密码
+- 登录按钮
+- 没有账号？去投稿申请创作者
+
+本轮需要登录后的填表验证；内置浏览器当前缺少虚拟剪贴板能力，输入动作不稳定。
+因此登录后的交互证明走 Playwright：真实打开页面、填表、刷新、点击清空/放弃按钮，并断言 localStorage 对应草稿键已清掉。
+```
+
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.92s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (13.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.91s
+
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (10.7s)
+✓  13 [chromium] › tests/e2e/ugc-smoke.spec.ts:795:1 › creator direct publish screens unsafe content in dashboard (5.8s)
+13 passed (49.2s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

@@ -240,10 +240,26 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await page.reload()
   await expect(page.getByText('资料草稿会自动保存在本机；保存成功后清空。')).toBeVisible()
+  await expect(page.getByRole('button', { name: '清空资料草稿' })).toBeVisible()
   await expect(page.getByLabel('简介')).toHaveValue(`E2E 资料草稿 ${runId}`)
   await expect(page.getByLabel('公会名')).toHaveValue(`E2E 公会 ${runId}`)
   await expect(page.getByLabel('公会联系方式')).toHaveValue(`E2E 联系 ${runId}`)
   await expect(page.getByLabel('招募说明')).toHaveValue(`E2E 招募 ${runId}`)
+  await page.getByRole('button', { name: '清空资料草稿' }).click()
+  await expect(page.getByRole('button', { name: '清空资料草稿' })).toHaveCount(0)
+  await expect(page.getByLabel('简介')).toHaveValue('')
+  await expect(page.getByLabel('公会名')).toHaveValue('')
+  await expect(page.getByLabel('公会联系方式')).toHaveValue('')
+  await expect(page.getByLabel('招募说明')).toHaveValue('')
+  await expect(
+    page.evaluate(() =>
+      Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_profile_draft_v1')).length,
+    ),
+  ).resolves.toBe(0)
+  await page.getByLabel('简介').fill(`E2E 资料草稿 ${runId}`)
+  await page.getByLabel('公会名').fill(`E2E 公会 ${runId}`)
+  await page.getByLabel('公会联系方式').fill(`E2E 联系 ${runId}`)
+  await page.getByLabel('招募说明').fill(`E2E 招募 ${runId}`)
   await page.getByRole('button', { name: '保存资料' }).click()
   await expect(page.getByText('资料已保存。')).toBeVisible()
   await expect(
@@ -280,11 +296,29 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
 
   await page.reload()
   await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '清空直发草稿' })).toBeVisible()
   await expect(page.getByLabel('标题')).toHaveValue(directTitle)
   await expect(page.locator('#creator-board-raid')).toHaveValue('r-voidspire')
   await expect(page.locator('#creator-board-boss')).toHaveValue('b-averzian')
   await expect(page.locator('#creator-board-description')).toHaveValue(`E2E 直发草稿 ${runId}`)
   await expect(page.getByLabel('战术正文')).toHaveValue('P1 创作者直发\nP2 结束')
+  await page.getByRole('button', { name: '清空直发草稿' }).click()
+  await expect(page.getByRole('button', { name: '清空直发草稿' })).toHaveCount(0)
+  await expect(page.getByLabel('标题')).toHaveValue('')
+  await expect(page.locator('#creator-board-raid')).toHaveValue('')
+  await expect(page.locator('#creator-board-boss')).toHaveValue('')
+  await expect(page.locator('#creator-board-description')).toHaveValue('')
+  await expect(page.getByLabel('战术正文')).toHaveValue('')
+  await expect(
+    page.evaluate(() =>
+      Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_draft_v1')).length,
+    ),
+  ).resolves.toBe(0)
+  await page.getByLabel('标题').fill(directTitle)
+  await page.locator('#creator-board-raid').selectOption('r-voidspire')
+  await page.locator('#creator-board-boss').selectOption('b-averzian')
+  await page.locator('#creator-board-description').fill(`E2E 直发草稿 ${runId}`)
+  await page.getByLabel('战术正文').fill('P1 创作者直发\nP2 结束')
 
   await page.getByRole('button', { name: '直接发布' }).click()
   await expect(page.getByText('战术板已发布。')).toBeVisible()
@@ -309,8 +343,22 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
   const reloadedDirectBoardRow = page.locator('.ps-creator__board', { hasText: directTitle })
   await reloadedDirectBoardRow.getByRole('button', { name: '编辑' }).click()
+  await expect(reloadedDirectBoardRow.getByRole('button', { name: '放弃编辑草稿' })).toBeVisible()
   await expect(reloadedDirectBoardRow.getByLabel('标题')).toHaveValue(`${directTitle} 修订`)
   await expect(reloadedDirectBoardRow.getByLabel('战术正文')).toHaveValue('P1 创作者直发修订\nP2 结束')
+  await reloadedDirectBoardRow.getByRole('button', { name: '放弃编辑草稿' }).click()
+  await expect(reloadedDirectBoardRow.getByRole('button', { name: '放弃编辑草稿' })).toHaveCount(0)
+  await expect(reloadedDirectBoardRow.getByRole('button', { name: '编辑' })).toBeVisible()
+  await expect(
+    page.evaluate(() =>
+      Object.keys(localStorage).filter((key) => key.startsWith('planshare_creator_board_edit_draft_v1')).length,
+    ),
+  ).resolves.toBe(0)
+  await reloadedDirectBoardRow.getByRole('button', { name: '编辑' }).click()
+  await expect(reloadedDirectBoardRow.getByLabel('标题')).toHaveValue(directTitle)
+  await expect(reloadedDirectBoardRow.getByLabel('战术正文')).toHaveValue('P1 创作者直发\nP2 结束')
+  await reloadedDirectBoardRow.getByLabel('标题').fill(`${directTitle} 修订`)
+  await reloadedDirectBoardRow.getByLabel('战术正文').fill('P1 创作者直发修订\nP2 结束')
   await reloadedDirectBoardRow.getByRole('button', { name: '保存修改' }).click()
   await expect(reloadedDirectBoardRow.getByText(`${directTitle} 修订`)).toBeVisible()
   await expect(

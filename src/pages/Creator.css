@@ -93,6 +93,35 @@
   line-height: var(--lh-body);
 }
 
+.ps-creator__draft-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.ps-creator__draft-bar .ps-creator__panel-copy {
+  margin: 0;
+}
+
+.ps-creator__draft-clear {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--color-gold);
+  font: inherit;
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.ps-creator__draft-clear:hover {
+  color: var(--color-gold-bright);
+}
+
 .ps-creator__actions {
   display: flex;
   flex-wrap: wrap;
@@ -280,7 +309,9 @@
   .ps-creator__field-grid,
   .ps-creator__section-head,
   .ps-creator__board-top,
+  .ps-creator__draft-bar,
   .ps-creator__submission-top {
+    align-items: flex-start;
     grid-template-columns: 1fr;
     flex-direction: column;
   }

@@ -577,6 +577,8 @@ function CreatorProfileEditor({ author }: { author: Author }) {
   const [guildName, setGuildName] = useState(initialDraft.guildName)
   const [guildRecruit, setGuildRecruit] = useState(initialDraft.guildRecruit)
   const [guildContact, setGuildContact] = useState(initialDraft.guildContact)
+  const profileDraft = { name, bio, guildName, guildRecruit, guildContact }
+  const hasProfileDraft = hasCreatorProfileDraftContent(author, profileDraft)
 
   useEffect(() => {
     const draft = readCreatorProfileDraft(author)
@@ -607,6 +609,16 @@ function CreatorProfileEditor({ author }: { author: Author }) {
     )
   }
 
+  function resetProfileDraft() {
+    const current = currentAuthorProfileDraft(author)
+    clearCreatorProfileDraft(author.id)
+    setName(current.name)
+    setBio(current.bio)
+    setGuildName(current.guildName)
+    setGuildRecruit(current.guildRecruit)
+    setGuildContact(current.guildContact)
+  }
+
   return (
     <GlassCard tone="glass" className="ps-creator__panel">
       <Tag variant="gold">{visibilityLabel(author.visibility)}</Tag>
@@ -616,7 +628,14 @@ function CreatorProfileEditor({ author }: { author: Author }) {
           ? '资料会展示在作者主页；上方可直接发布和维护你的战术板。'
           : '资料可半公开展示；首个战术板通过审核后会开放直接发布。'}
       </p>
-      <p className="ps-creator__notice">资料草稿会自动保存在本机；保存成功后清空。</p>
+      <div className="ps-creator__draft-bar">
+        <p className="ps-creator__notice">资料草稿会自动保存在本机；保存成功后清空。</p>
+        {hasProfileDraft && !updateProfile.isSuccess && (
+          <button type="button" className="ps-creator__draft-clear" onClick={resetProfileDraft}>
+            清空资料草稿
+          </button>
+        )}
+      </div>
       <form className="ps-creator__form" onSubmit={submitProfile}>
         <label className="ps-creator__label" htmlFor="creator-name">作者名</label>
         <input id="creator-name" className="ps-creator__input" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
@@ -874,7 +893,14 @@ function CreatorBoardManager({ creatorId }: { creatorId: string }) {
         <div>
           <Tag variant="gold">快速发布</Tag>
           <h2 className="ps-creator__panel-title">我的战术板</h2>
-          <p className="ps-creator__panel-copy">直发草稿会自动保存在本机；成功发布后清空。</p>
+          <div className="ps-creator__draft-bar">
+            <p className="ps-creator__panel-copy">直发草稿会自动保存在本机；成功发布后清空。</p>
+            {hasCreateFormContent && !createBoard.isSuccess && (
+              <button type="button" className="ps-creator__draft-clear" onClick={resetCreateForm}>
+                清空直发草稿
+              </button>
+            )}
+          </div>
         </div>
         <Button variant="secondary" to="/submit">
           游客投稿页
@@ -1012,6 +1038,8 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
     title.trim() === '' ? '标题' : '',
     contentText.trim() === '' ? '战术正文' : '',
   ].filter(Boolean)
+  const editDraft = { title, description, contentText }
+  const hasEditDraft = hasCreatorBoardEditDraftContent(board, editDraft)
   const canSave = missingEditItems.length === 0 && !updateBoard.isPending
   const editReadinessText =
     missingEditItems.length > 0
@@ -1058,6 +1086,14 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
     deleteBoard.mutate(board.id)
   }
 
+  function discardEditDraft() {
+    clearCreatorBoardEditDraft(board.id)
+    setTitle(board.title)
+    setDescription(board.description)
+    setContentText(board.contentText)
+    setEditing(false)
+  }
+
   async function copyBoardLink() {
     const origin = window.location.origin
     const copied = await copyToClipboard(`${origin}/board/${board.id}`)
@@ -1082,7 +1118,14 @@ function CreatorBoardItem({ board }: { board: CreatorBoard }) {
 
       {editing ? (
         <form className="ps-creator__form" onSubmit={saveBoard}>
-          <p className="ps-creator__notice">编辑草稿会自动保存在本机；保存成功后清空。</p>
+          <div className="ps-creator__draft-bar">
+            <p className="ps-creator__notice">编辑草稿会自动保存在本机；保存成功后清空。</p>
+            {hasEditDraft && (
+              <button type="button" className="ps-creator__draft-clear" onClick={discardEditDraft}>
+                放弃编辑草稿
+              </button>
+            )}
+          </div>
           <div className="ps-creator__field">
             <label className="ps-creator__label" htmlFor={`creator-edit-title-${board.id}`}>标题</label>
             <input
