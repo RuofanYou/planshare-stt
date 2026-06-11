@@ -30,6 +30,7 @@ import type {
   CreatorProfileInput,
   CreatorPasswordInput,
   CreatorPasswordResult,
+  CreatorUser,
   CreatorBoard,
   CreatorBoardInput,
   UpdateCreatorBoardInput,
@@ -334,6 +335,17 @@ export function getAdminSubmissions(): Promise<AdminSubmission[]> {
 /** GET /api/admin/creator-accounts -> 创作者账号列表。 */
 export function getAdminCreatorAccounts(): Promise<AdminCreatorAccount[]> {
   return adminRequest<AdminCreatorAccount[]>('/api/admin/creator-accounts')
+}
+
+/** PUT /api/admin/creator-accounts/:id -> 管理员暂停 / 恢复创作者账号。 */
+export function updateCreatorAccountStatus(
+  id: string,
+  status: CreatorUser['status'],
+): Promise<CreatorUser> {
+  return adminRequest<CreatorUser>(`/api/admin/creator-accounts/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  })
 }
 
 export function getAdminReports(): Promise<BoardReport[]> {

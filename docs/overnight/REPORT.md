@@ -28,6 +28,7 @@
 - 创作者维护闭环补测：Playwright 主链路覆盖正式创作者直发后的编辑、下架、恢复发布，确保发错板可自助撤下并恢复。
 - 浏览用户治理闭环补测：Playwright 覆盖访客举报公开板、管理员在举报队列隐藏板、公开详情页不可见。
 - 创作者账号救援闭环补测：Playwright 覆盖管理员后台重置创作者密码，旧密码失效，新密码可重新登录。
+- 创作者治理闭环补缺口：后台“账号与密码”区新增暂停/恢复账号；暂停后创作者不能登录，恢复后可重新登录。
 - 文档：更新 `AGENTS.md`、`DEPLOY.md`，新增本报告与续接文档。
 
 ## Blocked / 未完成
@@ -939,10 +940,68 @@ Playwright:
 创作者旧密码登录失败，新密码登录后显示“投稿进度”。
 ```
 
+### 管理员暂停与恢复创作者账号
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.51s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "admin can suspend"
+
+Running 1 test using 1 worker
+·
+1 passed (4.2s)
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 9 tests using 1 worker
+·········
+9 passed (32.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.09s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:105:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (7.9s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:270:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.4s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:321:1 › creator can change password from dashboard and log in with the new password (2.3s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:359:1 › admin can reset a creator password and the creator can log in again (1.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:387:1 › admin can suspend and restore a creator account (2.1s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:420:1 › creator can withdraw a pending submission from dashboard (1.7s)
+✓  7 [chromium] › tests/e2e/ugc-smoke.spec.ts:446:1 › home search finds boards by boss and author names (2.8s)
+✓  8 [chromium] › tests/e2e/ugc-smoke.spec.ts:465:1 › submit draft survives reload without saving password or contact (944ms)
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:497:1 › visitor can report a board and admin can hide it from public pages (8.9s)
+9 passed (32.7s)
+```
+
+```text
+Playwright:
+管理员进入“创作者”页，在账号行点击“暂停账号”，状态变为“已暂停”并显示“恢复账号”。
+被暂停创作者登录时显示“账号已被暂停，请联系管理员”。
+管理员点击“恢复账号”后状态回到“正常”，创作者可重新登录并看到“投稿进度”。
+```
+
 ## 高风险 diff
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作，需人工重点点验审核队列。
 - `playwright.config.ts`：使用 `localhost:5183` 和 `/tmp` 临时 SQLite，避免本机端口与生产数据冲突。
+- `src/pages/Admin.tsx` 与 `src/api/*`：后台新增创作者账号暂停/恢复按钮，直接影响创作者登录权限；需人工确认运营流程和误操作恢复预期。
 - `src/pages/Creator.tsx`：直发入口现在同时依赖作者已通过和账号信任等级 trusted，避免新创作者审核期误以为能直接发布。
 - `src/pages/Creator.tsx` 与 `server/index.mjs`：创作者自助改密码会更新密码哈希并撤销其他旧会话；需人工重点复核“当前会话保留、其他会话撤销”的安全取舍。
 - `src/pages/Creator.tsx`：创作者直发草稿存储在浏览器 localStorage，并按账号 ID 隔离；需人工复核多账号共用浏览器时的草稿可见性符合预期。

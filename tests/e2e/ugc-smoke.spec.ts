@@ -2,6 +2,14 @@ import { expect, test, type APIRequestContext } from '@playwright/test'
 
 const ADMIN_PASSWORD = 'test-admin-password'
 
+function hashSuffix(value: string) {
+  let hash = 0
+  for (const char of value) {
+    hash = (hash * 31 + char.charCodeAt(0)) | 0
+  }
+  return hash
+}
+
 async function adminToken(request: APIRequestContext) {
   const res = await request.post('/api/admin/login', {
     data: { password: ADMIN_PASSWORD },
@@ -13,7 +21,10 @@ async function adminToken(request: APIRequestContext) {
 
 async function submitCreatorReview(request: APIRequestContext, token: string, suffix: string) {
   const res = await request.post('/api/submissions', {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-Forwarded-For': `203.0.113.${Math.abs(hashSuffix(suffix)) % 200}`,
+    },
     data: {
       title: `E2E 晋升审核 ${suffix}`,
       raidId: 'r-voidspire',
@@ -36,6 +47,7 @@ async function createCreatorApplication(request: APIRequestContext, suffix: stri
   const title = `E2E 自助账号 ${suffix}`
   const contentText = `P1 自助账号 ${suffix}\nP2 集合`
   const res = await request.post('/api/submissions', {
+    headers: { 'X-Forwarded-For': `198.51.100.${Math.abs(hashSuffix(suffix)) % 200}` },
     data: {
       title,
       raidId: 'r-voidspire',
@@ -368,6 +380,39 @@ test('admin can reset a creator password and the creator can log in again', asyn
   await expect(page.getByText('用户名或密码错误')).toBeVisible()
 
   await page.getByLabel('密码').fill(resetPassword)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
+})
+
+test('admin can suspend and restore a creator account', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `suspend_${runId}`)
+
+  await page.goto('/admin')
+  await page.getByLabel('管理员密码').fill(ADMIN_PASSWORD)
+  await page.getByRole('button', { name: '登录' }).click()
+  await page.getByRole('tab', { name: '创作者' }).click()
+
+  const accountRow = page.locator('.ps-admin__row-card', { hasText: creator.username })
+  await expect(accountRow.getByText('正常')).toBeVisible()
+  await accountRow.getByRole('button', { name: '暂停账号' }).click()
+  await expect(accountRow.getByText('已暂停')).toBeVisible()
+  await expect(accountRow.getByRole('button', { name: '恢复账号' })).toBeVisible()
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByText('账号已被暂停，请联系管理员')).toBeVisible()
+
+  await page.goto('/admin')
+  await page.getByRole('tab', { name: '创作者' }).click()
+  await accountRow.getByRole('button', { name: '恢复账号' }).click()
+  await expect(accountRow.getByText('正常')).toBeVisible()
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
   await page.getByRole('button', { name: '登录' }).click()
   await expect(page.getByRole('heading', { name: '投稿进度' })).toBeVisible()
 })

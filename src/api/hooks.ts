@@ -35,6 +35,7 @@ import type {
   ApproveSubmissionInput,
   CreatorProfileInput,
   CreatorPasswordInput,
+  CreatorUser,
   CreatorBoardInput,
   UpdateCreatorBoardInput,
   ReportReason,
@@ -362,6 +363,19 @@ export function useAdminCreatorAccounts() {
   return useQuery({
     queryKey: ['admin', 'creator-accounts'],
     queryFn: api.getAdminCreatorAccounts,
+  })
+}
+
+export function useUpdateCreatorAccountStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: CreatorUser['status'] }) =>
+      api.updateCreatorAccountStatus(id, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'creator-accounts'] })
+      qc.invalidateQueries({ queryKey: ['creator'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
   })
 }
 

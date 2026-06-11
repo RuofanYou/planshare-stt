@@ -41,6 +41,7 @@
 - 创作者维护闭环补测：正式创作者直发后，Playwright 主链路必须继续覆盖编辑、下架、恢复发布，确保发错板后可自助撤下并恢复。
 - 浏览用户治理闭环补测：普通访客在详情页举报后，管理员可在后台举报队列隐藏该板，公开详情页随后返回不可见。
 - 创作者账号救援闭环补测：创作者忘记密码时，管理员可在后台账号区重置密码；旧密码失效，新密码能重新登录。
+- 创作者治理闭环补缺口：后端已有暂停/恢复创作者账号能力，后台账号区补“暂停账号/恢复账号”按钮；暂停会撤销会话并阻止登录，恢复后可重新登录。
 
 ## 验证输出
 
@@ -1002,6 +1003,63 @@ Playwright:
 管理员进入“创作者”页的“账号与密码”区，对指定创作者点击“重置密码”。
 输入新密码并确认后，页面显示“已重置。请把新密码...”。
 创作者旧密码登录失败，新密码登录后显示“投稿进度”。
+```
+
+### UGC 生态补缺口：管理员暂停与恢复创作者账号
+```text
+npm run build
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.51s
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "admin can suspend"
+
+Running 1 test using 1 worker
+·
+1 passed (4.2s)
+```
+
+```text
+CI=1 npm run test:e2e
+
+Running 9 tests using 1 worker
+·········
+9 passed (32.1s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.09s
+
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+
+✓  1 [chromium] › tests/e2e/ugc-smoke.spec.ts:105:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (7.9s)
+✓  2 [chromium] › tests/e2e/ugc-smoke.spec.ts:270:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (2.4s)
+✓  3 [chromium] › tests/e2e/ugc-smoke.spec.ts:321:1 › creator can change password from dashboard and log in with the new password (2.3s)
+✓  4 [chromium] › tests/e2e/ugc-smoke.spec.ts:359:1 › admin can reset a creator password and the creator can log in again (1.7s)
+✓  5 [chromium] › tests/e2e/ugc-smoke.spec.ts:387:1 › admin can suspend and restore a creator account (2.1s)
+✓  6 [chromium] › tests/e2e/ugc-smoke.spec.ts:420:1 › creator can withdraw a pending submission from dashboard (1.7s)
+✓  7 [chromium] › tests/e2e/ugc-smoke.spec.ts:446:1 › home search finds boards by boss and author names (2.8s)
+✓  8 [chromium] › tests/e2e/ugc-smoke.spec.ts:465:1 › submit draft survives reload without saving password or contact (944ms)
+✓  9 [chromium] › tests/e2e/ugc-smoke.spec.ts:497:1 › visitor can report a board and admin can hide it from public pages (8.9s)
+9 passed (32.7s)
+```
+
+```text
+Playwright:
+管理员进入“创作者”页，在账号行点击“暂停账号”，状态变为“已暂停”并显示“恢复账号”。
+被暂停创作者登录时显示“账号已被暂停，请联系管理员”。
+管理员点击“恢复账号”后状态回到“正常”，创作者可重新登录并看到“投稿进度”。
 ```
 
 ## 已知问题

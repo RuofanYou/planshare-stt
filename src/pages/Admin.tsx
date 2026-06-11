@@ -16,6 +16,7 @@ import {
   useAdminAuthors,
   useAdminCreatorAccounts,
   useAdminSubmissions,
+  useUpdateCreatorAccountStatus,
   useRaids,
   useRaid,
   useCreateBoard,
@@ -1017,6 +1018,7 @@ function AccountsPanel({
   const reduce = useReducedMotion()
   const accountsQuery = useAdminCreatorAccounts()
   const resetCreatorPassword = useResetCreatorPassword()
+  const updateAccountStatus = useUpdateCreatorAccountStatus()
 
   function guard(error: unknown) {
     if (isUnauthorized(error)) onLogout()
@@ -1057,6 +1059,11 @@ function AccountsPanel({
           {(resetCreatorPassword.error as Error)?.message ?? '重置密码失败，请重试。'}
         </p>
       )}
+      {updateAccountStatus.isError && (
+        <p className="ps-admin__error" role="alert">
+          {(updateAccountStatus.error as Error)?.message ?? '更新账号状态失败，请重试。'}
+        </p>
+      )}
 
       {accounts.length === 0 ? (
         <EmptyState icon="author" text="还没有创作者登录账号。" />
@@ -1075,10 +1082,20 @@ function AccountsPanel({
                   resetCreatorPassword.isPending &&
                   resetCreatorPassword.variables?.id === account.id
                 }
+                statusBusy={
+                  updateAccountStatus.isPending &&
+                  updateAccountStatus.variables?.id === account.id
+                }
                 onResetPassword={(password, onSuccess) =>
                   resetCreatorPassword.mutate(
                     { id: account.id, password },
                     { onSuccess, onError: guard },
+                  )
+                }
+                onUpdateStatus={(status) =>
+                  updateAccountStatus.mutate(
+                    { id: account.id, status },
+                    { onError: guard },
                   )
                 }
               />
@@ -1093,11 +1110,15 @@ function AccountsPanel({
 function AccountRow({
   account,
   busy,
+  statusBusy,
   onResetPassword,
+  onUpdateStatus,
 }: {
   account: AdminCreatorAccount
   busy: boolean
+  statusBusy: boolean
   onResetPassword: (password: string, onSuccess: () => void) => void
+  onUpdateStatus: (status: AdminCreatorAccount['status']) => void
 }) {
   const [isResetting, setIsResetting] = useState(false)
   const [password, setPassword] = useState('')
@@ -1106,6 +1127,7 @@ function AccountRow({
   const canReset = trimmedPassword.length >= 8 && !busy
   const authorName = account.author?.name ?? '未绑定作者'
   const boardCount = account.author?.boardCount ?? 0
+  const isSuspended = account.status === 'suspended'
 
   function handleGenerate() {
     setPassword(generateTemporaryPassword())
@@ -1197,6 +1219,14 @@ function AccountRow({
             重置密码
           </Button>
         )}
+        <Button
+          variant={isSuspended ? 'primary' : 'secondary'}
+          size="sm"
+          disabled={statusBusy || isResetting}
+          onClick={() => onUpdateStatus(isSuspended ? 'active' : 'suspended')}
+        >
+          {statusBusy ? (isSuspended ? '恢复中…' : '暂停中…') : isSuspended ? '恢复账号' : '暂停账号'}
+        </Button>
       </div>
     </GlassCard>
   )
