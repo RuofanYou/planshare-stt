@@ -3452,6 +3452,52 @@ vite v5.4.21 building for production...
 29 passed (1.3m)
 ```
 
+### UGC 生态补缺口：创作者晋升进度必须实时刷新
+```text
+创作者用户探索:
+按普通用户路径走“申请创作者 -> 第 1 份过审 -> 后台点继续投稿 -> 第 2 份过审 -> 第 3 份过审 -> 开放直发”。
+新增真实页面回归后首次失败：第 2 份已发布，但创作者后台仍显示“还需 2 次审核通过”。
+
+根因:
+React Query 全局 staleTime 是 5 分钟，公开战术列表适合缓存；但创作者本人状态、投稿进度、我的战术板不适合缓存。
+管理员在另一会话审核后，创作者从投稿成功页回后台时看到的是旧的 me/submissions/boards 缓存。
+
+已修复：
+- `useCreatorMe` 每次进入创作者页都重新拉取，保证 trust_level / approvedSubmissionCount 最新。
+- `useCreatorSubmissions` 每次进入投稿进度都重新拉取，保证待审/已通过/被驳回状态最新。
+- `useCreatorBoards` 每次进入我的战术板都重新拉取，保证管理员隐藏、创作者下架等状态最新。
+- 新增 Playwright 测试用真人页面表单提交第 2、第 3 份晋升投稿，不再只用 API 模拟。
+
+决策记录：
+- 保留公开读接口 5 分钟缓存；只把“登录用户自己的动态状态”改为进入页面必刷新。
+- 不放宽业务限流。新增 E2E 使用独立 `X-Forwarded-For` 测试 IP，避免测试互相挤爆同一访客投稿限流。
+```
+
+```text
+CI=1 npx playwright test --grep "creator self-service promotion"
+
+Running 1 test using 1 worker
+·
+1 passed (10.0s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..48
+# tests 48
+# pass 48
+# fail 0
+
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:461:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.5s)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1198:1 › submit draft survives reload without saving password or contact (2.3s)
+30 passed (1.3m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

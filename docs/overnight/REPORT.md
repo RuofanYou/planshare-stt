@@ -1250,7 +1250,7 @@ Playwright:
 页面显示“审计日志”，并能在状态为 active 的审计行看到 `creator_account_update`。
 ```
 
-### 最新最终验证
+### 上一轮最终验证
 ```text
 npm run verify
 
@@ -1283,7 +1283,34 @@ vite v5.4.21 building for production...
 29 passed (1.3m)
 ```
 
+### 最新最终验证
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:186:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.8s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:461:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.5s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:518:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.5s)
+✓   8 [chromium] › tests/e2e/ugc-smoke.spec.ts:763:1 › creator can withdraw a pending submission from dashboard (4.3s)
+✓  19 [chromium] › tests/e2e/ugc-smoke.spec.ts:1198:1 › submit draft survives reload without saving password or contact (2.3s)
+✓  24 [chromium] › tests/e2e/ugc-smoke.spec.ts:1369:1 › submission receipt rate limit shows a visible visitor-facing error (5.6s)
+✓  28 [chromium] › tests/e2e/ugc-smoke.spec.ts:1487:1 › visitor can report a board and admin can hide it from public pages (10.2s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1607:1 › creator direct publish screens unsafe content in dashboard (792ms)
+30 passed (1.3m)
+```
+
 ## 高风险 diff
+- `src/api/hooks.ts`：创作者本人状态、投稿进度和我的战术板改为进入页面必刷新；需人工确认额外请求量可接受，但这是保证管理员审核后用户看到最新晋升/隐藏/下架状态的必要取舍。
+- `tests/e2e/ugc-smoke.spec.ts`：新增“创作者自循环晋升”真人页面回归，覆盖第 2、第 3 份投稿都从创作者后台继续投稿入口完成；测试使用独立测试 IP，避免误触发真实投稿限流。
 - `server/index.mjs`：新增多张表和大量路由，需人工重点审查迁移、审核晋升和审计写入。
 - `src/pages/Admin.tsx` 与 `src/pages/admin/*`：后台拆分和批量审核涉及管理台核心操作；批量驳回/标记垃圾已改为二次确认，需人工重点点验审核效率和误操作恢复预期。
 - `playwright.config.ts`：使用 `localhost:5183` 和 `/tmp` 临时 SQLite，避免本机端口与生产数据冲突。

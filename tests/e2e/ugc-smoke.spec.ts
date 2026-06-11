@@ -105,6 +105,20 @@ async function approvePending(request: APIRequestContext, token: string, id: str
   return res.json()
 }
 
+async function submitLoggedInCreatorReviewFromForm(page: Page, title: string, contentText: string) {
+  await expect(page.getByText('使用当前创作者账号投稿；通过审核后会累计到直发资格。')).toBeVisible()
+  await expect(page.getByRole('radio', { name: /申请创作者/ })).toHaveCount(0)
+  await page.getByLabel('标题').fill(title)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await expect(page.getByLabel('投稿署名')).not.toHaveValue('')
+  await page.getByLabel('战术正文').fill(contentText)
+  await expect(page.getByText('信息已补齐，可以提交审核。')).toBeVisible()
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入你的创作者审核进度/)).toBeVisible()
+  await expect(page.getByRole('link', { name: '进入创作者后台' })).toBeVisible()
+}
+
 async function expectReceiptCanStartCleanResubmission(
   page: Page,
   submissionId: string,
@@ -442,6 +456,63 @@ test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post
   await reloadedDirectBoardRow.getByRole('button', { name: '恢复发布' }).click()
   await expect(reloadedDirectBoardRow.getByText('已发布')).toBeVisible()
   await expect(reloadedDirectBoardRow.getByRole('link', { name: '查看公开板' })).toBeVisible()
+})
+
+test('creator self-service promotion uses the visible submission flow for all three approvals', async ({ page, request }) => {
+  const runId = Date.now().toString(36)
+  const creator = await createCreatorApplication(request, `selfloop_${runId}`)
+  const admin = await adminToken(request)
+  await page.setExtraHTTPHeaders({
+    'X-Forwarded-For': `203.0.113.${(Math.abs(hashSuffix(`selfloop-ui-${runId}`)) % 100) + 100}`,
+  })
+
+  const submissions = await request.get('/api/admin/submissions', {
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  expect(submissions.ok()).toBeTruthy()
+  const first = (await submissions.json()).find((item: { title: string }) => item.title === creator.title)
+  expect(first?.id).toBeTruthy()
+  await approvePending(request, admin, first.id, creator.authorId)
+
+  await page.goto('/creator')
+  await page.getByLabel('用户名').fill(creator.username)
+  await page.getByLabel('密码').fill(creator.password)
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page.getByRole('heading', { name: '还需 2 次审核通过' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toHaveCount(0)
+
+  const needsTwoPanel = page.locator('.ps-creator__panel', { hasText: '还需 2 次审核通过' })
+  await needsTwoPanel.getByRole('link', { name: '继续投稿' }).click()
+  const secondTitle = `E2E 自循环第二投 ${runId}`
+  await submitLoggedInCreatorReviewFromForm(page, secondTitle, `P1 自循环第二投 ${runId}\nP2 集合`)
+  const secondSubmissions = await request.get('/api/admin/submissions', {
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  expect(secondSubmissions.ok()).toBeTruthy()
+  const second = (await secondSubmissions.json()).find((item: { title: string }) => item.title === secondTitle)
+  expect(second?.id).toBeTruthy()
+  await approvePending(request, admin, second.id, creator.authorId)
+
+  await page.getByRole('link', { name: '进入创作者后台' }).click()
+  await expect(page.getByRole('heading', { name: '还需 1 次审核通过' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toHaveCount(0)
+
+  const needsOnePanel = page.locator('.ps-creator__panel', { hasText: '还需 1 次审核通过' })
+  await needsOnePanel.getByRole('link', { name: '继续投稿' }).click()
+  const thirdTitle = `E2E 自循环第三投 ${runId}`
+  await submitLoggedInCreatorReviewFromForm(page, thirdTitle, `P1 自循环第三投 ${runId}\nP2 集合`)
+  const thirdSubmissions = await request.get('/api/admin/submissions', {
+    headers: { Authorization: `Bearer ${admin}` },
+  })
+  expect(thirdSubmissions.ok()).toBeTruthy()
+  const third = (await thirdSubmissions.json()).find((item: { title: string }) => item.title === thirdTitle)
+  expect(third?.id).toBeTruthy()
+  await approvePending(request, admin, third.id, creator.authorId)
+
+  await page.getByRole('link', { name: '进入创作者后台' }).click()
+  await expect(page.getByRole('heading', { name: '我的战术板' })).toBeVisible()
+  await expect(page.getByText('资料会展示在作者主页；上方可直接发布和维护你的战术板。')).toBeVisible()
+  await expect(page.getByText('还差：标题、团本、BOSS、战术正文')).toBeVisible()
 })
 
 test('creator application guardrails handle missing fields, invalid usernames, and duplicates', async ({ page }) => {

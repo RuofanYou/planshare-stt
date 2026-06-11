@@ -244,6 +244,8 @@ export function useCreatorMe(enabled: boolean) {
     queryKey: ['creator', 'me'],
     queryFn: api.getCreatorMe,
     enabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 }
 
@@ -252,6 +254,8 @@ export function useCreatorSubmissions(enabled: boolean) {
     queryKey: ['creator', 'submissions'],
     queryFn: api.getCreatorSubmissions,
     enabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 }
 
@@ -303,6 +307,8 @@ export function useCreatorBoards(enabled: boolean) {
     queryKey: ['creator', 'boards'],
     queryFn: api.getCreatorBoards,
     enabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 }
 
