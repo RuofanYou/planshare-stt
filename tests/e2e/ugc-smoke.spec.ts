@@ -977,6 +977,39 @@ test('spam-screened visitor submission stays editable and is not described as qu
   await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
 })
 
+test('duplicate visitor submission explains that the same content will not enter review twice', async ({ page }) => {
+  const runId = Date.now().toString(36)
+  const duplicateContent = `P1 重复正文拦截 ${runId}\nP2 集合`
+
+  await page.setExtraHTTPHeaders({ 'X-Forwarded-For': `198.51.100.${(Math.abs(hashSuffix(`dupe_${runId}`)) % 100) + 50}` })
+  await page.goto('/submit')
+
+  await page.getByLabel('标题').fill(`重复正文首投 ${runId}`)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await page.getByLabel('投稿署名').fill(`重复游客 ${runId}`)
+  await page.getByLabel('战术正文').fill(duplicateContent)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
+
+  await page.getByLabel('标题').fill(`重复正文二投 ${runId}`)
+  await page.locator('#ps-submit-raid').selectOption('r-voidspire')
+  await page.locator('#ps-submit-boss').selectOption('b-averzian')
+  await page.getByLabel('投稿署名').fill(`重复游客 ${runId}`)
+  await page.getByLabel('战术正文').fill(duplicateContent)
+  await page.getByRole('button', { name: '提交审核' }).click()
+
+  await expect(page.getByRole('alert')).toContainText(
+    '投稿已被系统拦截，未进入人工审核：同一网络下重复正文，系统不会重复进入审核。请修改后重新提交。',
+  )
+  await expect(page.getByLabel('标题')).toHaveValue(`重复正文二投 ${runId}`)
+  await expect(page.getByLabel('战术正文')).toHaveValue(duplicateContent)
+
+  await page.getByLabel('战术正文').fill(`${duplicateContent}\nP3 明确补充一条新内容`)
+  await page.getByRole('button', { name: '提交审核' }).click()
+  await expect(page.getByText(/投稿已进入审核，不会立刻公开/)).toBeVisible()
+})
+
 test('report rate limit shows a visible visitor-facing error', async ({ page, request }) => {
   const runId = Date.now().toString(36)
   const { board } = await createAdminBoard(request, `limit_${runId}`)

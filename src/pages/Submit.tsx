@@ -18,7 +18,7 @@ const CREATOR_USERNAME_PATTERN = /^[a-z0-9_-]{3,24}$/
 
 function spamReasonLabel(reason: string) {
   if (reason === 'honeypot') return '表单异常'
-  if (reason === 'duplicate_content') return '同一网络下重复正文'
+  if (reason === 'duplicate_content') return '同一网络下重复正文，系统不会重复进入审核'
   if (reason === 'content_blacklist') return '内容风险'
   return reason || '内容风险'
 }

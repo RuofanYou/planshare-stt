@@ -2923,6 +2923,43 @@ vite v5.4.21 building for production...
 20 passed (56.3s)
 ```
 
+### UGC 生态补缺口：重复正文拦截说清楚不会重复进审核
+```text
+普通浏览用户探索:
+用户把同一段正文在同一网络下重复投稿时，系统会直接拦截，避免审核队列被重复内容占满。
+原提示只说“同一网络下重复正文”，小白不一定明白这条不会进入审核，可能继续反复点提交。
+
+已修复：
+- duplicate_content 的人话说明改为“同一网络下重复正文，系统不会重复进入审核”
+- 拦截提示仍明确说“未进入人工审核”，避免用户误以为已经排队
+- 表单内容保留，用户可以直接修改正文后重新提交
+- 后端防刷规则不变，本轮只补清晰提示和浏览器回归覆盖
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "duplicate visitor submission"
+
+Running 1 test using 1 worker
+·
+1 passed (3.3s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 2.02s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:980:1 › duplicate visitor submission explains that the same content will not enter review twice (1.2s)
+21 passed (1.0m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
