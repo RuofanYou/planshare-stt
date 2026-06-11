@@ -1645,6 +1645,45 @@ vite v5.4.21 building for production...
 
 ### 最新最终验证
 ```text
+npx playwright test tests/e2e/ugc-smoke.spec.ts
+
+Running 32 tests using 1 worker
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.3s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:489:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.6s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.9s)
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1620:1 › report rate limit shows a visible visitor-facing error (2.4s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1648:1 › visitor can report a board and admin can hide it from public pages (15.9s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1732:1 › creator dashboard blocks self-restore for boards hidden by admin reports (647ms)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1783:1 › creator direct publish screens unsafe content in dashboard (849ms)
+
+32 passed (1.6m)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.95s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.9s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:489:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.6s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.9s)
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1620:1 › report rate limit shows a visible visitor-facing error (2.3s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1648:1 › visitor can report a board and admin can hide it from public pages (10.9s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1732:1 › creator dashboard blocks self-restore for boards hidden by admin reports (590ms)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1783:1 › creator direct publish screens unsafe content in dashboard (754ms)
+32 passed (1.6m)
+```
+
+### 上一次最终验证
+```text
 CI=1 npx playwright test --grep "admin can reset a creator password and the creator can log in again"
 
 Running 1 test using 1 worker

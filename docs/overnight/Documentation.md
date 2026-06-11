@@ -4128,6 +4128,66 @@ vite v5.4.21 building for production...
 32 passed (1.7m)
 ```
 
+### UGC 用户视角全链路防呆巡检：未发现新阻塞
+```text
+普通浏览用户 / 想成为创作者用户探索:
+本轮按“一个普通用户想成为创作者”的角度复核现有 UGC 流程：
+- 游客浏览、点赞、复制战术、从公开板带内容投稿。
+- 游客申请创作者：空表单、短密码、两次密码不一致、非法用户名、重复用户名。
+- 创作者审核期：登录、继续投稿、三次审核晋升、撤回、被驳回后修改重投、被系统拦截后修改重投、重复正文拦截后修改重投。
+- 可信创作者：直发、草稿保护、编辑、下架、恢复发布、 unsafe 内容筛查。
+- 管理员：审核通过/驳回/标垃圾、批量操作二次确认、暂停/恢复账号、重置密码后隐藏明文。
+- 浏览治理：举报、举报限流、管理员驳回举报、管理员隐藏板、创作者不能自行恢复管理员隐藏的板。
+- 状态与失败态：投稿编号查询、查询限流、复制失败、点赞失败、草稿不保存密码和联系方式。
+
+结论：
+- 现有 32 条 UGC 浏览器回归已覆盖上述主链和主要防呆点。
+- 本轮未发现需要新增修复的断点。
+- Codex 内置浏览器插件本轮两次读取当前页超时；为不中断验证，实际交互审计使用项目 Playwright 浏览器执行，并保留真实命令输出。
+
+决策记录：
+- 不为“已通过的人工视角巡检”改业务代码，避免制造无关 diff。
+- 把巡检证据补进 overnight 文档，作为下一轮会话的续接依据。
+```
+
+```text
+npx playwright test tests/e2e/ugc-smoke.spec.ts
+
+Running 32 tests using 1 worker
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (13.3s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:489:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.6s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.9s)
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1620:1 › report rate limit shows a visible visitor-facing error (2.4s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1648:1 › visitor can report a board and admin can hide it from public pages (15.9s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1732:1 › creator dashboard blocks self-restore for boards hidden by admin reports (647ms)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1783:1 › creator direct publish screens unsafe content in dashboard (849ms)
+
+32 passed (1.6m)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.95s
+
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:187:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (12.9s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:489:1 › creator self-service promotion uses the visible submission flow for all three approvals (7.6s)
+✓   3 [chromium] › tests/e2e/ugc-smoke.spec.ts:546:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.9s)
+✓  29 [chromium] › tests/e2e/ugc-smoke.spec.ts:1620:1 › report rate limit shows a visible visitor-facing error (2.3s)
+✓  30 [chromium] › tests/e2e/ugc-smoke.spec.ts:1648:1 › visitor can report a board and admin can hide it from public pages (10.9s)
+✓  31 [chromium] › tests/e2e/ugc-smoke.spec.ts:1732:1 › creator dashboard blocks self-restore for boards hidden by admin reports (590ms)
+✓  32 [chromium] › tests/e2e/ugc-smoke.spec.ts:1783:1 › creator direct publish screens unsafe content in dashboard (754ms)
+32 passed (1.6m)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。
