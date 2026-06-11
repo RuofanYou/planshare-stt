@@ -2416,6 +2416,73 @@ vite v5.4.21 building for production...
 18 passed (54.0s)
 ```
 
+### UGC 生态补缺口：创作者用户名格式提交前拦截
+```text
+普通创作者探索:
+我按新用户视角在投稿页申请创作者，故意填 `bad name`。
+原行为：页面底部显示“信息已补齐，可以提交审核”，按钮可点；点了以后才由后端返回“用户名只能包含小写英文、数字、下划线或短横线”。
+问题：小白会以为自己填对了，直到提交才失败。
+
+已修复：
+- `src/pages/Submit.tsx` 增加和后端一致的用户名格式判断：3-24 位，小写英文、数字、_、-
+- 非法用户名时，用户名下方直接显示规则
+- 底部状态变为“还差：登录用户名格式”
+- “提交审核”保持禁用
+- Playwright 防呆测试改为断言提交前拦截，而不是等后端报错
+```
+
+```text
+浏览器手动验证:
+hint: 用户名需要 3-24 位，只能使用小写英文、数字、下划线或短横线。
+status: 还差：登录用户名格式
+submitDisabled: true
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "creator application guardrails"
+
+Running 1 test using 1 worker
+·
+1 passed (3.9s)
+```
+
+```text
+普通创作者手动链路:
+- 首页可浏览，投稿页缺字段时显示“还差：标题、团本、BOSS、战术正文”
+- 申请创作者：密码不一致时按钮禁用；非法用户名提交前禁用
+- 合法申请后显示“账号已创建，投稿已进入审核”，并提供“进入创作者后台”
+- 新创作者后台可看到投稿进度，审核期没有直发入口，并提示还需 2 次通过
+- 管理员后台投稿审核角标从 1 -> 2 -> 1 -> 清空，审核无需改代码
+- 创作者累计 3 次通过后自动出现“我的战术板”和“直接发布”
+- 直发风险内容被拦截，正常内容可发布
+- 已发布板可编辑保存；下架/恢复链路由 UGC smoke 自动化覆盖
+```
+
+```text
+CI=1 npx playwright test tests/e2e/ugc-smoke.spec.ts --grep "UGC smoke"
+
+Running 1 test using 1 worker
+·
+1 passed (13.2s)
+```
+
+```text
+npm run verify
+
+vite v5.4.21 building for production...
+✓ 571 modules transformed.
+✓ built in 1.90s
+
+1..47
+# tests 47
+# pass 47
+# fail 0
+
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:387:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.3s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1024:1 › creator direct publish screens unsafe content in dashboard (775ms)
+18 passed (53.7s)
+```
+
 ## 已知问题
 - M5 已完成第一轮按职责拆分，`src/pages/Admin.tsx` 从 2242 行降到 1593 行；作者/战术板表单仍留在主文件，后续可继续细拆但不阻塞本次 UGC 开放。
 - M6 已完成 worker schema/路由同步和核心读接口契约测试；worker 仍不是当前业务权威。

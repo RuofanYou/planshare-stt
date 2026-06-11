@@ -1261,11 +1261,11 @@ vite v5.4.21 building for production...
 # pass 47
 # fail 0
 
-✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:889:1 › report rate limit shows a visible visitor-facing error (1.9s)
-✓  16 [chromium] › tests/e2e/ugc-smoke.spec.ts:913:1 › visitor can report a board and admin can hide it from public pages (10.0s)
-✓  17 [chromium] › tests/e2e/ugc-smoke.spec.ts:972:1 › creator dashboard blocks self-restore for boards hidden by admin reports (684ms)
-✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1023:1 › creator direct publish screens unsafe content in dashboard (729ms)
-18 passed (54.0s)
+✓   1 [chromium] › tests/e2e/ugc-smoke.spec.ts:135:1 › UGC smoke: browse, copy, submit, approve, publish, and creator direct post (11.5s)
+✓   2 [chromium] › tests/e2e/ugc-smoke.spec.ts:387:1 › creator application guardrails handle missing fields, invalid usernames, and duplicates (1.3s)
+✓  15 [chromium] › tests/e2e/ugc-smoke.spec.ts:890:1 › report rate limit shows a visible visitor-facing error (1.9s)
+✓  18 [chromium] › tests/e2e/ugc-smoke.spec.ts:1024:1 › creator direct publish screens unsafe content in dashboard (775ms)
+18 passed (53.7s)
 ```
 
 ## 高风险 diff
@@ -1295,6 +1295,7 @@ vite v5.4.21 building for production...
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿成功区新增“回首页浏览”；需人工确认成功后的下一步入口符合运营期望。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：投稿页本机草稿新增“清空草稿”按钮；需人工确认共享电脑/误填场景下这个按钮的位置和文案不会造成误删疑虑。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：申请创作者新增“确认密码”并阻止两次密码不一致提交；需人工确认多一个必填框不会明显提高首次投稿阻力。
+- `src/pages/Submit.tsx` 与 `tests/e2e/ugc-smoke.spec.ts`：创作者用户名格式改为提交前拦截；需人工确认“登录用户名格式”文案足够直观。
 - `src/pages/Submit.tsx` 与 `src/pages/Submit.css`：登录创作者进入投稿页时隐藏重复申请入口并提示会进入本人审核进度；需人工确认“游客投稿”和“创作者继续投稿”的文案边界足够清楚。
 - `src/pages/BoardDetail.tsx`：举报成功提示改为“已进入管理员处理队列”；需人工确认治理流程说明足够清楚。
 - `src/pages/BoardDetail.tsx`：公开板 404 且后端返回 `board not found` 时显示“已不可见”；需人工确认下架/隐藏/不存在统一文案可接受。

@@ -13,6 +13,7 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
 ]
 
 const SUBMIT_DRAFT_KEY = 'planshare_submit_draft_v1'
+const CREATOR_USERNAME_PATTERN = /^[a-z0-9_-]{3,24}$/
 
 interface SubmitDraft {
   title: string
@@ -146,6 +147,12 @@ export default function Submit() {
     creatorPassword.length >= 8 &&
     creatorPasswordConfirm.length > 0 &&
     creatorPassword !== creatorPasswordConfirm
+  const creatorUsernameValue = creatorUsername.trim()
+  const creatorUsernameInvalid =
+    wantsCreatorProfile && creatorUsernameValue !== '' && !CREATOR_USERNAME_PATTERN.test(creatorUsernameValue)
+  const creatorUsernameHint = creatorUsernameInvalid
+    ? '用户名需要 3-24 位，只能使用小写英文、数字、下划线或短横线。'
+    : '3-24 位小写英文、数字、_ 或 -。'
   const creatorPasswordConfirmHint = creatorPasswordMismatch
     ? '两次密码不一致。'
     : '再输入一次，避免账号创建后无法登录。'
@@ -154,7 +161,8 @@ export default function Submit() {
     raidId === '' ? '团本' : '',
     bossId === '' ? 'BOSS' : '',
     submitterName.trim() === '' ? (wantsCreatorProfile ? '作者名' : '投稿署名') : '',
-    wantsCreatorProfile && creatorUsername.trim() === '' ? '登录用户名' : '',
+    wantsCreatorProfile && creatorUsernameValue === '' ? '登录用户名' : '',
+    creatorUsernameInvalid ? '登录用户名格式' : '',
     wantsCreatorProfile && creatorPassword.length < 8 ? '登录密码至少 8 位' : '',
     wantsCreatorProfile && creatorPassword.length >= 8 && creatorPassword !== creatorPasswordConfirm
       ? '确认密码一致'
@@ -569,11 +577,18 @@ export default function Submit() {
                     id="ps-submit-username"
                     className="ps-submit__input"
                     autoComplete="username"
+                    aria-describedby="ps-submit-username-hint"
                     value={creatorUsername}
                     onChange={(e) => setCreatorUsername(e.target.value.toLowerCase())}
                     placeholder="3-24 位小写英文、数字、_ 或 -"
                     maxLength={24}
                   />
+                  <p
+                    className={creatorUsernameInvalid ? 'ps-submit__hint is-error' : 'ps-submit__hint'}
+                    id="ps-submit-username-hint"
+                  >
+                    {creatorUsernameHint}
+                  </p>
                 </div>
                 <div className="ps-submit__field">
                   <label className="ps-submit__label" htmlFor="ps-submit-password">

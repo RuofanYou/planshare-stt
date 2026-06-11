@@ -430,8 +430,9 @@ test('creator application guardrails handle missing fields, invalid usernames, a
 
   await page.goto('/submit')
   await fillCreatorApplication(`非法用户名防呆 ${runId}`, 'Bad Name')
-  await page.getByRole('button', { name: '提交审核' }).click()
-  await expect(page.getByText('用户名只能包含小写英文、数字、下划线或短横线')).toBeVisible()
+  await expect(page.getByText('用户名需要 3-24 位，只能使用小写英文、数字、下划线或短横线。')).toBeVisible()
+  await expect(page.getByText('还差：登录用户名格式')).toBeVisible()
+  await expect(page.getByRole('button', { name: '提交审核' })).toBeDisabled()
 
   await page.getByLabel('用户名').fill(creatorUsername)
   await page.getByRole('button', { name: '提交审核' }).click()
