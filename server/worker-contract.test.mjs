@@ -30,12 +30,12 @@ function contractShape(value) {
 }
 
 async function runWrangler(args, options = {}) {
-  const { stdout, stderr } = await execFileAsync('npx', ['wrangler', ...args], {
+  const { stdout } = await execFileAsync('npx', ['wrangler', ...args], {
     cwd: join(import.meta.dirname, '..'),
     maxBuffer: 10 * 1024 * 1024,
     ...options,
   })
-  return `${stdout}${stderr}`
+  return stdout
 }
 
 async function startWorkerDev(persistDir) {

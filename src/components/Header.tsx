@@ -51,6 +51,14 @@ export default function Header() {
             投稿
           </NavLink>
           <NavLink
+            to="/translator"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            翻译器
+          </NavLink>
+          <NavLink
             to="/creator"
             className={({ isActive }) =>
               isActive ? 'ps-header__link is-active' : 'ps-header__link'

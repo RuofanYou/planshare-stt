@@ -10,6 +10,8 @@ import Author from './pages/Author'
 import Admin from './pages/Admin'
 import Submit from './pages/Submit'
 import Creator from './pages/Creator'
+import Translator from './pages/Translator'
+import Loot from './pages/Loot'
 import { pageTransition } from './lib/motion'
 
 /**
@@ -18,7 +20,9 @@ import { pageTransition } from './lib/motion'
  * 路由切换走 AnimatePresence 过场（initial/animate/exit，ease-epic）。
  * 路由：/ -> Home；/raid/:raidId -> Category；
  *       /board/:boardId -> BoardDetail；/author/:authorId -> Author；
- *       /submit -> Submit；/creator -> Creator；/admin -> Admin（后台人工上稿入口）。
+ *       /submit -> Submit；/creator -> Creator；/translator -> Translator；
+ *       /loot -> Loot；
+ *       /admin -> Admin（后台人工上稿入口）。
  */
 export default function App() {
   const location = useLocation()
@@ -44,6 +48,8 @@ export default function App() {
               <Route path="/author/:authorId" element={<Author />} />
               <Route path="/submit" element={<Submit />} />
               <Route path="/creator" element={<Creator />} />
+              <Route path="/translator" element={<Translator />} />
+              <Route path="/loot" element={<Loot />} />
               <Route path="/admin" element={<Admin />} />
             </Routes>
           </motion.div>

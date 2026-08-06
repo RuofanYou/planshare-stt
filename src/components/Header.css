@@ -28,6 +28,7 @@
   font-size: var(--text-h2);
   font-weight: var(--weight-semibold);
   letter-spacing: 0;
+  flex: 0 0 auto;
 }
 
 .ps-header__brand:hover {
@@ -43,6 +44,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-6);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ps-header__nav::-webkit-scrollbar {
+  display: none;
 }
 
 /* 链接：default = ink-soft；hover/当前页 = ink/gold + 金辉下划线 */

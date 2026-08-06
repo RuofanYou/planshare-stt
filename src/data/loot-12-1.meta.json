@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 5,
+  "gameVersion": "12.1",
+  "dataUpdated": "2026-08-05",
+  "attribution": "数据整理参考：12.1 DropSheet (by Ango)",
+  "input": {
+    "sourceFile": "12.1 DropSheet(by Ango)(1)(1).xlsx",
+    "sha256": "50602c036049983508a4abd9b3975b149ff0b786bb85c6cd29c1d7d85d3a68c8",
+    "sheet": "total",
+    "range": "A1:K578",
+    "recordRows": 577,
+    "auditReport": "reports/loot-12-1-input-audit.json",
+    "trinketEffectsReport": "reports/loot-12-1-trinket-effects.json"
+  },
+  "sources": [
+    {
+      "name": "Wago DB2 ItemSparse zhCN",
+      "url": "https://wago.tools/db2/ItemSparse/csv?build=12.1.0.69111&locale=zhCN",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 ItemSparse enUS",
+      "url": "https://wago.tools/db2/ItemSparse/csv?build=12.1.0.69111&locale=enUS",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 JournalInstance zhCN",
+      "url": "https://wago.tools/db2/JournalInstance/csv?build=12.1.0.69111&locale=zhCN",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 JournalEncounter zhCN",
+      "url": "https://wago.tools/db2/JournalEncounter/csv?build=12.1.0.69111&locale=zhCN",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 JournalEncounterItem enUS",
+      "url": "https://wago.tools/db2/JournalEncounterItem/csv?build=12.1.0.69111&locale=enUS",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 ChrClasses zhCN",
+      "url": "https://wago.tools/db2/ChrClasses/csv?build=12.1.0.69111&locale=zhCN",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 ChrSpecialization zhCN",
+      "url": "https://wago.tools/db2/ChrSpecialization/csv?build=12.1.0.69111&locale=zhCN",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 SkillLine enUS",
+      "url": "https://wago.tools/db2/SkillLine/csv?build=12.1.0.69111&locale=enUS",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 SkillLineAbility enUS",
+      "url": "https://wago.tools/db2/SkillLineAbility/csv?build=12.1.0.69111&locale=enUS",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wago DB2 ItemSpecOverride enUS",
+      "url": "https://wago.tools/db2/ItemSpecOverride/csv?build=12.1.0.69111&locale=enUS",
+      "accessedAt": "2026-08-05"
+    },
+    {
+      "name": "Wowhead PTR item pages",
+      "urlTemplate": "https://www.wowhead.com/ptr/item={item_id}",
+      "accessedAt": "2026-08-05",
+      "purpose": "验证 item bonus tree"
+    },
+    {
+      "name": "Wowhead PTR tooltip endpoint",
+      "urlTemplate": "https://nether.wowhead.com/tooltip/item/{item_id}?{bonus_query}dataEnv=2&locale=0",
+      "accessedAt": "2026-08-05",
+      "purpose": "实际物等、升级轨道、数值属性与图标名"
+    },
+    {
+      "name": "Wowhead icon CDN",
+      "urlTemplate": "https://wow.zamimg.com/images/wow/icons/large/{icon}.jpg",
+      "accessedAt": "2026-08-05",
+      "purpose": "下载公开本地图标"
+    }
+  ],
+  "filters": {
+    "sourceTypes": [
+      "团本",
+      "大秘境",
+      "地下堡",
+      "其它"
+    ],
+    "classes": [
+      "战士",
+      "圣骑士",
+      "猎人",
+      "潜行者",
+      "牧师",
+      "死亡骑士",
+      "萨满祭司",
+      "法师",
+      "术士",
+      "武僧",
+      "德鲁伊",
+      "恶魔猎手",
+      "唤魔师"
+    ],
+    "slots": [
+      "头部",
+      "颈部",
+      "肩部",
+      "背部",
+      "胸部",
+      "腕部",
+      "手部",
+      "腰部",
+      "腿部",
+      "脚部",
+      "手指",
+      "饰品",
+      "单手",
+      "主手",
+      "副手",
+      "双手",
+      "远程",
+      "盾牌"
+    ]
+  },
+  "displayVariant": {
+    "target": {
+      "itemLevel": 259,
+      "track": "英雄",
+      "rank": 1,
+      "maxRank": 6
+    },
+    "contract": {
+      "itemLevel": "number",
+      "track": "string",
+      "rank": "number",
+      "maxRank": "number",
+      "stats": "Array<{label:string,value:number}>",
+      "icon": "string",
+      "verified": "boolean"
+    }
+  },
+  "quality": {
+    "sourceCategoryCounts": {
+      "团本": 218,
+      "大秘境": 205,
+      "地下堡": 95,
+      "其它": 59
+    },
+    "setRecordsReclassifiedToRaid": 117,
+    "priestSetRecordsInRaid": 9,
+    "verifiedRecords": 577,
+    "targetMatchedRecords": 190,
+    "fallbackRecords": 387,
+    "iconAssets": 423,
+    "upgradeIndexSha256": "e0951faf32c3f31f98bbf6653bc28d50f6850d1bda0b175f7fb4a10cc49bebb6",
+    "parserVersion": 2,
+    "staleRefreshed": 132,
+    "ssrRechecked": 445,
+    "trinketEffectRecords": 43,
+    "trinketStaticOnlyRecords": 1
+  },
+  "result": {
+    "resolvedRows": 577,
+    "unresolvedRows": 0,
+    "duplicateRows": 0,
+    "publishedRecords": 577
+  }
+}
