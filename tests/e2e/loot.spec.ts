@@ -28,7 +28,10 @@ test('loot is reachable from the global navigation and keeps its active state', 
 test('loot groups raid priest results and removes external item links', async ({ page }) => {
   await page.goto('/loot')
   await expect(page.getByRole('heading', { name: '魔兽世界 12.1 装备掉落查询' })).toBeVisible()
-  await expect(page.getByTestId('loot-vault-motion')).toBeVisible()
+  await expect(page.getByText('LOOT LIBRARY / INDEX 12.1', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('把每一件掉落，收进一张可以慢慢浏览的装备卡片。')).toHaveCount(0)
+  await expect(page.getByTestId('loot-vault-motion')).toHaveCount(0)
+  await expect(page.getByText('实时索引', { exact: true })).toHaveCount(0)
   await expect(page.getByTestId('loot-collected-count')).toContainText('577')
   await expect(resultCount(page)).toContainText('577')
   await expect(page.locator('.ps-loot__filter-group')).toHaveCount(7)

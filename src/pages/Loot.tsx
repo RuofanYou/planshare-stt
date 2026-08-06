@@ -1,11 +1,8 @@
-import { Fragment, lazy, Suspense, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Button, EmptyState, Icon, Tag } from '../components/ui'
 import lootData from '../data/loot-12-1.json'
 import lootMeta from '../data/loot-12-1.meta.json'
 import './Loot.css'
-
-const RemotionPlayer = lazy(() => import('@remotion/player').then(({ Player }) => ({ default: Player })))
-const LootVaultMotion = lazy(() => import('../components/LootVaultMotion'))
 
 type DisplayStat = {
   label: string
@@ -467,11 +464,6 @@ export default function Loot() {
     setStat(statIsValid ? stat : '')
   }
 
-  const motionInputProps = {
-    accent: 'var(--color-gold)',
-    highlight: 'var(--color-gold-bright)',
-  }
-
   return (
     <div className="ps-loot">
       <section className="container ps-loot__head" aria-labelledby="loot-title">
@@ -479,31 +471,10 @@ export default function Loot() {
           <div className="ps-loot__hero-copy">
             <div className="ps-loot__eyebrow">
               <Tag variant="gold">{metadata.gameVersion}</Tag>
-              <span className="ps-loot__hero-kicker">LOOT LIBRARY / INDEX 12.1</span>
             </div>
             <h1 id="loot-title" className="ps-loot__title text-gold-grad">
               魔兽世界 12.1 装备掉落查询
             </h1>
-            <p className="ps-loot__hero-subtitle">把每一件掉落，收进一张可以慢慢浏览的装备卡片。</p>
-          </div>
-          <div className="ps-loot__hero-motion" data-testid="loot-vault-motion" aria-hidden="true">
-            <Suspense fallback={null}>
-              <RemotionPlayer
-                component={LootVaultMotion}
-                durationInFrames={360}
-                fps={30}
-                compositionWidth={900}
-                compositionHeight={360}
-                inputProps={motionInputProps}
-                autoPlay
-                loop
-                controls={false}
-                initiallyMuted
-                numberOfSharedAudioTags={0}
-                style={{ width: '100%', height: '100%' }}
-              />
-            </Suspense>
-            <div className="ps-loot__hero-orbit-label">实时索引</div>
           </div>
         </div>
         <dl className="ps-loot__summary glass" aria-label="装备收录与结果数量">
