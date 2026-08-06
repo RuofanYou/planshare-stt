@@ -477,6 +477,8 @@ export default function Loot() {
                 autoPlay
                 loop
                 controls={false}
+                initiallyMuted
+                numberOfSharedAudioTags={0}
                 style={{ width: '100%', height: '100%' }}
               />
             </Suspense>
