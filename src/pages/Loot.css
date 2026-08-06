@@ -3,7 +3,9 @@
 .ps-loot {
   position: relative;
   isolation: isolate;
+  overflow-x: clip;
   padding-block: calc(var(--space-12) + var(--space-8)) var(--space-16);
+  background: linear-gradient(180deg, var(--color-bg-raise) 0%, var(--color-bg-base) 42%, var(--color-bg-base) 100%);
 }
 
 .ps-loot::before {
@@ -12,10 +14,8 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(36% 24% at 78% 3%, var(--color-gold-glow), transparent 72%),
-    linear-gradient(180deg, transparent 0%, var(--color-bg-base) 72%);
-  opacity: 0.62;
+  background: linear-gradient(180deg, var(--color-bg-raise), var(--color-bg-base) 72%);
+  opacity: 1;
 }
 
 .ps-loot__head {

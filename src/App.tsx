@@ -16,7 +16,7 @@ import { pageTransition } from './lib/motion'
 
 /**
  * 全局布局 + 路由。
- * 通用骨架：固定 three 余烬奥术背景 + 顶部 Header + 主内容区 + 极简 Footer。
+ * 通用骨架：按路由使用氛围背景 + 顶部 Header + 主内容区 + 极简 Footer。
  * 路由切换走 AnimatePresence 过场（initial/animate/exit，ease-epic）。
  * 路由：/ -> Home；/raid/:raidId -> Category；
  *       /board/:boardId -> BoardDetail；/author/:authorId -> Author；
@@ -26,10 +26,12 @@ import { pageTransition } from './lib/motion'
  */
 export default function App() {
   const location = useLocation()
+  const isLootPage = location.pathname === '/loot' || location.pathname === '/loot/'
+
   return (
     <>
-      {/* 固定全屏余烬奥术暗场，纯氛围、不可交互、沉在内容之下 */}
-      <EmberBackground />
+      {/* 装备库使用自己的静谧拱门动效，其他页面继续沿用全局余烬暗场 */}
+      {!isLootPage && <EmberBackground />}
       <Header />
       <main className="ps-main">
         {/* mode="wait" 让旧页面先淡出再淡入新页面；key 用 pathname 触发过场 */}
