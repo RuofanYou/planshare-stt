@@ -247,13 +247,13 @@
 
 .ps-loot__filter-groups {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .ps-loot__filter-group {
   display: grid;
-  grid-template-columns: minmax(4rem, 5.5rem) minmax(0, 1fr);
-  gap: var(--space-3);
+  grid-template-columns: 7rem minmax(0, 1fr);
+  column-gap: var(--space-5);
   align-items: start;
   min-width: 0;
   margin: 0;
@@ -262,22 +262,26 @@
 }
 
 .ps-loot__filter-group legend {
+  display: flex;
+  align-items: center;
   float: left;
   width: auto;
   margin: 0;
+  min-height: calc(var(--space-8) + var(--space-1));
   padding: var(--space-2) 0;
 }
 
 .ps-loot__chip-list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  column-gap: var(--space-3);
+  row-gap: var(--space-3);
   min-width: 0;
 }
 
 .ps-loot__filter-chip {
-  min-height: calc(var(--space-6) + var(--space-1));
-  padding: var(--space-1) var(--space-3);
+  min-height: calc(var(--space-8) + var(--space-1));
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   background: var(--glass);
@@ -794,7 +798,13 @@
 
   .ps-loot__filter-group legend {
     float: none;
-    padding-bottom: 0;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .ps-loot__chip-list {
+    column-gap: var(--space-2);
+    row-gap: var(--space-2);
   }
 
   .ps-loot__clear-wrap {
