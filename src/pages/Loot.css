@@ -1,4 +1,4 @@
-/* 12.1 装备库：分类筛选、慢速索引氛围与卡片式掉落浏览。 */
+/* 12.1 装备库：分类筛选与卡片式掉落浏览。 */
 
 .ps-loot {
   position: relative;
@@ -122,8 +122,8 @@
 
 .ps-loot__filters {
   display: grid;
-  gap: var(--space-5);
-  padding: var(--space-5);
+  gap: var(--space-6);
+  padding: var(--space-6);
   border: 1px solid var(--glass-border);
   background: linear-gradient(135deg, var(--glass-strong), var(--glass));
   box-shadow: var(--shadow-glass);
@@ -197,17 +197,17 @@
 
 .ps-loot__filter-groups {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-6);
 }
 
 .ps-loot__filter-group {
   display: grid;
   grid-template-columns: 7rem minmax(0, 1fr);
-  column-gap: var(--space-5);
+  column-gap: var(--space-6);
   align-items: start;
   min-width: 0;
   margin: 0;
-  padding: 0;
+  padding-block: var(--space-2);
   border: 0;
 }
 
@@ -224,8 +224,8 @@
 .ps-loot__chip-list {
   display: flex;
   flex-wrap: wrap;
-  column-gap: var(--space-3);
-  row-gap: var(--space-3);
+  column-gap: var(--space-4);
+  row-gap: var(--space-4);
   min-width: 0;
 }
 
@@ -683,7 +683,7 @@
   }
 
   .ps-loot__hero-copy {
-    padding: var(--space-5) var(--space-4);
+    padding: var(--space-6) var(--space-4);
   }
 
   .ps-loot__title {

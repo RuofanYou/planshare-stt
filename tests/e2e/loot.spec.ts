@@ -92,17 +92,22 @@ test('loot filter groups keep one content start line and breathable chip rhythm'
     const groups = [...document.querySelectorAll('.ps-loot__filter-group')]
     const chipLists = groups.map((group) => group.querySelector('.ps-loot__chip-list'))
     const chip = document.querySelector('.ps-loot__filter-chip')
+    const filters = document.querySelector('.ps-loot__filters')
     return {
       chipStarts: chipLists.map((list) => Math.round(list?.getBoundingClientRect().left ?? 0)),
       listGap: getComputedStyle(chipLists[0] as Element).columnGap,
       listRowGap: getComputedStyle(chipLists[0] as Element).rowGap,
       chipHeight: chip?.getBoundingClientRect().height ?? 0,
+      filterPadding: getComputedStyle(filters as Element).padding,
+      groupGap: getComputedStyle(document.querySelector('.ps-loot__filter-groups') as Element).rowGap,
     }
   })
   expect(new Set(layout.chipStarts).size).toBe(1)
   expect(Number.parseFloat(layout.listGap)).toBeGreaterThanOrEqual(12)
   expect(Number.parseFloat(layout.listRowGap)).toBeGreaterThanOrEqual(12)
   expect(layout.chipHeight).toBeGreaterThanOrEqual(36)
+  expect(Number.parseFloat(layout.filterPadding)).toBeGreaterThanOrEqual(24)
+  expect(Number.parseFloat(layout.groupGap)).toBeGreaterThanOrEqual(24)
 })
 
 test('loot follows Wowhead stat order and keeps weapon structure before attributes', async ({ page }) => {
