@@ -32,6 +32,7 @@
     "@fastify/static": "^9.1.3",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
+    "@remotion/player": "^4.0.506",
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-query": "^5.100.14",
     "better-sqlite3": "^12.10.0",
@@ -43,6 +44,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
+    "remotion": "^4.0.506",
     "tailwindcss": "^4.3.0",
     "three": "^0.184.0"
   },

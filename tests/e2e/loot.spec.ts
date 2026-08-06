@@ -17,6 +17,7 @@ function filterChip(page: import('@playwright/test').Page, name: FilterGroup, la
 test('loot groups raid priest results and removes external item links', async ({ page }) => {
   await page.goto('/loot')
   await expect(page.getByRole('heading', { name: '魔兽世界 12.1 装备掉落查询' })).toBeVisible()
+  await expect(page.getByTestId('loot-vault-motion')).toBeVisible()
   await expect(page.getByTestId('loot-collected-count')).toContainText('577')
   await expect(resultCount(page)).toContainText('577')
   await expect(page.locator('.ps-loot__filter-group')).toHaveCount(7)
@@ -86,7 +87,7 @@ test('loot exposes verified trinket details and semantic stat colors', async ({ 
 
   await filterChip(page, 'source', '地下堡').click()
   await expect(resultCount(page)).toContainText('4')
-  const sporeRow = page.locator('.ps-loot__table tbody tr').filter({ hasText: '附魔孢子' })
+  const sporeRow = page.locator('.ps-loot__cards .ps-loot__card').filter({ hasText: '附魔孢子' })
   const sporeEffect = sporeRow.getByTestId('loot-effect')
   await expect(sporeEffect).toBeVisible()
   await expect(sporeEffect).toContainText('没有独立的使用效果')
@@ -114,7 +115,7 @@ test('loot keeps the same grouped structure in the mobile result list without ho
   await expect(page.getByTestId('loot-instance-group').first()).toBeVisible()
   await expect(page.locator('.ps-loot__cards .ps-loot__card').first()).toBeVisible()
   await expect(page.locator('.ps-loot__cards .ps-loot__variant').first()).toContainText('装等')
-  await expect(page.locator('.ps-loot__table-wrap').first()).toBeHidden()
+  await expect(page.locator('.ps-loot__table-wrap')).toHaveCount(0)
   await expect(page.locator('.ps-loot__cards .ps-loot__card').filter({ has: page.getByTestId('loot-effect') }).first()).toBeVisible()
   await expect(
     page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),

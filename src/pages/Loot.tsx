@@ -1,8 +1,11 @@
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, lazy, Suspense, useMemo, useState } from 'react'
 import { Button, EmptyState, Icon, Tag } from '../components/ui'
 import lootData from '../data/loot-12-1.json'
 import lootMeta from '../data/loot-12-1.meta.json'
 import './Loot.css'
+
+const RemotionPlayer = lazy(() => import('@remotion/player').then(({ Player }) => ({ default: Player })))
+const LootVaultMotion = lazy(() => import('../components/LootVaultMotion'))
 
 type DisplayStat = {
   label: string
@@ -163,30 +166,6 @@ function LootGlyph({ variant }: { variant: DisplayVariant }) {
   return <img className="ps-loot__icon" src={variant.icon} alt="" loading="lazy" />
 }
 
-function ResultName({ record }: { record: LootRecord }) {
-  return (
-    <div className="ps-loot__item">
-      <LootGlyph variant={record.displayVariant} />
-      <div className="ps-loot__item-copy">
-        <span className="ps-loot__item-name">{record.name}</span>
-        <span className="ps-loot__item-id">物品 ID：{record.itemId}</span>
-      </div>
-    </div>
-  )
-}
-
-function VariantSummary({ variant }: { variant: DisplayVariant }) {
-  const trackLabel = variant.maxRank > 0
-    ? variant.track + '（' + variant.rank + '/' + variant.maxRank + '）'
-    : variant.track
-
-  return (
-    <div className="ps-loot__variant">
-      <span>{trackLabel} · {formatNumber(variant.itemLevel)} 装等</span>
-    </div>
-  )
-}
-
 function StatList({ variant }: { variant: DisplayVariant }) {
   if (variant.stats.length === 0) {
     return <span className="ps-loot__stat-empty">暂无数值属性</span>
@@ -295,68 +274,68 @@ function TrinketEffectPanel({ effect, variant }: { effect: TrinketEffect; varian
   )
 }
 
-function TrinketDetailCell({ record }: { record: LootRecord }) {
-  return record.trinketEffect ? (
-    <TrinketEffectPanel effect={record.trinketEffect} variant={record.displayVariant} />
-  ) : (
-    <span className="ps-loot__detail-placeholder">—</span>
+function LootCard({ record, instance, boss, index }: { record: LootRecord; instance: string; boss: string | null; index: number }) {
+  const trackLabel = record.displayVariant.maxRank > 0
+    ? record.displayVariant.track + '（' + record.displayVariant.rank + '/' + record.displayVariant.maxRank + '）'
+    : record.displayVariant.track
+
+  return (
+    <article className="ps-loot__card glass" data-testid="loot-card">
+      <div className="ps-loot__card-aura" aria-hidden="true" />
+      <header className="ps-loot__card-head">
+        <div className="ps-loot__card-tags">
+          <span className="ps-loot__slot-tag">{record.slot}</span>
+          <span className="ps-loot__type-tag">{record.equipmentType}</span>
+        </div>
+        <span className="ps-loot__card-index">{String(index + 1).padStart(2, '0')}</span>
+      </header>
+
+      <div className="ps-loot__card-item">
+        <LootGlyph variant={record.displayVariant} />
+        <div className="ps-loot__item-copy">
+          <span className="ps-loot__item-name">{record.name}</span>
+          <span className="ps-loot__item-id">物品 ID：{record.itemId}</span>
+        </div>
+      </div>
+
+      <div className="ps-loot__card-level ps-loot__variant">
+        <span>{trackLabel} · </span>
+        <strong>{formatNumber(record.displayVariant.itemLevel)}</strong>
+        <span> 装等</span>
+      </div>
+
+      <div className="ps-loot__card-body">
+        <div className="ps-loot__card-stat-block">
+          <span className="ps-loot__card-label">真实属性</span>
+          <StatList variant={record.displayVariant} />
+        </div>
+        <div className="ps-loot__card-detail-block">
+          {record.trinketEffect ? (
+            <TrinketEffectPanel effect={record.trinketEffect} variant={record.displayVariant} />
+          ) : (
+            <div className="ps-loot__card-slot-detail">
+              <span className="ps-loot__card-label">装备部位</span>
+              <strong>{record.slot} · {record.equipmentType}</strong>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <footer className="ps-loot__card-foot">
+        <span>{instance}</span>
+        <span>{boss ?? '来源掉落'}</span>
+      </footer>
+    </article>
   )
 }
 
-function LootRows({ records: items }: { records: LootRecord[] }) {
+function LootCards({ records: items, instance, boss }: { records: LootRecord[]; instance: string; boss: string | null }) {
   return (
-    <>
-      <div className="ps-loot__table-wrap glass">
-        <table className="ps-loot__table">
-          <thead>
-            <tr>
-              <th scope="col">物品</th>
-              <th scope="col">装等与档位</th>
-              <th scope="col">真实属性</th>
-              <th scope="col">部位</th>
-              <th scope="col">饰品详情</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((record) => (
-              <tr key={record.key}>
-                <td><ResultName record={record} /></td>
-                <td><VariantSummary variant={record.displayVariant} /></td>
-                <td><StatList variant={record.displayVariant} /></td>
-                <td>{record.slot} · {record.equipmentType}</td>
-                <td className="ps-loot__detail-cell"><TrinketDetailCell record={record} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <ul className="ps-loot__cards" aria-label="装备结果列表">
-        {items.map((record) => (
-          <li key={record.key} className="ps-loot__card glass">
-            <ResultName record={record} />
-            <dl>
-              <div>
-                <dt>装等与档位</dt>
-                <dd><VariantSummary variant={record.displayVariant} /></dd>
-              </div>
-              <div>
-                <dt>真实属性</dt>
-                <dd><StatList variant={record.displayVariant} /></dd>
-              </div>
-              <div>
-                <dt>部位</dt>
-                <dd>{record.slot} · {record.equipmentType}</dd>
-              </div>
-              <div>
-                <dt>饰品详情</dt>
-                <dd><TrinketDetailCell record={record} /></dd>
-              </div>
-            </dl>
-          </li>
-        ))}
-      </ul>
-    </>
+    <div className="ps-loot__cards" aria-label="装备结果列表">
+      {items.map((record, index) => (
+        <LootCard key={record.key} record={record} instance={instance} boss={boss} index={index} />
+      ))}
+    </div>
   )
 }
 
@@ -467,29 +446,64 @@ export default function Loot() {
     setStat(statIsValid ? stat : '')
   }
 
+  const motionInputProps = {
+    accent: 'var(--color-gold)',
+    highlight: 'var(--color-gold-bright)',
+  }
+
   return (
     <div className="ps-loot">
       <section className="container ps-loot__head" aria-labelledby="loot-title">
-        <div className="ps-loot__eyebrow">
-          <Tag variant="gold">{metadata.gameVersion}</Tag>
+        <div className="ps-loot__hero glass">
+          <div className="ps-loot__hero-copy">
+            <div className="ps-loot__eyebrow">
+              <Tag variant="gold">{metadata.gameVersion}</Tag>
+              <span className="ps-loot__hero-kicker">LOOT LIBRARY / INDEX 12.1</span>
+            </div>
+            <h1 id="loot-title" className="ps-loot__title text-gold-grad">
+              魔兽世界 12.1 装备掉落查询
+            </h1>
+            <p className="ps-loot__hero-subtitle">把每一件掉落，收进一张可以慢慢浏览的装备卡片。</p>
+          </div>
+          <div className="ps-loot__hero-motion" data-testid="loot-vault-motion" aria-hidden="true">
+            <Suspense fallback={null}>
+              <RemotionPlayer
+                component={LootVaultMotion}
+                durationInFrames={360}
+                fps={30}
+                compositionWidth={900}
+                compositionHeight={360}
+                inputProps={motionInputProps}
+                autoPlay
+                loop
+                controls={false}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </Suspense>
+            <div className="ps-loot__hero-orbit-label">实时索引</div>
+          </div>
         </div>
-        <h1 id="loot-title" className="ps-loot__title text-gold-grad">
-          魔兽世界 12.1 装备掉落查询
-        </h1>
         <dl className="ps-loot__summary glass" aria-label="装备收录与结果数量">
           <div>
-            <dt>收录</dt>
-            <dd data-testid="loot-collected-count">{metadata.result.publishedRecords} 件</dd>
+            <dt>收录装备</dt>
+            <dd data-testid="loot-collected-count">{metadata.result.publishedRecords}<small> 件</small></dd>
           </div>
           <div>
-            <dt>结果</dt>
-            <dd data-testid="loot-results-count" aria-live="polite">{filtered.length} 件</dd>
+            <dt>当前结果</dt>
+            <dd data-testid="loot-results-count" aria-live="polite">{filtered.length}<small> 件</small></dd>
           </div>
         </dl>
       </section>
 
       <section className="container ps-loot__workspace" aria-label="装备掉落筛选">
         <form className="ps-loot__filters glass" onSubmit={(event) => event.preventDefault()}>
+          <div className="ps-loot__filters-heading">
+            <div>
+              <span className="ps-loot__section-kicker">QUICK LOADOUT</span>
+              <h2>快速筛选</h2>
+            </div>
+            <span className="ps-loot__filters-count">{filtered.length} 项结果</span>
+          </div>
           <label className="ps-loot__search-field">
             <span>装备名</span>
             <span className="ps-loot__search-input">
@@ -498,7 +512,7 @@ export default function Loot() {
                 aria-label="中文装备名搜索"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="输入装备名称"
+                placeholder="搜索中文装备名"
                 type="search"
               />
             </span>
@@ -598,7 +612,7 @@ export default function Loot() {
                           data-testid={label ? 'loot-boss-group' : undefined}
                         >
                           {label && <h4 className="ps-loot__boss-title">{label}</h4>}
-                          <LootRows records={bossGroup.records} />
+                          <LootCards records={bossGroup.records} instance={instanceGroup.instance} boss={label} />
                         </section>
                       )
                     })}
