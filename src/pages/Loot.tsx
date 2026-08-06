@@ -85,6 +85,27 @@ const otherTypeSet = new Set(['其他'])
 const otherTypes = equipmentTypeValues.filter((value) => otherTypeSet.has(value))
 const weaponTypes = equipmentTypeValues.filter((value) => !armorTypeSet.has(value) && !otherTypeSet.has(value))
 const statNames = Array.from(new Set(records.flatMap((record) => record.displayVariant.stats.flatMap((stat) => stat.label.split('/')))))
+const PRIMARY_STATS = new Set(['力量', '敏捷', '智力'])
+const SECONDARY_STATS = new Set(['暴击', '急速', '精通', '全能'])
+const TERTIARY_STATS = new Set(['吸血', '闪避', '速度'])
+
+function wowheadStatRank(label: string) {
+  const parts = label.split('/')
+  if (label === '护甲') return 10
+  if (label === '格挡' || label === '伤害下限' || label === '伤害上限' || label === '每秒伤害') return 15
+  if (parts.some((part) => PRIMARY_STATS.has(part))) return 20
+  if (label === '耐力') return 30
+  if (parts.some((part) => SECONDARY_STATS.has(part))) return 40
+  if (parts.some((part) => TERTIARY_STATS.has(part))) return 50
+  return 60
+}
+
+function sortStatsLikeWowhead(stats: DisplayStat[]) {
+  return stats
+    .map((stat, sourceOrder) => ({ stat, sourceOrder }))
+    .sort((left, right) => wowheadStatRank(left.stat.label) - wowheadStatRank(right.stat.label) || left.sourceOrder - right.sourceOrder)
+    .map(({ stat }) => stat)
+}
 
 function formatNumber(value: number) {
   return value.toLocaleString('zh-CN')
@@ -173,7 +194,7 @@ function StatList({ variant }: { variant: DisplayVariant }) {
 
   return (
     <ul className="ps-loot__stats" aria-label="真实属性">
-      {variant.stats.map((stat) => (
+      {sortStatsLikeWowhead(variant.stats).map((stat) => (
         <li key={stat.label + '-' + stat.value} className={'ps-loot__stat ps-loot__stat--' + statTone(stat.label)}>
           <StatLabel label={stat.label} />
           <strong>+{formatNumber(stat.value)}</strong>

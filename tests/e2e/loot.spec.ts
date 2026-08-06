@@ -72,6 +72,30 @@ test('loot chip groups filter reliable equipment type and real stat values', asy
   await expect(resultCount(page)).toContainText('577')
 })
 
+test('loot follows Wowhead stat order and keeps weapon structure before attributes', async ({ page }) => {
+  await page.goto('/loot')
+  const clothCard = page.locator('.ps-loot__card').filter({ hasText: '怒潮护腕' }).first()
+  await expect(clothCard.locator('.ps-loot__stat > span:first-child')).toHaveText([
+    '护甲',
+    '敏捷/智力',
+    '耐力',
+    '暴击',
+    '精通',
+  ])
+
+  const weaponCard = page.locator('.ps-loot__card').filter({ hasText: '远古构造体的烈毒短刀' }).first()
+  await expect(weaponCard).toBeVisible()
+  await expect(weaponCard.locator('.ps-loot__stat > span:first-child')).toHaveText([
+    '伤害下限',
+    '伤害上限',
+    '每秒伤害',
+    '敏捷',
+    '耐力',
+    '急速',
+    '全能',
+  ])
+})
+
 test('loot exposes verified trinket details and semantic stat colors', async ({ page }) => {
   await page.goto('/loot')
   await filterChip(page, 'source', '团本').click()
