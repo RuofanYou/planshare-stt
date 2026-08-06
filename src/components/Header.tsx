@@ -43,6 +43,14 @@ export default function Header() {
             按团本浏览
           </Link>
           <NavLink
+            to="/loot"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            装备掉落
+          </NavLink>
+          <NavLink
             to="/submit"
             className={({ isActive }) =>
               isActive ? 'ps-header__link is-active' : 'ps-header__link'

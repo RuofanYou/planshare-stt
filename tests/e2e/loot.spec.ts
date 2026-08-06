@@ -14,6 +14,17 @@ function filterChip(page: import('@playwright/test').Page, name: FilterGroup, la
   return filterGroup(page, name).getByRole('button', { name: label, exact: true })
 }
 
+test('loot is reachable from the global navigation and keeps its active state', async ({ page }) => {
+  await page.goto('/')
+  const nav = page.getByRole('navigation', { name: '主导航' })
+  const lootLink = nav.getByRole('link', { name: '装备掉落', exact: true })
+  await expect(lootLink).toHaveAttribute('href', '/loot')
+  await lootLink.click()
+  await expect(page).toHaveURL(/\/loot\/?$/)
+  await expect(page.getByRole('heading', { name: '魔兽世界 12.1 装备掉落查询' })).toBeVisible()
+  await expect(nav.getByRole('link', { name: '装备掉落', exact: true })).toHaveClass(/is-active/)
+})
+
 test('loot groups raid priest results and removes external item links', async ({ page }) => {
   await page.goto('/loot')
   await expect(page.getByRole('heading', { name: '魔兽世界 12.1 装备掉落查询' })).toBeVisible()
