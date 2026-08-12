@@ -86,6 +86,38 @@ test('loot chip groups filter reliable equipment type and real stat values', asy
   await expect(resultCount(page)).toContainText('577')
 })
 
+test('loot stat filter supports precise multi-select matching', async ({ page }) => {
+  await page.goto('/loot')
+  const allStats = filterChip(page, 'stat', '全部')
+  const haste = filterChip(page, 'stat', '急速')
+  const mastery = filterChip(page, 'stat', '精通')
+
+  await haste.click()
+  const hasteOnlyCount = Number.parseInt((await resultCount(page).textContent()) ?? '0', 10)
+  await mastery.click()
+  const combinedCount = Number.parseInt((await resultCount(page).textContent()) ?? '0', 10)
+
+  await expect(haste).toHaveAttribute('aria-pressed', 'true')
+  await expect(mastery).toHaveAttribute('aria-pressed', 'true')
+  await expect(allStats).toHaveAttribute('aria-pressed', 'false')
+  expect(combinedCount).toBeGreaterThan(0)
+  expect(combinedCount).toBeLessThan(hasteOnlyCount)
+
+  const visibleCards = page.locator('.ps-loot__card')
+  const cardCount = await visibleCards.count()
+  for (let index = 0; index < cardCount; index += 1) {
+    const labels = await visibleCards.nth(index).locator('.ps-loot__stat > span:first-child').allTextContents()
+    expect(labels).toContain('急速')
+    expect(labels).toContain('精通')
+  }
+
+  await allStats.click()
+  await expect(allStats).toHaveAttribute('aria-pressed', 'true')
+  await expect(haste).toHaveAttribute('aria-pressed', 'false')
+  await expect(mastery).toHaveAttribute('aria-pressed', 'false')
+  await expect(resultCount(page)).toContainText('577')
+})
+
 test('loot filter groups keep one content start line and breathable chip rhythm', async ({ page }) => {
   await page.goto('/loot')
   const layout = await page.locator('.ps-loot__filter-group').first().evaluate(() => {

@@ -46,7 +46,7 @@ type Filters = {
   className: string
   slot: string
   equipmentType: string
-  stat: string
+  stats: string[]
 }
 
 type BossGroup = {
@@ -120,7 +120,7 @@ function matchesFilters(record: LootRecord, filters: Filters) {
     (!filters.className || record.classes.includes(filters.className)) &&
     (!filters.slot || record.slot === filters.slot) &&
     (!filters.equipmentType || record.equipmentType === filters.equipmentType) &&
-    (!filters.stat || recordHasStat(record, filters.stat))
+    filters.stats.every((stat) => recordHasStat(record, stat))
   )
 }
 
@@ -234,30 +234,56 @@ function StatLabel({ label }: { label: string }) {
   )
 }
 
-type FilterChipGroupProps = {
+type FilterChipGroupBaseProps = {
   testId: string
   label: string
-  value: string
   options: string[]
   available: Set<string>
-  onChange: (value: string) => void
 }
 
-function FilterChipGroup({ testId, label, value, options, available, onChange }: FilterChipGroupProps) {
+type FilterChipGroupProps = FilterChipGroupBaseProps & ({
+  multiple?: false
+  value: string
+  onChange: (value: string) => void
+} | {
+  multiple: true
+  value: string[]
+  onChange: (value: string[]) => void
+})
+
+function FilterChipGroup(props: FilterChipGroupProps) {
+  const { testId, label, options, available } = props
+  const selectedValues = props.multiple ? props.value : props.value ? [props.value] : []
+
+  function clear() {
+    if (props.multiple) props.onChange([])
+    else props.onChange('')
+  }
+
+  function toggle(option: string) {
+    if (props.multiple) {
+      props.onChange(selectedValues.includes(option)
+        ? selectedValues.filter((value) => value !== option)
+        : [...selectedValues, option])
+      return
+    }
+    props.onChange(option)
+  }
+
   return (
     <fieldset className="ps-loot__filter-group" data-testid={testId}>
       <legend>{label}</legend>
       <div className="ps-loot__chip-list">
         <button
-          className={'ps-loot__filter-chip' + (!value ? ' ps-loot__filter-chip--selected' : '')}
+          className={'ps-loot__filter-chip' + (selectedValues.length === 0 ? ' ps-loot__filter-chip--selected' : '')}
           type="button"
-          aria-pressed={!value}
-          onClick={() => onChange('')}
+          aria-pressed={selectedValues.length === 0}
+          onClick={clear}
         >
           全部
         </button>
         {options.map((option) => {
-          const selected = value === option
+          const selected = selectedValues.includes(option)
           return (
             <button
               key={option}
@@ -265,7 +291,7 @@ function FilterChipGroup({ testId, label, value, options, available, onChange }:
               type="button"
               aria-pressed={selected}
               disabled={!selected && !available.has(option)}
-              onClick={() => onChange(option)}
+              onClick={() => toggle(option)}
             >
               {option}
             </button>
@@ -363,7 +389,7 @@ export default function Loot() {
   const [className, setClassName] = useState('')
   const [slot, setSlot] = useState('')
   const [equipmentType, setEquipmentType] = useState('')
-  const [stat, setStat] = useState('')
+  const [stats, setStats] = useState<string[]>([])
 
   const filtered = useMemo(() => records.filter((record) => matchesFilters(record, {
     query,
@@ -371,32 +397,33 @@ export default function Loot() {
     className,
     slot,
     equipmentType,
-    stat,
-  })), [className, equipmentType, query, slot, sourceType, stat])
+    stats,
+  })), [className, equipmentType, query, slot, sourceType, stats])
 
   const groups = useMemo(() => groupRecords(filtered), [filtered])
 
   const sourceAvailability = useMemo(() => new Set(records
-    .filter((record) => matchesFilters(record, { query, sourceType: '', className: '', slot: '', equipmentType: '', stat: '' }))
+    .filter((record) => matchesFilters(record, { query, sourceType: '', className: '', slot: '', equipmentType: '', stats: [] }))
     .map((record) => record.sourceType)), [query])
 
   const classAvailability = useMemo(() => new Set(records
-    .filter((record) => matchesFilters(record, { query, sourceType, className: '', slot, equipmentType, stat }))
-    .flatMap((record) => record.classes)), [equipmentType, query, slot, sourceType, stat])
+    .filter((record) => matchesFilters(record, { query, sourceType, className: '', slot, equipmentType, stats }))
+    .flatMap((record) => record.classes)), [equipmentType, query, slot, sourceType, stats])
 
   const slotAvailability = useMemo(() => new Set(records
-    .filter((record) => matchesFilters(record, { query, sourceType, className, slot: '', equipmentType, stat }))
-    .map((record) => record.slot)), [className, equipmentType, query, sourceType, stat])
+    .filter((record) => matchesFilters(record, { query, sourceType, className, slot: '', equipmentType, stats }))
+    .map((record) => record.slot)), [className, equipmentType, query, sourceType, stats])
 
   const equipmentAvailability = useMemo(() => new Set(records
-    .filter((record) => matchesFilters(record, { query, sourceType, className, slot, equipmentType: '', stat }))
-    .map((record) => record.equipmentType)), [className, query, slot, sourceType, stat])
+    .filter((record) => matchesFilters(record, { query, sourceType, className, slot, equipmentType: '', stats }))
+    .map((record) => record.equipmentType)), [className, query, slot, sourceType, stats])
 
-  const statAvailability = useMemo(() => new Set(records
-    .filter((record) => matchesFilters(record, { query, sourceType, className, slot, equipmentType, stat: '' }))
-    .flatMap((record) => record.displayVariant.stats.flatMap((entry) => entry.label.split('/')))), [className, equipmentType, query, slot, sourceType])
+  const statAvailability = useMemo(() => new Set(statNames.filter((option) => records.some((record) => (
+    matchesFilters(record, { query, sourceType, className, slot, equipmentType, stats }) &&
+    recordHasStat(record, option)
+  )))), [className, equipmentType, query, slot, sourceType, stats])
 
-  const hasFilters = Boolean(query || sourceType || className || slot || equipmentType || stat)
+  const hasFilters = Boolean(query || sourceType || className || slot || equipmentType || stats.length)
 
   function clearFilters() {
     setQuery('')
@@ -404,7 +431,7 @@ export default function Loot() {
     setClassName('')
     setSlot('')
     setEquipmentType('')
-    setStat('')
+    setStats([])
   }
 
   function changeSource(nextSourceType: string) {
@@ -414,7 +441,7 @@ export default function Loot() {
       className: '',
       slot: '',
       equipmentType: '',
-      stat: '',
+      stats: [],
     }))
     const classIsValid = !className || nextSourceRecords.some((record) => (
       record.classes.includes(className) && matchesFilters(record, {
@@ -423,7 +450,7 @@ export default function Loot() {
         className: '',
         slot,
         equipmentType,
-        stat,
+        stats,
       })
     ))
     const slotIsValid = !slot || nextSourceRecords.some((record) => (
@@ -433,7 +460,7 @@ export default function Loot() {
         className,
         slot: '',
         equipmentType,
-        stat,
+        stats,
       })
     ))
     const equipmentTypeIsValid = !equipmentType || nextSourceRecords.some((record) => (
@@ -443,17 +470,17 @@ export default function Loot() {
         className,
         slot,
         equipmentType: '',
-        stat,
+        stats,
       })
     ))
-    const statIsValid = !stat || nextSourceRecords.some((record) => (
-      recordHasStat(record, stat) && matchesFilters(record, {
+    const statsAreValid = stats.length === 0 || nextSourceRecords.some((record) => (
+      matchesFilters(record, {
         query,
         sourceType: nextSourceType,
         className,
         slot,
         equipmentType,
-        stat: '',
+        stats,
       })
     ))
 
@@ -461,7 +488,7 @@ export default function Loot() {
     setClassName(classIsValid ? className : '')
     setSlot(slotIsValid ? slot : '')
     setEquipmentType(equipmentTypeIsValid ? equipmentType : '')
-    setStat(statIsValid ? stat : '')
+    setStats(statsAreValid ? stats : [])
   }
 
   return (
@@ -564,10 +591,11 @@ export default function Loot() {
             <FilterChipGroup
               testId="loot-filter-stat"
               label="属性"
-              value={stat}
+              multiple
+              value={stats}
               options={statNames}
               available={statAvailability}
-              onChange={setStat}
+              onChange={setStats}
             />
           </div>
           <div className="ps-loot__clear-wrap">
