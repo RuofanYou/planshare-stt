@@ -1,7 +1,7 @@
 {
   "schemaVersion": 5,
   "gameVersion": "12.1",
-  "dataUpdated": "2026-08-05",
+  "dataUpdated": "2026-08-12",
   "attribution": "数据整理参考：12.1 DropSheet (by Ango)",
   "input": {
     "sourceFile": "12.1 DropSheet(by Ango)(1)(1).xlsx",
@@ -66,20 +66,26 @@
     {
       "name": "Wowhead PTR item pages",
       "urlTemplate": "https://www.wowhead.com/ptr/item={item_id}",
-      "accessedAt": "2026-08-05",
+      "accessedAt": "2026-08-12",
       "purpose": "验证 item bonus tree"
     },
     {
       "name": "Wowhead PTR tooltip endpoint",
       "urlTemplate": "https://nether.wowhead.com/tooltip/item/{item_id}?{bonus_query}dataEnv=2&locale=0",
-      "accessedAt": "2026-08-05",
+      "accessedAt": "2026-08-12",
       "purpose": "实际物等、升级轨道、数值属性与图标名"
     },
     {
       "name": "Wowhead icon CDN",
       "urlTemplate": "https://wow.zamimg.com/images/wow/icons/large/{icon}.jpg",
-      "accessedAt": "2026-08-05",
+      "accessedAt": "2026-08-12",
       "purpose": "下载公开本地图标"
+    },
+    {
+      "name": "Blizzard 武僧职业资料",
+      "url": "https://worldofwarcraft.blizzard.com/zh-cn/game/classes/monk",
+      "accessedAt": "2026-08-12",
+      "purpose": "校验武僧可用武器"
     }
   ],
   "filters": {
@@ -160,7 +166,8 @@
     "staleRefreshed": 132,
     "ssrRechecked": 445,
     "trinketEffectRecords": 43,
-    "trinketStaticOnlyRecords": 1
+    "trinketStaticOnlyRecords": 1,
+    "weaponClassCorrections": 17
   },
   "result": {
     "resolvedRows": 577,

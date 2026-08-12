@@ -43,6 +43,7 @@ TARGET_VARIANT = {"itemLevel": 259, "track": "Hero", "rank": 1, "maxRank": 6}
 SOURCE_TYPE_ORDER = ("团本", "大秘境", "地下堡", "其它")
 EXPECTED_SOURCE_COUNTS = {"团本": 218, "大秘境": 205, "地下堡": 95, "其它": 59}
 CLASS_ORDER = ("战士", "圣骑士", "猎人", "潜行者", "牧师", "死亡骑士", "萨满祭司", "法师", "术士", "武僧", "德鲁伊", "恶魔猎手", "唤魔师")
+OFFICIAL_WEAPON_CLASS_EXCLUSIONS = {"匕首": {"武僧"}}
 SLOT_ORDER = ("头部", "颈部", "肩部", "背部", "胸部", "腕部", "手部", "腰部", "腿部", "脚部", "手指", "饰品", "单手", "主手", "副手", "双手", "远程", "盾牌")
 TRACK_LABELS = {
     "Adventurer": "冒险者",
@@ -638,6 +639,10 @@ def normalize_base_record(audit_row: object) -> dict[str, object]:
     instance = str(record.get("instance") or "")
     boss = str(record.get("boss") or "")
     slot = str(record.get("slot") or "")
+    equipment_type = str(record.get("equipmentType") or "")
+    excluded_classes = OFFICIAL_WEAPON_CLASS_EXCLUSIONS.get(equipment_type, set())
+    if excluded_classes:
+        record["classes"] = [class_name for class_name in record.get("classes", []) if class_name not in excluded_classes]
     record["key"] = "|".join([str(item_id), source_type, instance, boss, slot])
     return record
 
@@ -1213,6 +1218,9 @@ def main() -> int:
         raise AssertionError("577 条发布记录的 itemId 或稳定键不完整/重复")
     if any(not record["name"] or not record["classes"] or not record["instance"] for record in published):
         raise AssertionError("发布记录存在空中文名、职业或来源")
+    invalid_monk_daggers = [record for record in published if record["equipmentType"] == "匕首" and "武僧" in record["classes"]]
+    if invalid_monk_daggers:
+        raise AssertionError(f"武僧职业筛选仍包含匕首 itemIds={[record['itemId'] for record in invalid_monk_daggers]}")
     source_counts = {source_type: sum(record["sourceType"] == source_type for record in published) for source_type in SOURCE_TYPE_ORDER}
     if source_counts != EXPECTED_SOURCE_COUNTS:
         raise AssertionError(f"发布记录来源统计异常: {source_counts}")
@@ -1244,6 +1252,7 @@ def main() -> int:
             {"name": "Wowhead PTR item pages", "urlTemplate": WOWHEAD_PAGE_URL, "accessedAt": args.access_date, "purpose": "验证 item bonus tree"},
             {"name": "Wowhead PTR tooltip endpoint", "urlTemplate": WOWHEAD_TOOLTIP_URL, "accessedAt": args.access_date, "purpose": "实际物等、升级轨道、数值属性与图标名"},
             {"name": "Wowhead icon CDN", "urlTemplate": WOWHEAD_ICON_URL, "accessedAt": args.access_date, "purpose": "下载公开本地图标"},
+            {"name": "Blizzard 武僧职业资料", "url": "https://worldofwarcraft.blizzard.com/zh-cn/game/classes/monk", "accessedAt": args.access_date, "purpose": "校验武僧可用武器"},
         ],
         "filters": {
             "sourceTypes": list(SOURCE_TYPE_ORDER),
@@ -1268,6 +1277,7 @@ def main() -> int:
             "ssrRechecked": ssr_rechecked_total,
             "trinketEffectRecords": sum(bool(record.get("trinketEffect", {}).get("text")) for record in published),
             "trinketStaticOnlyRecords": sum(bool(record.get("trinketEffect", {}).get("staticOnly")) for record in published),
+            "weaponClassCorrections": sum(record["equipmentType"] == "匕首" for record in published),
         },
         "result": {"resolvedRows": EXPECTED_RECORDS, "unresolvedRows": 0, "duplicateRows": 0, "publishedRecords": len(published)},
     }

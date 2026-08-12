@@ -71,6 +71,15 @@ test('loot dynamically disables unavailable options and clears an invalid pair a
   await expect(filterChip(page, 'slot', '饰品')).toBeDisabled()
 })
 
+test('loot excludes daggers from the monk class filter', async ({ page }) => {
+  await page.goto('/loot')
+  await filterChip(page, 'class', '武僧').click()
+
+  await expect(filterChip(page, 'weapon', '匕首')).toBeDisabled()
+  await expect(page.locator('.ps-loot__card').filter({ hasText: '匕首' })).toHaveCount(0)
+  await expect(resultCount(page)).toContainText('218')
+})
+
 test('loot chip groups filter reliable equipment type and real stat values', async ({ page }) => {
   await page.goto('/loot')
   await filterChip(page, 'armor', '布甲').click()

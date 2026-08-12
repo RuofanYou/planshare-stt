@@ -54,6 +54,7 @@ assert.equal(metadata.quality.setRecordsReclassifiedToRaid, 117, '套装归团�
 assert.equal(metadata.quality.priestSetRecordsInRaid, 9, '牧师套装归团本数量错误')
 assert.equal(metadata.quality.trinketEffectRecords, 43, '已解析饰品效果数量错误')
 assert.equal(metadata.quality.trinketStaticOnlyRecords, 1, '无效果文本饰品数量错误')
+assert.equal(metadata.quality.weaponClassCorrections, 17, '武僧匕首职业校正数量错误')
 
 const auditByRow = new Map(audit.records.map((row) => [row.sourceRow, row]))
 const evidenceByItemId = new Map(variantReport.records.map((row) => [row.itemId, row]))
@@ -194,6 +195,8 @@ const setRecords = records.filter((record) => record.trace.rawRoute === '套装'
 assert.equal(setRecords.length, 117, '套装记录数错误')
 assert.ok(setRecords.every((record) => record.sourceType === '团本' && record.instance === '套装' && record.boss === null), '套装必须归团本，且不得虚构首领')
 assert.equal(setRecords.filter((record) => record.classes.includes('牧师')).length, 9, '牧师套装数量错误')
+const monkDaggers = records.filter((record) => record.equipmentType === '匕首' && record.classes.includes('武僧'))
+assert.deepEqual(monkDaggers, [], '武僧不可用匕首，职业筛选不得收录匕首')
 
 const auditHash = createHash('sha256').update(JSON.stringify(audit.records)).digest('hex')
 console.log(`[loot-verify] inputRows=${metadata.input.recordRows} publishedRecords=${records.length} verifiedRecords=${metadata.quality.verifiedRecords} targetMatched=${exactTargetRecords} fallback=${metadata.quality.fallbackRecords} iconAssets=${iconPaths.size} auditRowsSha256=${auditHash}`)
