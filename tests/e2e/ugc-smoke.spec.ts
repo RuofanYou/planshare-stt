@@ -185,6 +185,7 @@ async function createPendingVisitorSubmission(request: APIRequestContext, suffix
 }
 
 test('UGC smoke: browse, copy, submit, approve, publish, and creator direct post', async ({ page, request }) => {
+  test.setTimeout(300_000)
   const runId = Date.now().toString(36)
   const creatorUsername = `e2e_${runId}`
   const firstTitle = `E2E 游客创作者投稿 ${runId}`

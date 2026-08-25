@@ -4,7 +4,7 @@
 当前公网生产链路在 Cloudflare：
 - 前端静态站：Cloudflare Pages，项目名 `zhaobanzi`，域名 `https://zhaobanzi.pages.dev`。
 - API 后端：Cloudflare Worker `planshare-api`，数据存 Cloudflare D1 数据库 `planshare`。
-- Pages 内置 `public/_worker.js` 会把 `/api/*` 代理到 `https://planshare-api.a549617612.workers.dev`，前端代码默认仍用相对路径 `/api/*`。
+- Pages 内置 `public/_worker.js` 会把 `/api/*` 代理到 `https://planshare-api.a549617612.workers.dev`，并通过 Service Binding 把 `/generator/*` 转发到 `stt-loktar-web`；两类前端请求都使用同源相对路径。
 
 本地主线后端仍是 `server/index.mjs`（Fastify + SQLite），用于本地开发和完整测试；`worker/index.js` / `worker/schema.sql` 是 Cloudflare 生产后端实现，部署前必须保持与 Fastify 的核心接口契约一致。
 
@@ -50,7 +50,7 @@ cloudflared tunnel --url http://localhost:8080
 3. 构建并部署 Pages：
    ```bash
    npm run build
-   npx wrangler pages deploy dist --project-name zhaobanzi --branch main --commit-dirty=true --skip-caching
+   npm run pages:deploy
    ```
 4. 验证：
    ```bash

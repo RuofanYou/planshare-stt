@@ -24,6 +24,7 @@
     "d1:seed": "node scripts/generate-d1-import.mjs",
     "worker:dev": "wrangler dev --local --port 8787",
     "worker:deploy": "wrangler deploy",
+    "pages:deploy": "wrangler pages deploy --cwd pages --branch main --commit-dirty=true --skip-caching",
     "build": "npm run sync:stt-translator && tsc -b && vite build",
     "preview": "vite preview"
   },

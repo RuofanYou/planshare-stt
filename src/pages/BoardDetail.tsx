@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   motion,
@@ -266,6 +266,7 @@ export default function BoardDetail() {
 
   // 复制成功玻璃 Toast：CopyButton 内部已处理剪贴板，这里只负责站点级浮层提示
   const [toastText, setToastText] = useState('')
+  const toastTimerRef = useRef<number | null>(null)
   const [reportOpen, setReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState<(typeof REPORT_REASONS)[number]['value']>('wrong-info')
   const [reportDetail, setReportDetail] = useState('')
@@ -273,9 +274,17 @@ export default function BoardDetail() {
   const reportDetailRequired = reportReason === 'other'
   const reportDetailMissing = reportDetailRequired && reportDetail.trim() === ''
   function flashToast(message = '已复制到剪贴板') {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current)
     setToastText(message)
-    window.setTimeout(() => setToastText(''), TOAST_DURATION)
+    toastTimerRef.current = window.setTimeout(() => setToastText(''), TOAST_DURATION)
   }
+
+  useEffect(
+    () => () => {
+      if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current)
+    },
+    [],
+  )
 
   // 同一 BOSS 其它板：异步拉 useBoards({ bossId })（后端已排序、已排除隐藏），去掉本板
   const bossId = board?.bossId ?? undefined
