@@ -137,7 +137,14 @@ for (const entryPath of entryPaths) {
 
 const e2e = spawnSync("npx", ["playwright", "test"], {
     cwd: frontendRoot,
-    env: { ...process.env, RAIDGLASS_E2E_BASE_URL: baseURL.href },
+    env: {
+        ...process.env,
+        RAIDGLASS_E2E_BASE_URL: baseURL.href,
+        RAIDGLASS_SCREENSHOT_ROOT: process.env.RAIDGLASS_SCREENSHOT_ROOT
+            || `/tmp/raidglass-live-${manifest.release_id}/screens`,
+        RAIDGLASS_PLAYWRIGHT_OUTPUT_ROOT: process.env.RAIDGLASS_PLAYWRIGHT_OUTPUT_ROOT
+            || `/tmp/raidglass-live-${manifest.release_id}/playwright`,
+    },
     encoding: "utf8",
     stdio: "inherit",
 });
