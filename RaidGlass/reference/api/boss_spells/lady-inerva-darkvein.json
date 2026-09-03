@@ -1,0 +1,15 @@
+{
+  "342281": {
+    "spell_id": 342281,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "lady-inerva-darkvein",
+    "name": "Lingering Anima (Soak)",
+    "icon": "ui_venthyranimaboss_bottle.jpg",
+    "color": "#FFF",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=342281",
+    "tags": []
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "325361": {
+    "spell_id": 325361,
+    "duration": 6.5,
+    "cooldown": 0,
+    "spell_type": "artificer-xymox-cn",
+    "name": "Glyph of Destruction",
+    "icon": "ability_mage_incantersabsorbtion.jpg",
+    "color": "#e61919",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=325361",
+    "tags": []
+  },
+  "329770": {
+    "spell_id": 329770,
+    "duration": 21.5,
+    "cooldown": 0,
+    "spell_type": "artificer-xymox-cn",
+    "name": "Root of Extinction (Seeds)",
+    "icon": "inv_wand_1h_ardenweald_d_01.jpg",
+    "color": "#40bfff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=329770",
+    "tags": []
+  }
+}

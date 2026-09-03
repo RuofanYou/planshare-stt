@@ -1,0 +1,54 @@
+{
+  "400777": {
+    "spell_id": 400777,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "rashok-the-elder",
+    "name": "Charged Smash",
+    "icon": "inv_shadowflame_missile.jpg",
+    "color": "#bfaa32",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=400777",
+    "tags": []
+  },
+  "401419": {
+    "spell_id": 401419,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "rashok-the-elder",
+    "name": "Elder's Conduit",
+    "icon": "spell_shadow_lifedrain02_purple.jpg",
+    "color": "#60b336",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=401419",
+    "tags": []
+  },
+  "405821": {
+    "spell_id": 405821,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "rashok-the-elder",
+    "name": "Charged Smash",
+    "icon": "ability_shaman_lavalash.jpg",
+    "color": "#b34747",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=405821",
+    "tags": []
+  },
+  "407641": {
+    "spell_id": 407641,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "rashok-the-elder",
+    "name": "Wrath of Djaruun",
+    "icon": "inv_polearm_2h_dragonraid_d_02.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=407641",
+    "tags": []
+  }
+}

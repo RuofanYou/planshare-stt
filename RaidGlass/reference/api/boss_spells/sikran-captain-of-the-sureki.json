@@ -1,0 +1,54 @@
+{
+  "433519": {
+    "spell_id": 433519,
+    "duration": 1.5,
+    "cooldown": 20,
+    "spell_type": "sikran-captain-of-the-sureki",
+    "name": "Phase Blades",
+    "icon": "ability_warrior_shieldcharge.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=433519",
+    "tags": []
+  },
+  "435403": {
+    "spell_id": 435403,
+    "duration": 30,
+    "cooldown": 0,
+    "spell_type": "sikran-captain-of-the-sureki",
+    "name": "Phase Lunge",
+    "icon": "inv_sword_1h_nerubianraid_d_01.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=435403",
+    "tags": []
+  },
+  "442428": {
+    "spell_id": 442428,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "sikran-captain-of-the-sureki",
+    "name": "Decimate",
+    "icon": "inv_polearm_2h_nerubianraid_d_01.jpg",
+    "color": "hsl(90, 60%, 55%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=442428",
+    "tags": []
+  },
+  "456420": {
+    "spell_id": 456420,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "sikran-captain-of-the-sureki",
+    "name": "Shattering Sweep",
+    "icon": "inv_sword_48.jpg",
+    "color": "hsl(270, 50%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=456420",
+    "tags": []
+  }
+}

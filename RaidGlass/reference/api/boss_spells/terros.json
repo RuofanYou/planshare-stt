@@ -1,0 +1,67 @@
+{
+  "376279": {
+    "spell_id": 376279,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "terros",
+    "name": "Concussive Slam",
+    "icon": "ability_warrior_titansgrip.jpg",
+    "color": "#2d82d6",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=376279",
+    "tags": []
+  },
+  "377166": {
+    "spell_id": 377166,
+    "duration": 6.5,
+    "cooldown": 0,
+    "spell_type": "terros",
+    "name": "Resonating Annihilation",
+    "icon": "spell_shaman_improvedfirenova.jpg",
+    "color": "#2dd635",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=377166",
+    "tags": []
+  },
+  "380487": {
+    "spell_id": 380487,
+    "duration": 5.5,
+    "cooldown": 0,
+    "spell_type": "terros",
+    "name": "Rock Blast",
+    "icon": "6bf_blackrock_nova.jpg",
+    "color": "#c94949",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=380487",
+    "tags": []
+  },
+  "383073": {
+    "spell_id": 383073,
+    "duration": 3.25,
+    "cooldown": 0,
+    "spell_type": "terros",
+    "name": "Shattering Impact",
+    "icon": "spell_shaman_earthquake.jpg",
+    "color": "#d6c82d",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=383073",
+    "tags": []
+  },
+  "396351": {
+    "spell_id": 396351,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "terros",
+    "name": "Infused Fallout",
+    "icon": "spell_quicksand.jpg",
+    "color": "#9e4ecc",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=396351",
+    "tags": []
+  }
+}

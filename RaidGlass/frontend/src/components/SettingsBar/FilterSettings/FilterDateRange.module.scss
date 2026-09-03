@@ -1,0 +1,42 @@
+.date_range_group {
+    min-height: var(--rg-control-min-touch);
+}
+
+.date_control {
+    position: relative;
+    display: block;
+    min-width: 0;
+    flex: 1;
+}
+
+.date_input {
+    width: 100%;
+    min-height: var(--rg-control-min-touch);
+    height: initial;
+    padding: 0 4px;
+    border-radius: 0.25rem;
+    line-height: initial;
+}
+
+.is_empty:not(:focus)::-webkit-datetime-edit {
+    color: transparent;
+}
+
+.placeholder {
+    position: absolute;
+    top: 50%;
+    left: 8px;
+    color: #6c757d;
+    font-size: 0.82rem;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.date_control:focus-within .placeholder {
+    display: none;
+}
+
+.is_filled:not(:focus) {
+    font-weight: bold;
+    border: var(--success) solid 2px;
+}

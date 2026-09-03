@@ -5,6 +5,35 @@
   "cloudrun": {
     "name": "planshare"
   },
+  "framework": {
+    "name": "planshare",
+    "plugins": {
+      "server": {
+        "use": "@cloudbase/framework-plugin-container",
+        "inputs": {
+          "mode": "low-cost",
+          "serviceName": "planshare",
+          "servicePath": "/",
+          "localPath": "./",
+          "uploadType": "package",
+          "containerPort": 8080,
+          "dockerfilePath": "./Dockerfile",
+          "buildDir": "./",
+          "isPublic": true,
+          "cpu": 0.25,
+          "mem": 0.5,
+          "minNum": 0,
+          "maxNum": 1,
+          "envVariables": {
+            "DATABASE_PATH": "/data/planshare.db"
+          },
+          "volumeMounts": {
+            "/data": "planshare-data"
+          }
+        }
+      }
+    }
+  },
   "app": {
     "serviceName": "planshare-static",
     "framework": "static",

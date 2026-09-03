@@ -1,0 +1,57 @@
+
+
+
+.option {
+    text-transform: capitalize;
+    color: var(--wow-color);
+
+    text-decoration: none !important; // avoid underlining the icon
+
+    &:hover {
+        .label {
+            text-decoration: underline;
+        }
+    }
+}
+
+
+.icon {
+
+    color: var(--wow-color);
+    cursor: pointer;
+    user-select: none;
+    display: block;
+    // justify-content: center;
+    // align-items: stretch;
+    position: relative;
+
+    border: 1px solid var(--wow-color);
+    border-radius: 0.25rem;
+
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.44)),
+        var(--rg-glass);
+    text-decoration: none !important;
+
+    .icon_label {
+        position: absolute;
+        font-size: 26px;
+        font-weight: bolder;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        // border: 1px solid salmon;
+
+    }
+
+}
+
+
+:global .active :local  {
+
+    .icon {
+        border-width: 2px;
+    }
+}
+
+

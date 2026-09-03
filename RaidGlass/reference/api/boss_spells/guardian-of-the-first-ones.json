@@ -1,0 +1,54 @@
+{
+  "350732": {
+    "spell_id": 350732,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "guardian-of-the-first-ones",
+    "name": "Sunder",
+    "icon": "inv_warbreaker.jpg",
+    "color": "#a42cd4",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=350732",
+    "tags": []
+  },
+  "352538": {
+    "spell_id": 352538,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "guardian-of-the-first-ones",
+    "name": "Purging Protocol",
+    "icon": "spell_progenitor_areadenial.jpg",
+    "color": "#24d1ce",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=352538",
+    "tags": []
+  },
+  "352589": {
+    "spell_id": 352589,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "guardian-of-the-first-ones",
+    "name": "Meltdown",
+    "icon": "spell_progenitor_nova.jpg",
+    "color": "#75d42c",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=352589",
+    "tags": []
+  },
+  "355352": {
+    "spell_id": 355352,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "guardian-of-the-first-ones",
+    "name": "Obliterate",
+    "icon": "spell_progenitor_orb2.jpg",
+    "color": "#d4a72c",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=355352",
+    "tags": []
+  }
+}

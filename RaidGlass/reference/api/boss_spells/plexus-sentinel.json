@@ -1,0 +1,54 @@
+{
+  "1219263": {
+    "spell_id": 1219263,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "plexus-sentinel",
+    "name": "Obliteration Arcanocannon",
+    "icon": "ability_monk_forcesphere_arcane.jpg",
+    "color": "rgb(156, 255, 255)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1219263",
+    "tags": []
+  },
+  "1219450": {
+    "spell_id": 1219450,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "plexus-sentinel",
+    "name": "Manifest Matrices",
+    "icon": "ability_mage_arcanebarrage.jpg",
+    "color": "rgb(107, 64, 227)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1219450",
+    "tags": []
+  },
+  "1219531": {
+    "spell_id": 1219531,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "plexus-sentinel",
+    "name": "Eradicating Salvo",
+    "icon": "spell_arcane_invocation.jpg",
+    "color": "rgb(219, 103, 245)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1219531",
+    "tags": []
+  },
+  "1241303": {
+    "spell_id": 1241303,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "plexus-sentinel",
+    "name": "Protocol: Purge",
+    "icon": "spell_arcane_blast.jpg",
+    "color": "rgb(247, 27, 108)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1220981",
+    "tags": []
+  }
+}

@@ -1,0 +1,58 @@
+import DropdownMenu from "../DropdownMenu";
+import NavbarGroup from './NavbarGroup';
+import QueryNavLink from "../shared/QueryNavLink"
+import styles from "./NavbarDifficulty.module.scss"
+import { MenuItem } from '@szhsin/react-menu';
+import { get_difficulty } from '../../store/ui';
+import { useAppSelector } from '../../store/store_hooks';
+
+
+const DIFFICULTY_COLOR: {[key: string]: string} = {
+    mythic: "wow-astounding",
+    heroic: "wow-artifact",
+}
+
+
+function DifficultyIcon({difficulty} : {difficulty : string}) {
+
+    const class_name = DIFFICULTY_COLOR[difficulty] || ""
+
+    const label = difficulty[0].toUpperCase()
+    return (
+        <span className={`${styles.icon} ${class_name} icon-m shadow`} aria-hidden="true">
+            <span className={styles.icon_label}>{label}</span>
+        </span>
+    )
+}
+
+
+function NavbarDifficultyOption({ difficulty, ...props } : { difficulty: string }) {
+
+    const class_name = DIFFICULTY_COLOR[difficulty] || ""
+
+    return (
+        <QueryNavLink params={{"difficulty": difficulty}} className={`${class_name} ${styles.option}`}>
+            <MenuItem {...props}>
+                <DifficultyIcon difficulty={difficulty}/>
+                <span className={`${styles.label} ${class_name} ml-1`}>{difficulty === "mythic" ? "史诗" : "英雄"}</span>
+            </MenuItem>
+        </QueryNavLink>
+    )
+}
+
+
+export default function NavbarDifficulty() {
+
+    const difficulty = useAppSelector(get_difficulty)
+
+    // Render
+    const button = <DifficultyIcon difficulty={difficulty} />
+    return (
+        <NavbarGroup>
+            <DropdownMenu button={button} label={`选择难度，当前为${difficulty === "mythic" ? "史诗" : "英雄"}`}>
+                <NavbarDifficultyOption difficulty="mythic" />
+                <NavbarDifficultyOption difficulty="heroic" />
+            </DropdownMenu>
+        </NavbarGroup>
+    )
+}

@@ -1,0 +1,67 @@
+{
+  "372056": {
+    "spell_id": 372056,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "the-primal-council",
+    "name": "Crush",
+    "icon": "ability_warrior_shieldbreak.jpg",
+    "color": "#c28530",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=372056",
+    "tags": []
+  },
+  "372322": {
+    "spell_id": 372322,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "the-primal-council",
+    "name": "Earthen Pillar",
+    "icon": "ability_earthen_pillar.jpg",
+    "color": "#bf8330",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=372322",
+    "tags": []
+  },
+  "373059": {
+    "spell_id": 373059,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "the-primal-council",
+    "name": "Primal Blizzard",
+    "icon": "spell_frost_arcticwinds.jpg",
+    "color": "#29cccc",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=373059",
+    "tags": []
+  },
+  "374038": {
+    "spell_id": 374038,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "the-primal-council",
+    "name": "Meteor Axes",
+    "icon": "inv_offhand_1h_artifactdoomhammer_d_01.jpg",
+    "color": "#bf3030",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=374038",
+    "tags": []
+  },
+  "375331": {
+    "spell_id": 375331,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "the-primal-council",
+    "name": "Conductive Mark",
+    "icon": "spell_shaman_staticshock.jpg",
+    "color": "#297bcc",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=375331",
+    "tags": []
+  }
+}

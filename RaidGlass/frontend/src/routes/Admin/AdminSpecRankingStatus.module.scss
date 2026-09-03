@@ -1,0 +1,45 @@
+
+
+.table {
+    font-size: 0.8rem;
+
+
+    table {
+        border-collapse: collapse;
+        border: 1px solid var(--rg-stroke);
+    }
+
+    th, td {
+        border: 1px solid var(--rg-stroke);
+    }
+
+    th {
+        background: var(--rg-glass-strong);
+    }
+
+    td {
+        background: rgba(255, 255, 255, 0.58);
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        min-width: 2rem;
+        font-size: small;
+
+        &[data-selected="true"] {
+            background: hsl(200 40% 50%);
+        }
+
+        /* Overrides age + selected backgrounds when ranking is flagged dirty */
+        &.cellDirty {
+            background: hsl(38 85% 32%) !important;
+            box-shadow: inset 0 0 0 2px hsl(28 95% 48%);
+        }
+    }
+}
+
+
+.specHead {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "zhaobanzi",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-09-03",
+  "env": {
+    "production": {
+      "services": [
+        {
+          "binding": "STT_LOKTAR_WEB",
+          "service": "stt-loktar-web"
+        },
+        {
+          "binding": "RAIDGLASS_WEB",
+          "service": "raidglass-web"
+        }
+      ]
+    },
+    "preview": {
+      "services": [
+        {
+          "binding": "STT_LOKTAR_WEB",
+          "service": "stt-loktar-web"
+        },
+        {
+          "binding": "RAIDGLASS_WEB",
+          "service": "raidglass-web-preview"
+        }
+      ]
+    }
+  }
+}

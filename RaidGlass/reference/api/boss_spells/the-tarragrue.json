@@ -1,0 +1,28 @@
+{
+  "347369": {
+    "spell_id": 347369,
+    "duration": 180,
+    "cooldown": 0,
+    "spell_type": "the-tarragrue",
+    "name": "The Jailer's Gaze",
+    "icon": "spell_animamaw_debuff.jpg",
+    "color": "#ff4747",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=347369",
+    "tags": []
+  },
+  "347740": {
+    "spell_id": 347740,
+    "duration": 15,
+    "cooldown": 0,
+    "spell_type": "the-tarragrue",
+    "name": "Hungering Mist",
+    "icon": "ability_argus_soulburst.jpg",
+    "color": "#03d7fc",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=347740",
+    "tags": []
+  }
+}

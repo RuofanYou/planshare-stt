@@ -1,0 +1,28 @@
+{
+  "337859": {
+    "spell_id": 337859,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "sun-kings-salvation",
+    "name": "Cloak of Flames (Heal)",
+    "icon": "ability_creature_cursed_01.jpg",
+    "color": "#ffbb33",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=337859",
+    "tags": []
+  },
+  "343026": {
+    "spell_id": 343026,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "sun-kings-salvation",
+    "name": "Cloak of Flames (DPS)",
+    "icon": "ability_creature_cursed_01.jpg",
+    "color": "#ffbb33",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=343026",
+    "tags": []
+  }
+}

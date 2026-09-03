@@ -1,0 +1,54 @@
+{
+  "348974": {
+    "spell_id": 348974,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "the-eye-of-the-jailer",
+    "name": "Immediate Extermination",
+    "icon": "ability_blackhand_marked4death.jpg",
+    "color": "#ff4747",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=348974",
+    "tags": []
+  },
+  "349030": {
+    "spell_id": 349030,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "the-eye-of-the-jailer",
+    "name": "Titanic Death Gaze",
+    "icon": "ability_argus_deathfog.jpg",
+    "color": "#24c9b1",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=349030",
+    "tags": []
+  },
+  "350828": {
+    "spell_id": 350828,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "the-eye-of-the-jailer",
+    "name": "Deathlink",
+    "icon": "ability_felarakkoa_eyeofterrok.jpg",
+    "color": "#ede080",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=350828",
+    "tags": []
+  },
+  "355240": {
+    "spell_id": 355240,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "the-eye-of-the-jailer",
+    "name": "Scorn & Ire",
+    "icon": "ability_xavius_darkruination.jpg",
+    "color": "#db8823",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=355240",
+    "tags": []
+  }
+}

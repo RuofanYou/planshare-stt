@@ -3,6 +3,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import type {
   AdminBoard,
   AdminAuthor,
+  AdminCreatorAccount,
+  AuditLog,
   AuthorInput,
   CreateBoardInput,
   Difficulty,
@@ -13,6 +15,10 @@ import {
   useAdminLogin,
   useAdminBoards,
   useAdminAuthors,
+  useAdminCreatorAccounts,
+  useAdminAuditLogs,
+  useAdminSubmissions,
+  useUpdateCreatorAccountStatus,
   useRaids,
   useRaid,
   useCreateBoard,
@@ -21,9 +27,11 @@ import {
   useCreateAuthor,
   useUpdateAuthor,
   useDeleteAuthor,
+  useResetCreatorPassword,
 } from '../api/hooks'
-import { difficultyLabel } from '../lib/format'
+import { difficultyLabel, formatDate } from '../lib/format'
 import { staggerContainer, staggerItem, fadeUp } from '../lib/motion'
+import { copyToClipboard } from '../lib/clipboard'
 import {
   Avatar,
   Button,
@@ -34,13 +42,16 @@ import {
   Stat,
   Tag,
 } from '../components/ui'
+import {
+  DIFFICULTY_OPTIONS,
+  ListSkeleton,
+  SelectChevron,
+  generateTemporaryPassword,
+} from './admin/AdminShared'
+import { SubmissionsSection } from './admin/SubmissionsSection'
+import { ReportsSection } from './admin/ReportsSection'
+import { ResourcesSection } from './admin/ResourcesSection'
 import './Admin.css'
-
-/** 难度可选项：仅 英雄 / 史诗（靠文字区分，不靠颜色） */
-const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
-  { value: 'heroic', label: '英雄' },
-  { value: 'mythic', label: '史诗' },
-]
 
 /* ============================================================
    /admin —— 完整管理台
@@ -132,7 +143,7 @@ function LoginGate({ onLoggedIn }: { onLoggedIn: (token: string) => void }) {
 /* ============================================================
    管理台主体（已登录）
    ============================================================ */
-type Tab = 'boards' | 'authors'
+type Tab = 'boards' | 'authors' | 'submissions' | 'reports' | 'resources' | 'audit'
 
 function Console({
   onLogout,
@@ -143,6 +154,9 @@ function Console({
 }) {
   const reduce = useReducedMotion()
   const [tab, setTab] = useState<Tab>('boards')
+  const submissionsQuery = useAdminSubmissions()
+  const pendingSubmissionCount =
+    submissionsQuery.data?.filter((submission) => submission.status === 'pending').length ?? 0
 
   return (
     <div className="container ps-admin">
@@ -189,14 +203,63 @@ function Console({
           className={tab === 'authors' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
           onClick={() => setTab('authors')}
         >
-          作者
+          创作者
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'submissions'}
+          className={tab === 'submissions' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
+          onClick={() => setTab('submissions')}
+        >
+          <span>投稿审核</span>
+          {pendingSubmissionCount > 0 && (
+            <span className="ps-admin__tab-badge" aria-label={`${pendingSubmissionCount} 条待处理投稿`}>
+              {pendingSubmissionCount}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'reports'}
+          className={tab === 'reports' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
+          onClick={() => setTab('reports')}
+        >
+          举报
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'resources'}
+          className={tab === 'resources' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
+          onClick={() => setTab('resources')}
+        >
+          团本
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'audit'}
+          className={tab === 'audit' ? 'ps-admin__tab is-active' : 'ps-admin__tab'}
+          onClick={() => setTab('audit')}
+        >
+          审计
         </button>
       </motion.div>
 
       {tab === 'boards' ? (
         <BoardsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+      ) : tab === 'authors' ? (
+        <CreatorsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+      ) : tab === 'submissions' ? (
+        <SubmissionsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+      ) : tab === 'reports' ? (
+        <ReportsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+      ) : tab === 'audit' ? (
+        <AuditSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
       ) : (
-        <AuthorsSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
+        <ResourcesSection isUnauthorized={isUnauthorized} onLogout={onLogout} />
       )}
     </div>
   )
@@ -219,6 +282,9 @@ function BoardsSection({
 
   // 正在编辑的板（null = 新增模式）
   const [editing, setEditing] = useState<AdminBoard | null>(null)
+  const [search, setSearch] = useState('')
+  const [authorFilter, setAuthorFilter] = useState('')
+  const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'visible' | 'hidden'>('all')
 
   const updateBoard = useUpdateBoard()
   const deleteBoard = useDeleteBoard()
@@ -260,6 +326,28 @@ function BoardsSection({
   const raids = raidsQuery.data ?? []
   const authorNameById = new Map(authors.map((a) => [a.id, a.name]))
   const raidNameById = new Map(raids.map((r) => [r.id, r.name]))
+  const normalizedSearch = search.trim().toLowerCase()
+  const visibleCount = boards.filter((board) => !board.isHidden).length
+  const hiddenCount = boards.length - visibleCount
+  const filteredBoards = boards.filter((board) => {
+    const authorName = authorNameById.get(board.authorId) ?? ''
+    const raidName = raidNameById.get(board.raidId) ?? ''
+    const matchesSearch =
+      normalizedSearch === '' ||
+      [
+        board.title,
+        board.description,
+        board.seasonVersion,
+        raidName,
+        authorName,
+        board.id,
+      ].some((value) => value.toLowerCase().includes(normalizedSearch))
+    const matchesAuthor = authorFilter === '' || board.authorId === authorFilter
+    const matchesVisibility =
+      visibilityFilter === 'all' ||
+      (visibilityFilter === 'visible' ? !board.isHidden : board.isHidden)
+    return matchesSearch && matchesAuthor && matchesVisibility
+  })
 
   return (
     <div className="ps-admin__section">
@@ -276,14 +364,86 @@ function BoardsSection({
       {/* ---------- 列表 ---------- */}
       <section className="ps-admin__list-block" aria-label="全部战术板">
         <SectionHeading
-          eyebrow="战术板管理"
-          title="全部战术板"
+          eyebrow="全站战术板管理"
+          title="所有战术板"
           size="h2"
           trailing={boards.length > 0 ? `${boards.length} 块` : undefined}
         />
 
+        <div className="ps-admin__resource-note glass">
+          管理员在这里管理全站所有战术板；作者登录页只管理本人发布的板。
+          删除会真正移除数据；不确定时优先用“下架”保留回滚空间。
+        </div>
+
+        <div className="ps-admin__toolbar glass" aria-label="战术板筛选">
+          <label className="ps-admin__field ps-admin__toolbar-search" htmlFor="ps-board-search">
+            <span className="ps-admin__label">搜索</span>
+            <input
+              id="ps-board-search"
+              className="ps-admin__input"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="标题、作者、团本、版本"
+            />
+          </label>
+
+          <label className="ps-admin__field" htmlFor="ps-board-author-filter">
+            <span className="ps-admin__label">作者</span>
+            <div className="ps-admin__select-wrap">
+              <select
+                id="ps-board-author-filter"
+                className="ps-admin__select"
+                value={authorFilter}
+                onChange={(e) => setAuthorFilter(e.target.value)}
+              >
+                <option value="">全部作者</option>
+                {authors.map((author) => (
+                  <option key={author.id} value={author.id}>
+                    {author.name}
+                  </option>
+                ))}
+              </select>
+              <SelectChevron />
+            </div>
+          </label>
+
+          <label className="ps-admin__field" htmlFor="ps-board-visibility-filter">
+            <span className="ps-admin__label">状态</span>
+            <div className="ps-admin__select-wrap">
+              <select
+                id="ps-board-visibility-filter"
+                className="ps-admin__select"
+                value={visibilityFilter}
+                onChange={(e) => setVisibilityFilter(e.target.value as typeof visibilityFilter)}
+              >
+                <option value="all">全部状态</option>
+                <option value="visible">已上架</option>
+                <option value="hidden">已下架</option>
+              </select>
+              <SelectChevron />
+            </div>
+          </label>
+
+          <div className="ps-admin__toolbar-stats" aria-label="战术板数量">
+            <span>{visibleCount} 上架</span>
+            <span>{hiddenCount} 下架</span>
+          </div>
+        </div>
+
         {boards.length === 0 ? (
           <EmptyState icon="empty" text="还没有任何战术板，先用上面的表单新增一块。" />
+        ) : filteredBoards.length === 0 ? (
+          <EmptyState
+            icon="empty"
+            text="没有匹配筛选条件的战术板。"
+            actionLabel="清空筛选"
+            onAction={() => {
+              setSearch('')
+              setAuthorFilter('')
+              setVisibilityFilter('all')
+            }}
+          />
         ) : (
           <motion.ul
             className="ps-admin__rows"
@@ -291,7 +451,7 @@ function BoardsSection({
             initial="hidden"
             animate="show"
           >
-            {boards.map((board) => (
+            {filteredBoards.map((board) => (
               <motion.li
                 key={board.id}
                 variants={reduce ? undefined : staggerItem}
@@ -342,7 +502,7 @@ function BoardsSection({
 
 /* ============================================================
    单块战术板行：信息 + 操作（编辑 / 精选 / 上下架 / 删除）
-   下架、删除走行内玻璃二次确认。
+   精选、上架、下架、删除走行内玻璃二次确认。
    ============================================================ */
 function BoardRow({
   board,
@@ -365,8 +525,28 @@ function BoardRow({
   onDelete: () => void
   busy: boolean
 }) {
-  // 行内确认：'hide' 下架确认 / 'delete' 删除确认 / null 无
-  const [confirm, setConfirm] = useState<'hide' | 'delete' | null>(null)
+  // 行内确认：公开曝光、公开状态和删除都会影响用户可见内容，统一防误点。
+  const [confirm, setConfirm] = useState<'feature' | 'unfeature' | 'hide' | 'restore' | 'delete' | null>(null)
+  const confirmText =
+    confirm === 'delete'
+      ? `确认删除「${board.title}」？删除后不可恢复。`
+      : confirm === 'restore'
+        ? `确认上架「${board.title}」？上架后会重新出现在公开列表和详情页。`
+        : confirm === 'feature'
+          ? `确认把「${board.title}」设为精选？精选板会出现在首页精选区。`
+          : confirm === 'unfeature'
+            ? `确认取消「${board.title}」的精选？它将从首页精选区移除。`
+            : `确认下架「${board.title}」？下架后公开列表不再显示。`
+  const confirmButtonText =
+    confirm === 'delete'
+      ? '删除'
+      : confirm === 'restore'
+        ? '上架'
+        : confirm === 'feature'
+          ? '确认设为精选'
+          : confirm === 'unfeature'
+            ? '确认取消精选'
+            : '下架'
 
   return (
     <GlassCard
@@ -409,9 +589,7 @@ function BoardRow({
         {confirm ? (
           <div className="ps-admin__confirm glass-strong" role="alertdialog">
             <span className="ps-admin__confirm-text">
-              {confirm === 'delete'
-                ? `确认删除「${board.title}」？删除后不可恢复。`
-                : `确认下架「${board.title}」？下架后公开列表不再显示。`}
+              {confirmText}
             </span>
             <div className="ps-admin__confirm-actions">
               <Button
@@ -427,12 +605,13 @@ function BoardRow({
                 size="sm"
                 onClick={() => {
                   if (confirm === 'delete') onDelete()
+                  else if (confirm === 'feature' || confirm === 'unfeature') onToggleFeatured()
                   else onToggleHidden()
                   setConfirm(null)
                 }}
                 disabled={busy}
               >
-                {confirm === 'delete' ? '删除' : '下架'}
+                {confirmButtonText}
               </Button>
             </div>
           </div>
@@ -449,7 +628,7 @@ function BoardRow({
               variant="ghost"
               size="sm"
               leadingIcon="star"
-              onClick={onToggleFeatured}
+              onClick={() => setConfirm(board.isFeatured ? 'unfeature' : 'feature')}
               disabled={busy}
             >
               {board.isFeatured ? '取消精选' : '设为精选'}
@@ -458,7 +637,7 @@ function BoardRow({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onToggleHidden}
+                onClick={() => setConfirm('restore')}
                 disabled={busy}
               >
                 上架
@@ -513,7 +692,7 @@ function BoardForm({
   const [raidId, setRaidId] = useState(editing?.raidId ?? '')
   const [bossId, setBossId] = useState(editing?.bossId ?? '')
   const [difficulty, setDifficulty] = useState<Difficulty>(
-    editing?.difficulty ?? 'heroic',
+    editing?.difficulty ?? 'mythic',
   )
   const [seasonVersion, setSeasonVersion] = useState(editing?.seasonVersion ?? '')
   const [authorId, setAuthorId] = useState(editing?.authorId ?? '')
@@ -533,6 +712,7 @@ function BoardForm({
   const canSubmit =
     title.trim() !== '' &&
     raidId !== '' &&
+    bossId !== '' &&
     seasonVersion.trim() !== '' &&
     authorId !== '' &&
     description.trim() !== '' &&
@@ -543,7 +723,7 @@ function BoardForm({
     setTitle('')
     setRaidId('')
     setBossId('')
-    setDifficulty('heroic')
+    setDifficulty('mythic')
     setSeasonVersion('')
     setAuthorId('')
     setDescription('')
@@ -563,7 +743,7 @@ function BoardForm({
       const patch: UpdateBoardInput = {
         title: title.trim(),
         raidId,
-        bossId: bossId || null,
+        bossId,
         difficulty,
         seasonVersion: seasonVersion.trim(),
         contentText,
@@ -579,7 +759,7 @@ function BoardForm({
       const input: CreateBoardInput = {
         title: title.trim(),
         raidId,
-        bossId: bossId || null,
+        bossId,
         difficulty,
         seasonVersion: seasonVersion.trim(),
         contentText,
@@ -653,7 +833,7 @@ function BoardForm({
               </option>
               {raids.map((raid) => (
                 <option key={raid.id} value={raid.id}>
-                  {raid.name}（补丁 {raid.patch}）
+                  {raid.name}
                 </option>
               ))}
             </select>
@@ -673,12 +853,12 @@ function BoardForm({
               onChange={(e) => setBossId(e.target.value)}
               disabled={!raidId || raidDetailQuery.isLoading}
             >
-              <option value="">
+              <option value="" disabled>
                 {!raidId
                   ? '先选团本'
                   : raidDetailQuery.isLoading
                     ? '加载中…'
-                    : '通用 / 不挂具体 BOSS'}
+                    : '选择 BOSS'}
               </option>
               {bosses.map((boss) => (
                 <option key={boss.id} value={boss.id}>
@@ -817,7 +997,7 @@ function BoardForm({
           className="ps-admin__textarea glass-strong"
           value={contentText}
           onChange={(e) => setContentText(e.target.value)}
-          placeholder="逐字粘贴 MRT / STN 风格的战术文本，原样保留换行与对齐。"
+          placeholder="逐字粘贴 STT 战术方案，原样保留换行与对齐。"
           rows={14}
           spellCheck={false}
         />
@@ -850,9 +1030,417 @@ function BoardForm({
 }
 
 /* ============================================================
-   作者管理：列表 + 新增/编辑表单
+   投稿审核：游客投稿队列 + 发布/驳回/垃圾
    ============================================================ */
-function AuthorsSection({
+/* ============================================================
+   举报队列：隐藏板 / 驳回举报
+   ============================================================ */
+/* ============================================================
+   团本 / BOSS 管理
+   ============================================================ */
+/* ============================================================
+   账号管理：创作者账号列表 + 人工重置密码
+   ============================================================ */
+function AuditSection({
+  isUnauthorized,
+  onLogout,
+}: {
+  isUnauthorized: (error: unknown) => boolean
+  onLogout: () => void
+}) {
+  const reduce = useReducedMotion()
+  const auditQuery = useAdminAuditLogs()
+
+  function guard(error: unknown) {
+    if (isUnauthorized(error)) onLogout()
+  }
+
+  if (auditQuery.isLoading) return <ListSkeleton />
+
+  if (auditQuery.isError) {
+    guard(auditQuery.error)
+    return (
+      <EmptyState
+        icon="error"
+        text={(auditQuery.error as Error)?.message ?? '审计日志加载失败。'}
+        actionLabel="重新加载"
+        onAction={() => auditQuery.refetch()}
+      />
+    )
+  }
+
+  const logs = auditQuery.data ?? []
+
+  return (
+    <div className="ps-admin__section">
+      <section className="ps-admin__list-block" aria-label="审计日志">
+        <SectionHeading
+          eyebrow="治理追溯"
+          title="审计日志"
+          size="h2"
+          trailing={logs.length > 0 ? `最近 ${logs.length} 条` : undefined}
+        />
+        {logs.length === 0 ? (
+          <EmptyState icon="empty" text="暂无审计日志。" />
+        ) : (
+          <motion.ul
+            className="ps-admin__rows"
+            variants={reduce ? undefined : staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
+            {logs.map((log) => (
+              <motion.li key={log.id} variants={reduce ? undefined : staggerItem}>
+                <AuditLogRow log={log} />
+              </motion.li>
+            ))}
+          </motion.ul>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function AuditLogRow({ log }: { log: AuditLog }) {
+  const detailText = log.detail ? JSON.stringify(log.detail) : ''
+
+  return (
+    <GlassCard tone="glass" as="div" className="ps-admin__row-card">
+      <div className="ps-admin__row-main">
+        <div className="ps-admin__row-flags">
+          <Tag variant={log.actorType === 'admin' ? 'gold' : 'neutral'}>
+            {log.actorType === 'admin' ? '管理员' : '创作者'}
+          </Tag>
+          <Tag variant="neutral">{auditActionLabel(log.action)}</Tag>
+        </div>
+        <p className="ps-admin__row-title">{log.action}</p>
+        <p className="ps-admin__row-path">
+          {log.entityType}
+          {log.entityId ? ` · ${log.entityId}` : ''}
+        </p>
+        <div className="ps-admin__row-meta">
+          <span>时间：{formatDate(log.createdAt)}</span>
+          {log.actorId && <span>操作者：{log.actorId}</span>}
+          {detailText && <span>详情：{detailText}</span>}
+        </div>
+      </div>
+    </GlassCard>
+  )
+}
+
+function auditActionLabel(action: string) {
+  if (action === 'creator_account_update') return '账号状态'
+  if (action === 'creator_account_reset_password') return '重置密码'
+  if (action === 'creator_password_update') return '修改密码'
+  if (action === 'creator_board_publish') return '创作者发布'
+  if (action === 'creator_board_hide') return '创作者下架'
+  if (action === 'creator_submission_withdraw') return '撤回投稿'
+  if (action === 'submission_approve') return '审核通过'
+  if (action === 'submission_rejected') return '驳回投稿'
+  if (action === 'submission_spam') return '标记垃圾'
+  if (action === 'report_hide_board') return '举报隐藏'
+  if (action === 'report_dismiss') return '驳回举报'
+  if (action === 'board_create') return '新建战术板'
+  if (action === 'board_update') return '更新战术板'
+  if (action === 'board_delete') return '删除战术板'
+  if (action === 'author_create') return '新建作者'
+  if (action === 'author_update') return '更新作者'
+  if (action === 'raid_upsert' || action === 'raid_update') return '团本'
+  if (action === 'boss_upsert' || action === 'boss_update') return 'BOSS'
+  return '其它'
+}
+
+function AccountsPanel({
+  isUnauthorized,
+  onLogout,
+}: {
+  isUnauthorized: (error: unknown) => boolean
+  onLogout: () => void
+}) {
+  const reduce = useReducedMotion()
+  const accountsQuery = useAdminCreatorAccounts()
+  const resetCreatorPassword = useResetCreatorPassword()
+  const updateAccountStatus = useUpdateCreatorAccountStatus()
+
+  function guard(error: unknown) {
+    if (isUnauthorized(error)) onLogout()
+  }
+
+  if (accountsQuery.isLoading) {
+    return (
+      <div className="ps-admin__rows" role="status" aria-busy="true">
+        <div className="ps-admin__row-card glass">
+          <div className="ps-admin__row-main">
+            <Skeleton shape="line" width="40%" height={18} />
+            <Skeleton shape="line" width="60%" height={14} />
+          </div>
+          <Skeleton shape="block" width={120} height={36} />
+        </div>
+      </div>
+    )
+  }
+
+  if (accountsQuery.isError) {
+    guard(accountsQuery.error)
+    return (
+      <div className="ps-admin__resource-note ps-admin__resource-note--warn glass">
+        登录账号接口当前不可用：
+        {' '}
+        {(accountsQuery.error as Error)?.message ?? '账号加载失败'}。
+        这通常说明线上 CloudBase 后端还没部署包含账号管理 API 的版本；公开作者资料和战术板管理不受影响。
+      </div>
+    )
+  }
+
+  const accounts = accountsQuery.data ?? []
+
+  return (
+    <>
+      {resetCreatorPassword.isError && (
+        <p className="ps-admin__error" role="alert">
+          {(resetCreatorPassword.error as Error)?.message ?? '重置密码失败，请重试。'}
+        </p>
+      )}
+      {updateAccountStatus.isError && (
+        <p className="ps-admin__error" role="alert">
+          {(updateAccountStatus.error as Error)?.message ?? '更新账号状态失败，请重试。'}
+        </p>
+      )}
+
+      {accounts.length === 0 ? (
+        <EmptyState icon="author" text="还没有创作者登录账号。" />
+      ) : (
+        <motion.ul
+          className="ps-admin__rows"
+          variants={reduce ? undefined : staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
+          {accounts.map((account) => (
+            <motion.li key={account.id} variants={reduce ? undefined : staggerItem}>
+              <AccountRow
+                account={account}
+                busy={
+                  resetCreatorPassword.isPending &&
+                  resetCreatorPassword.variables?.id === account.id
+                }
+                statusBusy={
+                  updateAccountStatus.isPending &&
+                  updateAccountStatus.variables?.id === account.id
+                }
+                onResetPassword={(password, onSuccess) =>
+                  resetCreatorPassword.mutate(
+                    { id: account.id, password },
+                    { onSuccess, onError: guard },
+                  )
+                }
+                onUpdateStatus={(status) =>
+                  updateAccountStatus.mutate(
+                    { id: account.id, status },
+                    { onError: guard },
+                  )
+                }
+              />
+            </motion.li>
+          ))}
+        </motion.ul>
+      )}
+    </>
+  )
+}
+
+function AccountRow({
+  account,
+  busy,
+  statusBusy,
+  onResetPassword,
+  onUpdateStatus,
+}: {
+  account: AdminCreatorAccount
+  busy: boolean
+  statusBusy: boolean
+  onResetPassword: (password: string, onSuccess: () => void) => void
+  onUpdateStatus: (status: AdminCreatorAccount['status']) => void
+}) {
+  const [isResetting, setIsResetting] = useState(false)
+  const [password, setPassword] = useState('')
+  const [issuedPassword, setIssuedPassword] = useState('')
+  const [copyNotice, setCopyNotice] = useState('')
+  const [statusConfirm, setStatusConfirm] = useState<'suspend' | 'restore' | null>(null)
+  const trimmedPassword = password.trim()
+  const canReset = trimmedPassword.length >= 8 && !busy
+  const authorName = account.author?.name ?? '未绑定作者'
+  const boardCount = account.author?.boardCount ?? 0
+  const isSuspended = account.status === 'suspended'
+
+  function handleGenerate() {
+    setPassword(generateTemporaryPassword())
+    setIssuedPassword('')
+    setCopyNotice('')
+  }
+
+  function handleReset(e: React.FormEvent) {
+    e.preventDefault()
+    if (!canReset) return
+    const nextPassword = trimmedPassword
+    onResetPassword(nextPassword, () => {
+      setIssuedPassword(nextPassword)
+      setCopyNotice('')
+      setPassword('')
+      setIsResetting(false)
+    })
+  }
+
+  async function copyIssuedPassword() {
+    if (!issuedPassword) return
+    const copied = await copyToClipboard(issuedPassword)
+    setCopyNotice(copied ? '新密码已复制。' : '复制失败，请手动选中新密码。')
+  }
+
+  return (
+    <GlassCard tone="glass" as="div" className="ps-admin__row-card">
+      <div className="ps-admin__row-main">
+        <div className="ps-admin__row-flags">
+          <Tag variant={account.status === 'active' ? 'gold' : 'neutral'}>
+            {account.status === 'active' ? '正常' : '已暂停'}
+          </Tag>
+        </div>
+        <p className="ps-admin__row-title">{account.username}</p>
+        <p className="ps-admin__row-path">
+          {authorName} · {boardCount} 块战术板
+        </p>
+        <div className="ps-admin__row-meta">
+          {account.contact && <span>联系方式：{account.contact}</span>}
+          <span>注册：{formatDate(account.createdAt)}</span>
+          {account.lastLoginAt && <span>最后登录：{formatDate(account.lastLoginAt)}</span>}
+        </div>
+        {issuedPassword && (
+          <div className="ps-admin__issued-password" role="status">
+            <p className="ps-admin__success">
+              已重置。请把新密码「{issuedPassword}」发给用户；离开本行后后台不会再显示它。
+            </p>
+            <Button variant="secondary" size="sm" onClick={copyIssuedPassword}>
+              复制新密码
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setIssuedPassword('')
+                setCopyNotice('')
+              }}
+            >
+              隐藏新密码
+            </Button>
+            {copyNotice && <p className="ps-admin__success">{copyNotice}</p>}
+          </div>
+        )}
+      </div>
+
+      <div className="ps-admin__row-actions">
+        {isResetting ? (
+          <form className="ps-admin__reset-form glass-strong" onSubmit={handleReset}>
+            <label className="ps-admin__label" htmlFor={`ps-account-password-${account.id}`}>
+              新密码
+            </label>
+            <input
+              id={`ps-account-password-${account.id}`}
+              className="ps-admin__input"
+              type="text"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setIssuedPassword('')
+                setCopyNotice('')
+              }}
+              placeholder="至少 8 位"
+              autoComplete="off"
+            />
+            <div className="ps-admin__confirm-actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsResetting(false)
+                  setPassword('')
+                  setCopyNotice('')
+                }}
+                disabled={busy}
+              >
+                取消
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleGenerate} disabled={busy}>
+                生成临时密码
+              </Button>
+              <Button type="submit" variant="primary" size="sm" disabled={!canReset}>
+                {busy ? '重置中…' : '确认重置'}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setIsResetting(true)
+              setIssuedPassword('')
+              setCopyNotice('')
+              setStatusConfirm(null)
+            }}
+          >
+            重置密码
+          </Button>
+        )}
+        <Button
+          variant={isSuspended ? 'primary' : 'secondary'}
+          size="sm"
+          disabled={statusBusy || isResetting}
+          onClick={() => {
+            setStatusConfirm(isSuspended ? 'restore' : 'suspend')
+          }}
+        >
+          {statusBusy ? (isSuspended ? '恢复中…' : '暂停中…') : isSuspended ? '恢复账号' : '暂停账号'}
+        </Button>
+        {statusConfirm && (
+          <div className="ps-admin__confirm glass-strong" role="alertdialog">
+            <span className="ps-admin__confirm-text">
+              {statusConfirm === 'suspend'
+                ? '确定暂停这个创作者账号？暂停后该用户会被强制退出，恢复前不能登录。'
+                : '确定恢复这个创作者账号？恢复后该用户可以重新登录并继续投稿、维护战术板。'}
+            </span>
+            <div className="ps-admin__confirm-actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStatusConfirm(null)}
+                disabled={statusBusy}
+              >
+                取消
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  const nextStatus = statusConfirm === 'suspend' ? 'suspended' : 'active'
+                  setStatusConfirm(null)
+                  onUpdateStatus(nextStatus)
+                }}
+                disabled={statusBusy}
+              >
+                {statusConfirm === 'suspend' ? '确认暂停' : '确认恢复'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </GlassCard>
+  )
+}
+
+/* ============================================================
+   创作者管理：公开资料 + 登录账号
+   ============================================================ */
+function CreatorsSection({
   isUnauthorized,
   onLogout,
 }: {
@@ -888,6 +1476,11 @@ function AuthorsSection({
 
   return (
     <div className="ps-admin__section">
+      <div className="ps-admin__resource-note glass">
+        创作者资料决定公开作者页、公会招募和战术板署名；登录账号只负责用户名、密码和找回。
+        两者是一套创作者资源的两个侧面，不再拆成互相竞争的后台入口。
+      </div>
+
       {/* ---------- 新增/编辑表单 ---------- */}
       <AuthorForm
         key={editing?.id ?? 'new'}
@@ -899,8 +1492,8 @@ function AuthorsSection({
       {/* ---------- 列表 ---------- */}
       <section className="ps-admin__list-block" aria-label="全部作者">
         <SectionHeading
-          eyebrow="作者管理"
-          title="全部作者"
+          eyebrow="公开资料"
+          title="创作者资料"
           size="h2"
           trailing={authors.length > 0 ? `${authors.length} 位` : undefined}
         />
@@ -944,6 +1537,15 @@ function AuthorsSection({
             ))}
           </motion.ul>
         )}
+      </section>
+
+      <section className="ps-admin__list-block" aria-label="创作者登录账号">
+        <SectionHeading
+          eyebrow="登录账号"
+          title="账号与密码"
+          size="h2"
+        />
+        <AccountsPanel isUnauthorized={isUnauthorized} onLogout={onLogout} />
       </section>
     </div>
   )
@@ -1223,61 +1825,5 @@ function AuthorForm({
         </Button>
       </motion.div>
     </motion.form>
-  )
-}
-
-/* ============================================================
-   列表加载骨架（表单块 + 几行卡片占位）
-   ============================================================ */
-function ListSkeleton() {
-  return (
-    <div className="ps-admin__section" role="status" aria-busy="true" aria-label="正在加载">
-      <div className="ps-admin__form glass" aria-hidden="true">
-        <Skeleton shape="line" width={120} height={12} />
-        <Skeleton shape="line" width="50%" height={28} />
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="ps-admin__sk-field">
-            <Skeleton shape="line" width={72} height={14} />
-            <Skeleton shape="block" height={46} />
-          </div>
-        ))}
-        <Skeleton shape="block" width={160} height={46} className="ps-admin__sk-btn" />
-      </div>
-      <div className="ps-admin__rows" aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="ps-admin__row-card glass">
-            <div className="ps-admin__row-main">
-              <Skeleton shape="line" width="40%" height={18} />
-              <Skeleton shape="line" width="60%" height={14} />
-              <Skeleton shape="line" width="30%" height={14} />
-            </div>
-            <Skeleton shape="block" width={120} height={36} />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ============================================================
-   下拉箭头（select 右侧装饰）
-   Icon 集合无向下 chevron，select 专用 inline SVG，currentColor 描边。
-   ============================================================ */
-function SelectChevron() {
-  return (
-    <svg
-      className="ps-admin__chevron"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
   )
 }

@@ -1,0 +1,54 @@
+// Styles/Overwrites for the (Dropdown)-Menues
+
+
+.szh-menu {
+
+    user-select: none;
+    padding: 0.25rem 0;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.58)),
+        var(--rg-glass);
+    border-radius: var(--rg-radius-sm);
+    border: 1px solid var(--rg-stroke);
+    box-shadow: var(--rg-shadow);
+    backdrop-filter: blur(22px) saturate(1.35);
+    -webkit-backdrop-filter: blur(22px) saturate(1.35);
+
+    &__item {
+        padding: 0.25rem 0.5rem;
+
+        // align text with icon
+        display: flex;
+        align-items: center;
+
+        &--hover {
+            background-color: var(--rg-accent-soft);
+        }
+
+        &--checked span {
+            color: var(--rg-accent-strong) !important;
+        }
+
+        &--submenu {
+            position: relative;
+
+            padding-right: 1.5rem;
+
+            &::after {
+                content: "❯";
+                position: absolute;
+                right: 0.5rem;
+            }
+        } // --submenu
+    } // &__item
+
+    // Menu inside a Submenu
+    &__submenu > & {
+        // border: 1px solid lime;
+
+        transform:
+            translateX(-5px) // small overlap
+            translateY(calc(-0.25rem - 1px)) // padding + 1px border
+        ;
+    }
+} // szh-menu

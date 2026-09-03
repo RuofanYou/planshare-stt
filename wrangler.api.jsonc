@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "planshare-api",
+  "main": "worker/index.js",
+  "compatibility_date": "2025-11-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "CORS_ORIGINS": "https://zhaobanzi.pages.dev,http://localhost:5173,http://127.0.0.1:5173"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "planshare",
+      "database_id": "a6b33de2-8638-4424-9b52-4baec653fe50",
+      "migrations_dir": "worker/migrations"
+    }
+  ]
+}

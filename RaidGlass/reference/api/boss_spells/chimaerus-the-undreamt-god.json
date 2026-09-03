@@ -1,0 +1,80 @@
+{
+  "1245396": {
+    "spell_id": 1245396,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "chimaerus-the-undreamt-god",
+    "name": "Consume",
+    "icon": "spell_deathknight_gnaw_ghoul.jpg",
+    "color": "rgb(242, 19, 64)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1245396",
+    "tags": []
+  },
+  "1245404": {
+    "spell_id": 1245404,
+    "duration": 3.5,
+    "cooldown": 0,
+    "spell_type": "chimaerus-the-undreamt-god",
+    "name": "Ravenous Dive",
+    "icon": "ability_earthen_pillar.jpg",
+    "color": "rgb(196, 148, 71)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1245404",
+    "tags": []
+  },
+  "1246653": {
+    "spell_id": 1246653,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "chimaerus-the-undreamt-god",
+    "name": "Caustic Phlegm",
+    "icon": "inv_ability_poison_orb.jpg",
+    "color": "rgb(168, 204, 75)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1246653",
+    "tags": []
+  },
+  "1257087": {
+    "spell_id": 1257087,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "chimaerus-the-undreamt-god",
+    "name": "Consuming Miasma",
+    "icon": "spell_azerite_essence_16.jpg",
+    "color": "rgb(50, 150, 255)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1257087",
+    "tags": []
+  },
+  "1258610": {
+    "spell_id": 1258610,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "chimaerus-the-undreamt-god",
+    "name": "Rift Emergence",
+    "icon": "inv_azeritefireball.jpg",
+    "color": "rgb(64, 95, 219)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1258610",
+    "tags": []
+  },
+  "1262289": {
+    "spell_id": 1262289,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "chimaerus-the-undreamt-god",
+    "name": "Alndust Upheaval",
+    "icon": "ability_earthen_azeritesurge.jpg",
+    "color": "rgb(164, 235, 229)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1262289",
+    "tags": []
+  }
+}

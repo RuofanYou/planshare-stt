@@ -1,0 +1,54 @@
+.panel {
+    display: grid;
+    max-inline-size: 760px;
+    margin-block: clamp(48px, 9vw, 120px);
+    margin-inline: auto;
+    padding: clamp(28px, 5vw, 56px);
+    gap: 16px;
+    border: 1px solid rgba(145, 101, 40, 0.14);
+    border-radius: 24px;
+    background: rgba(255, 252, 245, 0.72);
+    color: var(--rg-text);
+    box-shadow: var(--rg-shadow-soft);
+}
+
+.title,
+.description {
+    margin: 0;
+}
+
+.description {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    color: var(--rg-muted);
+    line-height: 1.65;
+}
+
+.title {
+    color: var(--rg-ink);
+    font-family: var(--rg-font-display);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.036em;
+}
+
+.description code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.actions > :global(button),
+.actions > :global(a) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--rg-control-min-touch);
+    min-block-size: var(--rg-control-min-touch);
+}

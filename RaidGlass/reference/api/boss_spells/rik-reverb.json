@@ -1,0 +1,80 @@
+{
+  "464584": {
+    "spell_id": 464584,
+    "duration": 37,
+    "cooldown": 0,
+    "spell_type": "rik-reverb",
+    "name": "Sound Cloud",
+    "icon": "ability_vehicle_shellshieldgenerator_green.jpg",
+    "color": "hsl(120, 70%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=464584",
+    "tags": []
+  },
+  "466961": {
+    "spell_id": 466961,
+    "duration": 2.125,
+    "cooldown": 12,
+    "spell_type": "rik-reverb",
+    "name": "Faulty Zap",
+    "icon": "ability_thunderking_overcharge.jpg",
+    "color": "hsl(180, 50%, 50%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=466961",
+    "tags": []
+  },
+  "467606": {
+    "spell_id": 467606,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "rik-reverb",
+    "name": "Sound Cannon",
+    "icon": "inv_sonic_orb.jpg",
+    "color": "hsl(220, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=467606",
+    "tags": []
+  },
+  "473260": {
+    "spell_id": 473260,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "rik-reverb",
+    "name": "Blaring Drop",
+    "icon": "ability_socererking_forcenova.jpg",
+    "color": "hsl(300, 75%, 75%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=473260",
+    "tags": []
+  },
+  "473748": {
+    "spell_id": 473748,
+    "duration": 3.3,
+    "cooldown": 0,
+    "spell_type": "rik-reverb",
+    "name": "Amplification!",
+    "icon": "inv_gizmo_goblinboombox_01.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=473748",
+    "tags": []
+  },
+  "1214688": {
+    "spell_id": 1214688,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "rik-reverb",
+    "name": "Sparkblast Ignition",
+    "icon": "inv_wildfirebomb.jpg",
+    "color": "hsl(50, 60%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1214688",
+    "tags": []
+  }
+}

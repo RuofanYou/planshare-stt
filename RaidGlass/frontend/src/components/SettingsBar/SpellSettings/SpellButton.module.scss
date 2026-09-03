@@ -1,0 +1,25 @@
+.spell_button {
+    position: relative;
+}
+
+.toggle {
+    display: inline-grid;
+    width: var(--rg-control-min-touch);
+    height: var(--rg-control-min-touch);
+    padding: 0;
+    place-items: center;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+}
+
+
+.info_icon {
+    position: absolute;
+    font-size: 12px;
+    right: 0;
+    top: 0;
+    cursor: help;
+
+    text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black, 0 0 1px black;
+}

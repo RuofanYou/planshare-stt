@@ -1,0 +1,206 @@
+.dialog {
+    --rg-motion-progress: 0;
+    --rg-sheet-offset: 0px;
+    --rg-popover-offset: -8px;
+    --rg-popover-scale: 0.96;
+    --rg-dialog-top: 16px;
+    --rg-dialog-right: 16px;
+    --rg-dialog-origin-x: 100%;
+    --rg-dialog-origin-y: 0;
+
+    padding: 0;
+    border: 0;
+    color: var(--rg-text);
+    background: transparent;
+    overflow: visible;
+
+    &::backdrop {
+        background: rgba(36, 27, 16, 0.32);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+    }
+}
+
+.dialog[data-surface="popover"] {
+    position: fixed;
+    inset: var(--rg-dialog-top) var(--rg-dialog-right) auto auto;
+    width: min(44rem, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    max-height: calc(100dvh - 32px);
+    margin: 0;
+
+    .panel {
+        max-height: calc(100dvh - 32px);
+        transform-origin: var(--rg-dialog-origin-x) var(--rg-dialog-origin-y);
+        transform:
+            translate3d(0, var(--rg-popover-offset), 0)
+            scale(var(--rg-popover-scale));
+        opacity: var(--rg-motion-progress);
+    }
+}
+
+.dialog[data-surface="sheet"] {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+
+    .panel {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: min(80dvh, 44rem);
+        max-height: min(80dvh, 44rem);
+        border-radius: 20px 20px 0 0;
+        transform: translate3d(0, var(--rg-sheet-offset), 0);
+        opacity: var(--rg-motion-progress);
+    }
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--rg-stroke-strong);
+    border-radius: 16px;
+    background: var(--rg-glass-strong);
+    box-shadow: var(--rg-shadow);
+    will-change: transform, opacity;
+}
+
+.dragHandle {
+    width: 100%;
+    min-height: var(--rg-control-min-touch);
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    padding: 4px 0;
+    border: 0;
+    color: var(--rg-muted);
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+
+    &[hidden] {
+        display: none;
+    }
+
+    span {
+        display: block;
+        width: 38px;
+        height: 5px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0.62;
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+}
+
+.header {
+    min-height: 68px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--rg-space-4);
+    padding: var(--rg-space-4) var(--rg-space-4) var(--rg-space-3);
+    border-bottom: 1px solid var(--rg-stroke);
+}
+
+.heading {
+    min-width: 0;
+
+    h2,
+    p {
+        margin: 0;
+    }
+
+    h2 {
+        color: var(--rg-ink);
+        font-family: var(--rg-font-display);
+        font-size: 1.16rem;
+        line-height: 1.25;
+    }
+
+    p {
+        margin-top: var(--rg-space-1);
+        color: var(--rg-muted);
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+}
+
+.closeButton {
+    width: var(--rg-control-min-touch);
+    height: var(--rg-control-min-touch);
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--rg-stroke);
+    border-radius: 50%;
+    color: var(--rg-text);
+    background: var(--rg-glass-soft);
+    cursor: pointer;
+
+    span {
+        font-size: 1.45rem;
+        line-height: 1;
+        transform: translateY(-1px);
+    }
+
+    &:hover {
+        border-color: var(--rg-stroke-strong);
+        background: var(--rg-accent-soft);
+    }
+
+    &:active {
+        transform: scale(var(--rg-press-scale));
+    }
+
+    &:focus-visible {
+        outline: var(--rg-focus-ring-width) solid var(--rg-focus-ring-color);
+        outline-offset: var(--rg-focus-ring-offset);
+    }
+}
+
+.interruptCloseButton {
+    position: absolute;
+    z-index: 2;
+    top: var(--rg-space-4);
+    right: var(--rg-space-4);
+    background: var(--rg-accent-soft);
+}
+
+.content {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: var(--rg-space-4);
+}
+
+.dialog[data-surface="sheet"] .content {
+    padding-bottom: calc(var(--rg-space-4) + env(safe-area-inset-bottom));
+}
+
+.dialog[data-dragging="true"] .panel {
+    user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .panel,
+    .closeButton {
+        transition: none;
+    }
+}

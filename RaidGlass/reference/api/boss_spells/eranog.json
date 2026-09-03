@@ -1,0 +1,54 @@
+{
+  "370307": {
+    "spell_id": 370307,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "eranog",
+    "name": "Collapsing Army",
+    "icon": "spell_fire_elemental_totem.jpg",
+    "color": "#46db2c",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=370307",
+    "tags": []
+  },
+  "370615": {
+    "spell_id": 370615,
+    "duration": 3.5,
+    "cooldown": 0,
+    "spell_type": "eranog",
+    "name": "Molten Cleave",
+    "icon": "ability_rhyolith_magmaflow_wave.jpg",
+    "color": "#2695d1",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=370615",
+    "tags": []
+  },
+  "390715": {
+    "spell_id": 390715,
+    "duration": 7.5,
+    "cooldown": 0,
+    "spell_type": "eranog",
+    "name": "Flamerift",
+    "icon": "inv_misc_head_dragon_01.jpg",
+    "color": "#dbdb2c",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=390715",
+    "tags": []
+  },
+  "396023": {
+    "spell_id": 396023,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "eranog",
+    "name": "Incinerating Roar",
+    "icon": "ability_warrior_dragonroar.jpg",
+    "color": "#bf3030",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=396023",
+    "tags": []
+  }
+}

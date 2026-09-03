@@ -1,0 +1,16 @@
+{
+  "id": 46.2,
+  "name": "The Dreamrift",
+  "name_slug": "the-dreamrift",
+  "icon": "inv_achievement_raid_riftofaln.jpg",
+  "bosses": [
+    {
+      "id": 3306,
+      "name": "Chimaerus",
+      "icon": "inv_120_raid_dreamwell_malformedmanifestation.jpg",
+      "full_name": "Chimaerus the Undreamt God",
+      "full_name_slug": "chimaerus-the-undreamt-god",
+      "phase_type": "dynamic"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--rg-space-2);
+    align-items: center;
+    justify-content: flex-end;
+
+    > button,
+    > a {
+        min-height: var(--rg-control-min-touch);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        border: 1px solid rgba(145, 101, 40, 0.15);
+        border-radius: 13px;
+        color: var(--rg-text);
+        background: rgba(255, 252, 245, 0.66);
+        font: 720 0.82rem/1.2 var(--rg-font-ui);
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    > button:hover,
+    > a:hover {
+        background: rgba(184, 138, 61, 0.11);
+        color: var(--rg-accent-strong);
+    }
+
+    > button:active,
+    > a:active {
+        transform: scale(var(--rg-press-scale));
+    }
+
+    > button:focus-visible,
+    > a:focus-visible {
+        outline: var(--rg-focus-ring-width) solid var(--rg-focus-ring-color);
+        outline-offset: var(--rg-focus-ring-offset);
+    }
+}
+
+@media (max-width: 959px) {
+    .actions {
+        width: 100%;
+
+        > button,
+        > a {
+            flex: 1 1 10rem;
+        }
+    }
+}

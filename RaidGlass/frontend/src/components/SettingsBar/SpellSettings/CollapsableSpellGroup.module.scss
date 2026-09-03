@@ -1,0 +1,51 @@
+
+
+.group {
+
+    display: flex;
+    align-items: flex-end;
+
+    // highlight the group / child groups on hover
+    &:hover {
+        :global .border {
+            border-color: var(--wow-color);
+        }
+    }
+}
+
+.toggle {
+    display: inline-grid;
+    width: var(--rg-control-min-touch);
+    height: var(--rg-control-min-touch);
+    padding: 0;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+
+.button {
+    // size of a Button Group
+    width: 34px;
+    height: 34px;
+
+    // expanded
+    &:global.open {
+        margin-right: 0.25rem;
+    }
+
+    &:global.closed {
+        border-color: grey;
+
+        &:hover {
+            border-color: var(--wow-color);
+        }
+    }
+}
+
+
+.children {
+    display: flex;
+    gap: 0.25rem;
+}

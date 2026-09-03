@@ -1,0 +1,54 @@
+{
+  "403978": {
+    "spell_id": 403978,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "the-vigilant-steward-zskarn",
+    "name": "Blast Wave",
+    "icon": "ability_foundryraid_blastwave.jpg",
+    "color": "#b04a4a",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=403978",
+    "tags": []
+  },
+  "405812": {
+    "spell_id": 405812,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "the-vigilant-steward-zskarn",
+    "name": "Animate Golems",
+    "icon": "achievement_dungeon_ulduarraid_irongolem_01.jpg",
+    "color": "#e3c714",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=405812",
+    "tags": []
+  },
+  "406678": {
+    "spell_id": 406678,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "the-vigilant-steward-zskarn",
+    "name": "Tactical Destruction",
+    "icon": "spell_fire_ragnaros_molteninferno.jpg",
+    "color": "#4dab46",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=406678",
+    "tags": []
+  },
+  "406725": {
+    "spell_id": 406725,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "the-vigilant-steward-zskarn",
+    "name": "Shrapnel Bomb",
+    "icon": "ability_hunter_traplauncher.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=406725",
+    "tags": []
+  }
+}

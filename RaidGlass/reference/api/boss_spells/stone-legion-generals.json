@@ -1,0 +1,41 @@
+{
+  "334498": {
+    "spell_id": 334498,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "stone-legion-generals",
+    "name": "Seismic Upheaval",
+    "icon": "spell_nature_earthquake.jpg",
+    "color": "#d69429",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=334498",
+    "tags": []
+  },
+  "334765": {
+    "spell_id": 334765,
+    "duration": 36,
+    "cooldown": 0,
+    "spell_type": "stone-legion-generals",
+    "name": "Heart Rend",
+    "icon": "spell_fire_flameblades.jpg",
+    "color": "#d69429",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=334765",
+    "tags": []
+  },
+  "342544": {
+    "spell_id": 342544,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "stone-legion-generals",
+    "name": "Pulverizing Meteor",
+    "icon": "inv_elementalearth2.jpg",
+    "color": "#d69429",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=342544",
+    "tags": []
+  }
+}

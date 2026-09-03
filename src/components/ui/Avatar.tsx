@@ -1,7 +1,7 @@
 import './Avatar.css'
 
 export interface AvatarProps {
-  /** 来源名称：取首字符作占位（mock 数据无 avatarUrl，统一首字母方案） */
+  /** 来源名称：取首字符作占位，统一首字母方案。 */
   name: string
   /** 直径像素（圆形，宽高一致）。BoardCard ~22、详情 ~28、Hero 浮卡 ~40、作者头部 ~84 */
   size?: number

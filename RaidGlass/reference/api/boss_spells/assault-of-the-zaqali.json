@@ -1,0 +1,54 @@
+{
+  "408959": {
+    "spell_id": 408959,
+    "duration": 4.3,
+    "cooldown": 0,
+    "spell_type": "assault-of-the-zaqali",
+    "name": "Devastating Leap",
+    "icon": "spell_nature_earthquake.jpg",
+    "color": "#bf8330",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=408959",
+    "tags": []
+  },
+  "409359": {
+    "spell_id": 409359,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "assault-of-the-zaqali",
+    "name": "Desperate Immolation",
+    "icon": "spell_nature_unleashedrage.jpg",
+    "color": "#30bf30",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=409359",
+    "tags": []
+  },
+  "410516": {
+    "spell_id": 410516,
+    "duration": 4.3,
+    "cooldown": 0,
+    "spell_type": "assault-of-the-zaqali",
+    "name": "Catastrophic Slam",
+    "icon": "ability_earthen_pillar.jpg",
+    "color": "#bf3030",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=410516",
+    "tags": []
+  },
+  "411230": {
+    "spell_id": 411230,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "assault-of-the-zaqali",
+    "name": "Ignara's Flame",
+    "icon": "ability_mage_moltenarmor.jpg",
+    "color": "#30bf30",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=411230",
+    "tags": []
+  }
+}

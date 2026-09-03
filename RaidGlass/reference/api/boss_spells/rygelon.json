@@ -1,0 +1,41 @@
+{
+  "362275": {
+    "spell_id": 362275,
+    "duration": 1,
+    "cooldown": 0,
+    "spell_type": "rygelon",
+    "name": "Adds",
+    "icon": "creatureportrait_sc_eyeofacherus_02.jpg",
+    "color": "#2ea9e6",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362275",
+    "tags": []
+  },
+  "363773": {
+    "spell_id": 363773,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "rygelon",
+    "name": "The Singularity",
+    "icon": "ability_argus_blightorb.jpg",
+    "color": "#2ee62e",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=363773",
+    "tags": []
+  },
+  "364114": {
+    "spell_id": 364114,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "rygelon",
+    "name": "Shatter Sphere",
+    "icon": "spell_shadow_focusedpower.jpg",
+    "color": "#dd2ee6",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=364114",
+    "tags": []
+  }
+}

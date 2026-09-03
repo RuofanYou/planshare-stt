@@ -1,0 +1,93 @@
+{
+  "439784": {
+    "spell_id": 439784,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "rashanan",
+    "name": "Spinneret's Strands",
+    "icon": "inv_ability_web_beam.jpg",
+    "color": "hsl(190, 20%, 70%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=439784",
+    "tags": []
+  },
+  "439789": {
+    "spell_id": 439789,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "rashanan",
+    "name": "Rolling Acid",
+    "icon": "inv_ability_poison_wave.jpg",
+    "color": "hsl(75, 75%, 60%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=439789",
+    "tags": []
+  },
+  "439795": {
+    "spell_id": 439795,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "rashanan",
+    "name": "Web Reave",
+    "icon": "inv_ability_web_wave.jpg",
+    "color": "hsl(315, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=439795",
+    "tags": []
+  },
+  "439811": {
+    "spell_id": 439811,
+    "duration": 5.5,
+    "cooldown": 24,
+    "spell_type": "rashanan",
+    "name": "Erosive Spray",
+    "icon": "inv_ability_poison_missile.jpg",
+    "color": "#bf4040",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=439811",
+    "tags": []
+  },
+  "444687": {
+    "spell_id": 444687,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "rashanan",
+    "name": "Savage Assault",
+    "icon": "ability_faultline.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=444687",
+    "tags": []
+  },
+  "452806": {
+    "spell_id": 452806,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "rashanan",
+    "name": "Acidic Eruption",
+    "icon": "inv_ability_poison_orb.jpg",
+    "color": "hsl(75, 75%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=452806",
+    "tags": []
+  },
+  "455373": {
+    "spell_id": 455373,
+    "duration": 2.5,
+    "cooldown": 2.5,
+    "spell_type": "rashanan",
+    "name": "Infested Spawn",
+    "icon": "inv_minespider2_jungle.jpg",
+    "color": "hsl(50, 75%, 50.00%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=455373",
+    "tags": []
+  }
+}

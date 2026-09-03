@@ -1,0 +1,41 @@
+{
+  "420933": {
+    "spell_id": 420933,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "volcoross",
+    "name": "Flood of the Firelands",
+    "icon": "spell_shaman_lavasurge.jpg",
+    "color": "#d1c21f",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=420933",
+    "tags": []
+  },
+  "421284": {
+    "spell_id": 421284,
+    "duration": 1.6,
+    "cooldown": 0,
+    "spell_type": "volcoross",
+    "name": "Coiling Flames",
+    "icon": "ability_evoker_firestorm.jpg",
+    "color": "hsl(270, 60%, 70%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421284",
+    "tags": []
+  },
+  "423117": {
+    "spell_id": 423117,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "volcoross",
+    "name": "Cataclysm Jaws",
+    "icon": "ability_deathwing_cataclysm.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=423117",
+    "tags": []
+  }
+}

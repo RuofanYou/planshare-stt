@@ -1,0 +1,67 @@
+{
+  "401316": {
+    "spell_id": 401316,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "kazzara-the-hellforged",
+    "name": "Hellsteel Carnage",
+    "icon": "achievment_boss_spineofdeathwing.jpg",
+    "color": "#60b336",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=401316",
+    "tags": []
+  },
+  "403326": {
+    "spell_id": 403326,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "kazzara-the-hellforged",
+    "name": "Wings of Extinction",
+    "icon": "inv_icon_wingbroken07d.jpg",
+    "color": "#8f3f3f",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=403326",
+    "tags": []
+  },
+  "404744": {
+    "spell_id": 404744,
+    "duration": 25,
+    "cooldown": 0,
+    "spell_type": "kazzara-the-hellforged",
+    "name": "Terror Claws",
+    "icon": "inv_10_elementalshardfoozles_shadowflame.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=404744",
+    "tags": []
+  },
+  "407069": {
+    "spell_id": 407069,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "kazzara-the-hellforged",
+    "name": "Rays of Anguish",
+    "icon": "ability_mage_firestarter.jpg",
+    "color": "#e6c72e",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=407069",
+    "tags": []
+  },
+  "407196": {
+    "spell_id": 407196,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "kazzara-the-hellforged",
+    "name": "Dread Rifts",
+    "icon": "inv_shadowflame_groundstate.jpg",
+    "color": "#e68a2e",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=407196",
+    "tags": []
+  }
+}

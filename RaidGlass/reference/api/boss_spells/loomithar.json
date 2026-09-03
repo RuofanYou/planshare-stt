@@ -1,0 +1,67 @@
+{
+  "1226395": {
+    "spell_id": 1226395,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "loomithar",
+    "name": "Overinfusion Burst",
+    "icon": "spell_nature_wispsplode.jpg",
+    "color": "rgb(247, 40, 78)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1226395",
+    "tags": []
+  },
+  "1227226": {
+    "spell_id": 1227226,
+    "duration": 4,
+    "cooldown": 25,
+    "spell_type": "loomithar",
+    "name": "Writhing Wave",
+    "icon": "inv_ability_web_wave.jpg",
+    "color": "rgb(100, 237, 182)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1227226",
+    "tags": []
+  },
+  "1227263": {
+    "spell_id": 1227263,
+    "duration": 3,
+    "cooldown": 45,
+    "spell_type": "loomithar",
+    "name": "Piercing Strand",
+    "icon": "inv_112_arcane_beam.jpg",
+    "color": "rgb(95, 103, 245)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1227263",
+    "tags": []
+  },
+  "1227782": {
+    "spell_id": 1227782,
+    "duration": 2,
+    "cooldown": 4,
+    "spell_type": "loomithar",
+    "name": "Arcane Outrage",
+    "icon": "inv_112_raidsilkworm_arcaneoutrage.jpg",
+    "color": "rgb(169, 64, 230)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1227782",
+    "tags": []
+  },
+  "1237272": {
+    "spell_id": 1237272,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "loomithar",
+    "name": "Lair Weaving",
+    "icon": "inv_ability_web_buff.jpg",
+    "color": "rgb(200, 230, 226)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1237272",
+    "tags": []
+  }
+}

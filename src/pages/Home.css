@@ -1,6 +1,6 @@
 /* ============================================================
    首页（/）样式 —— 2026 Dark Liquid Glass · 魔兽金 · 现代魔兽史诗奇幻。
-   电影级暗场 Hero（金渐变史诗标题 + 浮起玻璃精选卡）→ 均匀等宽精选网格 → 团本入口。
+   搜索首屏 → 团本入口 → 横向推荐 → 资源卡网格。
    按钮 / 玻璃 chrome / 标签 / 头像 / 统计 / 骨架 / 空态 / 区块标题 全部由 ui/ 原语承担，
    本文件只负责 Home 专属布局（Hero 排版、浮卡 3D 深度、团本卡装饰、栅格与响应式）。
    令牌全部取自 tokens.css；少量 rgba 高光为局部玻璃质感专用。仅作用于 .home 作用域。
@@ -12,19 +12,19 @@
   padding-block: var(--space-12) var(--space-24);
   display: flex;
   flex-direction: column;
-  gap: var(--space-24);
+  gap: var(--space-16);
 }
 
 /* =========================================================
-   1. Hero —— 电影级第一屏（非对称排版 + 浮起玻璃精选卡）
+   1. Hero —— Figma Community 式搜索入口
    ========================================================= */
 .home-hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: center;
-  gap: var(--space-12);
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
   padding-block: var(--space-16) var(--space-12);
+  min-height: min(560px, calc(100vh - 120px));
 }
 
 /* Hero 局部发光焦点：标题区上方一团暖金奥术光晕（呼应全站余烬背景，
@@ -33,8 +33,8 @@
   content: "";
   position: absolute;
   top: -8%;
-  left: 8%;
-  width: 56%;
+  left: 50%;
+  width: min(720px, 92vw);
   aspect-ratio: 1.4 / 1;
   pointer-events: none;
   z-index: 0;
@@ -45,13 +45,14 @@
     transparent 72%
   );
   filter: blur(6px);
+  transform: translateX(-50%);
   /* 极缓慢的奥术呼吸（唯一发光焦点） */
   animation: home-hero-breathe 7s var(--ease-epic) infinite;
 }
 
 @keyframes home-hero-breathe {
-  0%, 100% { opacity: 0.65; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.06); }
+  0%, 100% { opacity: 0.65; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
 }
 
 /* 文案列 */
@@ -60,8 +61,10 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-6);
+  width: min(820px, 100%);
+  text-align: center;
 }
 
 /* 史诗大标题：epic 字体 + 金色渐变填充 + 一层极淡投影（.text-gold-grad 提供） */
@@ -71,24 +74,66 @@
   line-height: var(--lh-hero);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.01em;
-  /* 标题略限宽，制造非对称电影排版 */
-  max-width: 16ch;
+  max-width: 18ch;
 }
 
 .home-hero__subtitle {
-  max-width: 46ch;
+  max-width: 58ch;
   font-size: var(--text-body);
   line-height: var(--lh-body);
   color: var(--color-ink-soft);
 }
 
-/* CTA 行：砖红主按钮 + 金描边玻璃次按钮（均为 ui Button 原语） */
-.home-hero__actions {
+/* 搜索框：强版玻璃药丸，主操作在输入框内，首屏任务明确。 */
+.home-search {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  margin-top: var(--space-2);
+  width: min(680px, 100%);
+  box-sizing: border-box;
+  min-height: 58px;
+  padding: var(--space-2);
+  border-radius: var(--radius-full);
+}
+
+.home-search__icon {
+  flex: 0 0 auto;
+  margin-left: var(--space-3);
+  color: var(--color-ink-faint);
+}
+
+.home-search__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.home-search__input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.home-search__hint {
+  margin-top: calc(var(--space-4) * -1);
+  color: var(--color-gold-cream);
+  font-size: var(--text-meta);
+}
+
+.home-search__hint-link {
+  color: var(--color-gold-bright);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.home-quick {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
 /* ---------- Hero 浮起玻璃精选卡（带深度 / 视差倾斜） ---------- */
@@ -138,6 +183,10 @@
    本文件只补内边距与内部排版节奏。 */
 .home-hero__card {
   width: 100%;
+}
+
+.home-hero__card.glass {
+  padding: var(--space-6);
 }
 
 /* 卡内链接（GlassCard 的 .ps-glasscard__link）撑满 + 内边距 + 子项竖向节奏 */
@@ -226,6 +275,57 @@
   gap: var(--space-8);
   /* 锚点滚动落点避开吸顶导航遮挡 */
   scroll-margin-top: var(--space-16);
+}
+
+/* 横向推荐位：类似主流模板社区的宽 banner，作为资源推荐而不是首屏主路径。 */
+.home-spotlight .ps-glasscard__link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 220px;
+  padding: var(--space-8);
+  background:
+    radial-gradient(72% 120% at 78% 50%, var(--color-gold-glow), transparent 62%),
+    linear-gradient(135deg, transparent, var(--glass-border));
+}
+
+.home-spotlight__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.home-spotlight__title {
+  font-family: var(--font-epic);
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  transition: color var(--transition-fast);
+}
+
+.home-spotlight:hover .home-spotlight__title {
+  color: var(--color-gold);
+}
+
+.home-spotlight__desc {
+  max-width: 58ch;
+  color: var(--color-ink-soft);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.home-spotlight__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-gold);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
 }
 
 /* =========================================================
@@ -390,18 +490,27 @@
   }
 
   .home-hero__title {
-    font-size: var(--text-display);
-    line-height: var(--lh-display);
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
     max-width: none;
   }
 
-  .home-hero__actions {
+  .home-search {
     width: 100%;
   }
 
-  .home-hero__actions > * {
-    flex: 1;
-    justify-content: center;
+  .home-search {
+    border-radius: var(--radius-lg);
+    gap: var(--space-2);
+  }
+
+  .home-search .ps-btn {
+    min-width: 76px;
+    padding-inline: var(--space-3);
+  }
+
+  .home-search__input {
+    font-size: var(--text-meta);
   }
 
   .home-card-grid,

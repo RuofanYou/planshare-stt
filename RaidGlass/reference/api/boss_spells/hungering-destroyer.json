@@ -1,0 +1,28 @@
+{
+  "329455": {
+    "spell_id": 329455,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "hungering-destroyer",
+    "name": "Desolate",
+    "icon": "ability_argus_soulburst.jpg",
+    "color": "#40bfff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=329455",
+    "tags": []
+  },
+  "334522": {
+    "spell_id": 334522,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "hungering-destroyer",
+    "name": "Consume",
+    "icon": "ability_argus_deathfog.jpg",
+    "color": "#3dcc85",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=334522",
+    "tags": []
+  }
+}

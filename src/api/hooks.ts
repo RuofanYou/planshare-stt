@@ -10,6 +10,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
   useQuery,
+  useQueries,
   useMutation,
   useQueryClient,
   type UseQueryResult,
@@ -17,6 +18,12 @@ import {
 import * as api from './client'
 import type { BoardsParams } from './client'
 import { getToken, setToken, clearToken, UnauthorizedError } from './adminAuth'
+import {
+  getCreatorToken,
+  setCreatorToken,
+  clearCreatorToken,
+  CreatorUnauthorizedError,
+} from './creatorAuth'
 import type {
   Raid,
   Boss,
@@ -24,6 +31,14 @@ import type {
   UpdateBoardInput,
   AuthorInput,
   UpdateAuthorInput,
+  CreateSubmissionInput,
+  ApproveSubmissionInput,
+  CreatorProfileInput,
+  CreatorPasswordInput,
+  CreatorUser,
+  CreatorBoardInput,
+  UpdateCreatorBoardInput,
+  ReportReason,
 } from '../data/types'
 
 /* ============================ 团本 ============================ */
@@ -85,8 +100,8 @@ export function useAuthor(authorId: string | undefined) {
 /* ============================ 变更（mutation） ============================ */
 
 /**
- * 点赞：后端持久化 +1。成功后失效所有 boards 列表与该板详情，
- * 让点赞数与排序由后端真值重算（不本地猜测）。
+ * 点赞：后端持久化 +1。成功后失效列表、详情和作者详情，
+ * 让点赞数、排序与作者聚合统计都由后端真值重算。
  */
 export function useLikeBoard() {
   const qc = useQueryClient()
@@ -95,7 +110,38 @@ export function useLikeBoard() {
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['boards'] })
       qc.invalidateQueries({ queryKey: ['board', result.id] })
+      qc.invalidateQueries({ queryKey: ['author'] })
     },
+  })
+}
+
+export function useReportBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ boardId, reason, detail }: { boardId: string; reason: ReportReason; detail?: string }) =>
+      api.reportBoard(boardId, { reason, detail }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'reports'] })
+    },
+  })
+}
+
+/** 游客投稿：成功后不影响公开列表，只进入后台审核队列。 */
+export function useCreateSubmission() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: CreateSubmissionInput) => api.createSubmission(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['creator', 'submissions'] })
+    },
+  })
+}
+
+/** 游客用投稿编号查审核状态；手动触发，不常驻轮询。 */
+export function useSubmissionReceipt() {
+  return useMutation({
+    mutationFn: (id: string) => api.getSubmissionReceipt(id),
   })
 }
 
@@ -161,6 +207,165 @@ export function useAdminLogin() {
   })
 }
 
+/* ============================ 创作者会话 ============================ */
+
+export function useCreatorSession() {
+  const qc = useQueryClient()
+  const [token, setTokenState] = useState<string | null>(() => getCreatorToken())
+
+  const login = useCallback((newToken: string) => {
+    setCreatorToken(newToken)
+    setTokenState(newToken)
+  }, [])
+
+  const logout = useCallback(() => {
+    void api.creatorLogout().catch(() => {})
+    clearCreatorToken()
+    setTokenState(null)
+    qc.removeQueries({ queryKey: ['creator'] })
+  }, [qc])
+
+  const isUnauthorized = useCallback(
+    (error: unknown) => error instanceof CreatorUnauthorizedError,
+    [],
+  )
+
+  return {
+    isAuthed: !!token,
+    token,
+    login,
+    logout,
+    isUnauthorized,
+  }
+}
+
+export function useCreatorMe(enabled: boolean) {
+  return useQuery({
+    queryKey: ['creator', 'me'],
+    queryFn: api.getCreatorMe,
+    enabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: enabled ? 5_000 : false,
+    retry: false,
+  })
+}
+
+export function useCreatorSubmissions(enabled: boolean) {
+  return useQuery({
+    queryKey: ['creator', 'submissions'],
+    queryFn: api.getCreatorSubmissions,
+    enabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: enabled ? 5_000 : false,
+    retry: false,
+  })
+}
+
+export function useWithdrawCreatorSubmission() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.withdrawCreatorSubmission(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['creator', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useCreatorLogin() {
+  return useMutation({
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      api.creatorLogin(username, password),
+  })
+}
+
+export function useUpdateCreatorProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreatorProfileInput) => api.updateCreatorProfile(input),
+    onSuccess: (result) => {
+      qc.setQueryData(['creator', 'me'], result)
+      if (result.author) {
+        qc.invalidateQueries({ queryKey: ['author', result.author.id] })
+        qc.invalidateQueries({ queryKey: ['authors'] })
+      }
+    },
+  })
+}
+
+export function useUpdateCreatorPassword() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreatorPasswordInput) => api.updateCreatorPassword(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['creator', 'me'] })
+    },
+  })
+}
+
+export function useCreatorBoards(enabled: boolean) {
+  return useQuery({
+    queryKey: ['creator', 'boards'],
+    queryFn: api.getCreatorBoards,
+    enabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: enabled ? 5_000 : false,
+    retry: false,
+  })
+}
+
+export function useCreateCreatorBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreatorBoardInput) => api.createCreatorBoard(input),
+    onSuccess: (board) => {
+      qc.invalidateQueries({ queryKey: ['creator', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['creator', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['authors'] })
+      qc.invalidateQueries({ queryKey: ['author', board.authorId] })
+    },
+  })
+}
+
+export function useUpdateCreatorBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: UpdateCreatorBoardInput }) =>
+      api.updateCreatorBoard(id, patch),
+    onSuccess: (board) => {
+      qc.invalidateQueries({ queryKey: ['creator', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['authors'] })
+      qc.invalidateQueries({ queryKey: ['board', board.id] })
+      qc.invalidateQueries({ queryKey: ['author', board.authorId] })
+    },
+  })
+}
+
+export function useDeleteCreatorBoard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.deleteCreatorBoard(id),
+    onSuccess: (_result, id) => {
+      qc.invalidateQueries({ queryKey: ['creator', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['authors'] })
+      qc.invalidateQueries({ queryKey: ['board', id] })
+    },
+  })
+}
+
 /** 后台全部板（含隐藏，按 updatedAt 倒序）。 */
 export function useAdminBoards() {
   return useQuery({ queryKey: ['admin', 'boards'], queryFn: api.getAdminBoards })
@@ -169,6 +374,170 @@ export function useAdminBoards() {
 /** 后台全部作者（带 boardCount）。 */
 export function useAdminAuthors() {
   return useQuery({ queryKey: ['admin', 'authors'], queryFn: api.getAdminAuthors })
+}
+
+/** 投稿审核队列（pending 排最前，含已处理记录）。 */
+export function useAdminSubmissions() {
+  return useQuery({ queryKey: ['admin', 'submissions'], queryFn: api.getAdminSubmissions })
+}
+
+/** 创作者账号列表（用于后台人工账号救援）。 */
+export function useAdminCreatorAccounts() {
+  return useQuery({
+    queryKey: ['admin', 'creator-accounts'],
+    queryFn: api.getAdminCreatorAccounts,
+  })
+}
+
+export function useUpdateCreatorAccountStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: CreatorUser['status'] }) =>
+      api.updateCreatorAccountStatus(id, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'creator-accounts'] })
+      qc.invalidateQueries({ queryKey: ['creator'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useAdminReports() {
+  return useQuery({
+    queryKey: ['admin', 'reports'],
+    queryFn: api.getAdminReports,
+  })
+}
+
+export function useAdminAuditLogs() {
+  return useQuery({
+    queryKey: ['admin', 'audit-logs'],
+    queryFn: api.getAdminAuditLogs,
+  })
+}
+
+export function useHideBoardFromReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) => api.hideBoardFromReport(id, note),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+    },
+  })
+}
+
+export function useDismissReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) => api.dismissReport(id, note),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useCreateRaid() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: api.createRaid,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useDeleteRaid() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: api.deleteRaid,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useCreateBoss() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: api.createBoss,
+    onSuccess: (boss) => {
+      qc.invalidateQueries({ queryKey: ['raid', boss.raidId] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+export function useDeleteBoss() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id }: { id: string; raidId: string }) => api.deleteBoss(id),
+    onSuccess: (_result, variables) => {
+      qc.invalidateQueries({ queryKey: ['raid', variables.raidId] })
+      qc.invalidateQueries({ queryKey: ['admin', 'audit-logs'] })
+    },
+  })
+}
+
+/** 管理员重置创作者密码；成功后刷新账号列表并让创作者端重新拉身份。 */
+export function useResetCreatorPassword() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      api.resetCreatorPassword(id, password),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'creator-accounts'] })
+      qc.invalidateQueries({ queryKey: ['creator'] })
+    },
+  })
+}
+
+/** 通过投稿：创建正式板并更新投稿状态。 */
+export function useApproveSubmission() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: ApproveSubmissionInput }) =>
+      api.approveSubmission(id, input),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'submissions'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'boards'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'authors'] })
+      qc.invalidateQueries({ queryKey: ['boards'] })
+      qc.invalidateQueries({ queryKey: ['raids'] })
+      qc.invalidateQueries({ queryKey: ['authors'] })
+      qc.invalidateQueries({ queryKey: ['board', result.board.id] })
+      qc.invalidateQueries({ queryKey: ['author', result.author.id] })
+      qc.invalidateQueries({ queryKey: ['creator'] })
+    },
+  })
+}
+
+/** 驳回投稿：只更新审核队列。 */
+export function useRejectSubmission() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) => api.rejectSubmission(id, note),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'submissions'] })
+    },
+  })
+}
+
+/** 标记垃圾投稿：只更新审核队列。 */
+export function useMarkSubmissionSpam() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) =>
+      api.markSubmissionSpam(id, note),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'submissions'] })
+    },
+  })
 }
 
 /** 更新板：成功后失效后台列表、公开列表、团本、该板详情（隐藏/精选/归属变化都可能影响）。 */
@@ -282,6 +651,33 @@ export function useBossName(
   if (!bossId) return undefined
   const list: Boss[] = data?.bosses ?? []
   return list.find((b) => b.id === bossId)?.name
+}
+
+/** 多团本 BOSS id -> Boss 映射；首页搜索等全局入口复用。 */
+export function useBossesMap(raidIds: string[]): { bossById: Map<string, Boss>; isLoading: boolean } {
+  const uniqueRaidIds = useMemo(() => Array.from(new Set(raidIds)).sort(), [raidIds])
+  const results = useQueries({
+    queries: uniqueRaidIds.map((raidId) => ({
+      queryKey: ['raid', raidId],
+      queryFn: () => api.getRaid(raidId),
+      enabled: uniqueRaidIds.length > 0,
+    })),
+  })
+
+  const bossById = useMemo(() => {
+    const map = new Map<string, Boss>()
+    for (const result of results) {
+      for (const boss of result.data?.bosses ?? []) {
+        map.set(boss.id, boss)
+      }
+    }
+    return map
+  }, [results])
+
+  return {
+    bossById,
+    isLoading: results.some((result) => result.isLoading),
+  }
 }
 
 export type { UseQueryResult }

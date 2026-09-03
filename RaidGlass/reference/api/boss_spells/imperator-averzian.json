@@ -1,0 +1,54 @@
+{
+  "1249265": {
+    "spell_id": 1249265,
+    "duration": 5.5,
+    "cooldown": 0,
+    "spell_type": "imperator-averzian",
+    "name": "Umbral Collapse",
+    "icon": "inv_ability_darkrangerhunter_blackarrow.jpg",
+    "color": "rgb(123, 237, 237)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1249265",
+    "tags": []
+  },
+  "1251361": {
+    "spell_id": 1251361,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "imperator-averzian",
+    "name": "Shadow's Advance",
+    "icon": "spell_shadow_antishadow.jpg",
+    "color": "rgb(165, 61, 217)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1251361",
+    "tags": []
+  },
+  "1258880": {
+    "spell_id": 1258880,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "imperator-averzian",
+    "name": "Void Fall",
+    "icon": "inv_nullstone_void.jpg",
+    "color": "rgb(74, 53, 232)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1258880",
+    "tags": []
+  },
+  "1260712": {
+    "spell_id": 1260712,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "imperator-averzian",
+    "name": "Oblivion's Wrath",
+    "icon": "spell_priest_void-blast.jpg",
+    "color": "rgb(47, 100, 247)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1260712",
+    "tags": []
+  }
+}

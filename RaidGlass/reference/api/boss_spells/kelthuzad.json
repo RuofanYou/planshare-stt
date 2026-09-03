@@ -1,0 +1,54 @@
+{
+  "346530": {
+    "spell_id": 346530,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "kelthuzad",
+    "name": "Spike",
+    "icon": "ability_mage_coldasice.jpg",
+    "color": "#ff4538",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=346530",
+    "tags": []
+  },
+  "362494": {
+    "spell_id": 362494,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "kelthuzad",
+    "name": "Howling Blizzard",
+    "icon": "spell_frost_arcticwinds.jpg",
+    "color": "#c7eaff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362494",
+    "tags": []
+  },
+  "362565": {
+    "spell_id": 362565,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "kelthuzad",
+    "name": "Soul Fracture",
+    "icon": "spell_necro_deathlyecho.jpg",
+    "color": "#03fcc6",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=362565",
+    "tags": []
+  },
+  "362569": {
+    "spell_id": 362569,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "kelthuzad",
+    "name": "Frost Blast",
+    "icon": "spell_frost_glacier.jpg",
+    "color": "#03eaff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362569",
+    "tags": []
+  }
+}

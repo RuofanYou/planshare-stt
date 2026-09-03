@@ -1,0 +1,28 @@
+{
+  "334797": {
+    "spell_id": 334797,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "huntsman-altimor",
+    "name": "Rip Soul",
+    "icon": "ability_druid_markofursol.jpg",
+    "color": "#a27aff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=334797",
+    "tags": []
+  },
+  "334942": {
+    "spell_id": 334942,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "huntsman-altimor",
+    "name": "Vicious Lunge",
+    "icon": "ability_blackhand_marked4death.jpg",
+    "color": "#cc3737",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=334942",
+    "tags": []
+  }
+}

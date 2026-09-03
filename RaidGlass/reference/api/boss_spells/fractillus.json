@@ -1,0 +1,41 @@
+{
+  "1220394": {
+    "spell_id": 1220394,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "fractillus",
+    "name": "Shattering Backhand",
+    "icon": "inv_enchant_metamorphiccrystal.jpg",
+    "color": "rgb(242, 98, 46)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1220394",
+    "tags": []
+  },
+  "1231871": {
+    "spell_id": 1231871,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "fractillus",
+    "name": "Shockwave Slam",
+    "icon": "inv_leycrystallarge.jpg",
+    "color": "rgb(209, 157, 98)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1231871",
+    "tags": []
+  },
+  "1233416": {
+    "spell_id": 1233416,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "fractillus",
+    "name": "Crystalline Shockwave",
+    "icon": "spell_hunter_blackicetrap.jpg",
+    "color": "rgb(33, 255, 244)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1233416",
+    "tags": []
+  }
+}

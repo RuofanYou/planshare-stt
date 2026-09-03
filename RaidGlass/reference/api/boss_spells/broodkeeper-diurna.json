@@ -1,0 +1,80 @@
+{
+  "375829": {
+    "spell_id": 375829,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "broodkeeper-diurna",
+    "name": "Clutchwatcher's Rage",
+    "icon": "inv_staff_2h_broodkeeper_d_01.jpg",
+    "color": "#30bf30",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=375829",
+    "tags": []
+  },
+  "375871": {
+    "spell_id": 375871,
+    "duration": 10.5,
+    "cooldown": 0,
+    "spell_type": "broodkeeper-diurna",
+    "name": "Wildfire",
+    "icon": "spell_shadow_rainoffire.jpg",
+    "color": "#bf3030",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=375871",
+    "tags": []
+  },
+  "375879": {
+    "spell_id": 375879,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "broodkeeper-diurna",
+    "name": "Broodkeeper's Fury",
+    "icon": "ability_warrior_focusedrage.jpg",
+    "color": "#30bf30",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=375879",
+    "tags": []
+  },
+  "380175": {
+    "spell_id": 380175,
+    "duration": 9,
+    "cooldown": 0,
+    "spell_type": "broodkeeper-diurna",
+    "name": "Greatstaff of the Broodkeeper",
+    "icon": "inv_staff_2h_broodkeeper_d_01.jpg",
+    "color": "#bf60bf",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=380175",
+    "tags": []
+  },
+  "388716": {
+    "spell_id": 388716,
+    "duration": 6.5,
+    "cooldown": 0,
+    "spell_type": "broodkeeper-diurna",
+    "name": "Icy Shroud",
+    "icon": "spell_fire_blueflamering.jpg",
+    "color": "#60afbf",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=388716",
+    "tags": []
+  },
+  "396269": {
+    "spell_id": 396269,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "broodkeeper-diurna",
+    "name": "Mortal Stoneslam",
+    "icon": "inv_misc_monsterclaw_01.jpg",
+    "color": "#ccc",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=396269",
+    "tags": []
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "361200": {
+    "spell_id": 361200,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "lihuvim-principal-architect",
+    "name": "Recharge (intermission / mythic)",
+    "icon": "spell_progenitor_buff.jpg",
+    "color": "#00ff00",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361200",
+    "tags": []
+  },
+  "362601": {
+    "spell_id": 362601,
+    "duration": 1.9,
+    "cooldown": 0,
+    "spell_type": "lihuvim-principal-architect",
+    "name": "Unstable Mote (Mines)",
+    "icon": "spell_progenitor_orb.jpg",
+    "color": "#00ffea",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362601",
+    "tags": []
+  },
+  "363088": {
+    "spell_id": 363088,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "lihuvim-principal-architect",
+    "name": "Cosmic Shift (Knock)",
+    "icon": "spell_progenitor_areadenial.jpg",
+    "color": "#ffc800",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=363088",
+    "tags": []
+  },
+  "363130": {
+    "spell_id": 363130,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "lihuvim-principal-architect",
+    "name": "Synthesize (Intermission start)",
+    "icon": "spell_progenitor_beam.jpg",
+    "color": "#00ff00",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=363130",
+    "tags": []
+  },
+  "364652": {
+    "spell_id": 364652,
+    "duration": 1.9,
+    "cooldown": 0,
+    "spell_type": "lihuvim-principal-architect",
+    "name": "Protoform Cascade (Frontal)",
+    "icon": "spell_progenitor_debuff.jpg",
+    "color": "#e61919",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=364652",
+    "tags": []
+  }
+}

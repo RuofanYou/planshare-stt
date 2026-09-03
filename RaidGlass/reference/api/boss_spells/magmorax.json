@@ -1,0 +1,54 @@
+{
+  "402989": {
+    "spell_id": 402989,
+    "duration": 7.5,
+    "cooldown": 0,
+    "spell_type": "magmorax",
+    "name": "Molten Spittle",
+    "icon": "spell_fire_firebolt02.jpg",
+    "color": "#9669d1",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=402989",
+    "tags": []
+  },
+  "403671": {
+    "spell_id": 403671,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "magmorax",
+    "name": "Overpowering Stomp",
+    "icon": "spell_nature_earthquake.jpg",
+    "color": "#bf8330",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=403671",
+    "tags": []
+  },
+  "403740": {
+    "spell_id": 403740,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "magmorax",
+    "name": "Igniting Roar",
+    "icon": "inv_misc_head_dragon_01.jpg",
+    "color": "#bf3030",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=403740",
+    "tags": []
+  },
+  "404846": {
+    "spell_id": 404846,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "magmorax",
+    "name": "Incinerating Maws",
+    "icon": "spell_fire_burnout.jpg",
+    "color": "#2695d1",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=404846",
+    "tags": []
+  }
+}

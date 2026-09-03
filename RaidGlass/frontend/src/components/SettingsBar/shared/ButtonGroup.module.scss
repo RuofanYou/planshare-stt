@@ -1,0 +1,46 @@
+
+
+.header {
+    display: inline-flex;
+    width: fit-content;
+    min-width: var(--rg-control-min-touch);
+    margin: 0;
+    min-height: var(--rg-control-min-touch);
+    padding: 0 8px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    cursor: default;
+    user-select: none;
+    color: var(--rg-muted);
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 760;
+    white-space: nowrap;
+
+    &:is(button) {
+        cursor: pointer;
+    }
+
+    &:hover img {
+        border: 1px solid var(--rg-stroke-strong);
+    }
+}
+
+.group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 52px;
+    border-color: var(--rg-stroke) !important;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.70), rgba(255, 255, 255, 0.44)),
+        var(--rg-glass) !important;
+}
+
+.children {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

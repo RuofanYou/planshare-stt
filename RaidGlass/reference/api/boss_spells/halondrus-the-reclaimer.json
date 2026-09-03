@@ -1,0 +1,93 @@
+{
+  "359236": {
+    "spell_id": 359236,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "halondrus-the-reclaimer",
+    "name": "Relocation Form",
+    "icon": "inv_progenitorbotminemount.jpg",
+    "color": "#3f8c49",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=359236",
+    "tags": []
+  },
+  "360977": {
+    "spell_id": 360977,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "halondrus-the-reclaimer",
+    "name": "Lightshatter Beam",
+    "icon": "spell_progenitor_beam.jpg",
+    "color": "#fff7cc",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=360977",
+    "tags": []
+  },
+  "361597": {
+    "spell_id": 361597,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "halondrus-the-reclaimer",
+    "name": "Ephemeral Eruption",
+    "icon": "spell_broker_nova.jpg",
+    "color": "#33ffff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361597",
+    "tags": []
+  },
+  "361676": {
+    "spell_id": 361676,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "halondrus-the-reclaimer",
+    "name": "Earthbreaker Missiles",
+    "icon": "inv_misc_missilesmallcluster_yellow.jpg",
+    "color": "#a1e617",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361676",
+    "tags": []
+  },
+  "364979": {
+    "spell_id": 364979,
+    "duration": 5.74,
+    "cooldown": 0,
+    "spell_type": "halondrus-the-reclaimer",
+    "name": "Shatter",
+    "icon": "spell_progenitor_nova.jpg",
+    "color": "#d517e6",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=364979",
+    "tags": []
+  },
+  "367079": {
+    "spell_id": 367079,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "halondrus-the-reclaimer",
+    "name": "Seismic Tremors",
+    "icon": "spell_sandexplosion.jpg",
+    "color": "#148fcc",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=367079",
+    "tags": []
+  },
+  "368684": {
+    "spell_id": 368684,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "halondrus-the-reclaimer",
+    "name": "Reclaim",
+    "icon": "ability_skyreach_wind.jpg",
+    "color": "#ff3333",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=368684",
+    "tags": []
+  }
+}

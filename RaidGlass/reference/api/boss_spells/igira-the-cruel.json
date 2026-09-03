@@ -1,0 +1,54 @@
+{
+  "415624": {
+    "spell_id": 415624,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "igira-the-cruel",
+    "name": "Heart Stopper",
+    "icon": "ui_venthyranimaboss_heartsword.jpg",
+    "color": "hsl(270, 50%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=415624",
+    "tags": []
+  },
+  "416048": {
+    "spell_id": 416048,
+    "duration": 4.5,
+    "cooldown": 0,
+    "spell_type": "igira-the-cruel",
+    "name": "Umbral Destruction",
+    "icon": "inv_legendary_axe.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=416048",
+    "tags": []
+  },
+  "418531": {
+    "spell_id": 418531,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "igira-the-cruel",
+    "name": "Smashing Viscera",
+    "icon": "inv_legendary_sword.jpg",
+    "color": "hsl(40, 70%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=418531",
+    "tags": []
+  },
+  "422776": {
+    "spell_id": 422776,
+    "duration": 1.6,
+    "cooldown": 0,
+    "spell_type": "igira-the-cruel",
+    "name": "Marked for Torment",
+    "icon": "ability_mage_tormentoftheweak.jpg",
+    "color": "hsl(120, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=422776",
+    "tags": []
+  }
+}

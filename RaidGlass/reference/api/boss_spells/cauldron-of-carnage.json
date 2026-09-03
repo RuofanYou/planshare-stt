@@ -1,0 +1,80 @@
+{
+  "463798": {
+    "spell_id": 463798,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "cauldron-of-carnage",
+    "name": "Lightning Bash",
+    "icon": "inv_gizmo_supersappercharge.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=463798",
+    "tags": []
+  },
+  "463900": {
+    "spell_id": 463900,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "cauldron-of-carnage",
+    "name": "Thunderdrum Salvo",
+    "icon": "inv_11_arenaboss_thunderdrumsalvo.jpg",
+    "color": "hsl(170, 75%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=463900",
+    "tags": []
+  },
+  "465872": {
+    "spell_id": 465872,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "cauldron-of-carnage",
+    "name": "Colossal Clash",
+    "icon": "inv_11_arenaboss_colossalclash.jpg",
+    "color": "hsl(120, 70%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=465872",
+    "tags": []
+  },
+  "472233": {
+    "spell_id": 472233,
+    "duration": 3.5,
+    "cooldown": 3,
+    "spell_type": "cauldron-of-carnage",
+    "name": "Blastburn Roarcannon",
+    "icon": "spell_shaman_shockinglava.jpg",
+    "color": "hsl(40, 75%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=472233",
+    "tags": []
+  },
+  "473650": {
+    "spell_id": 473650,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "cauldron-of-carnage",
+    "name": "Scrapbomb",
+    "icon": "inv_10_engineering2_boxofbombs_friendly_color1.jpg",
+    "color": "hsl(20, 75%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=473650",
+    "tags": []
+  },
+  "1214190": {
+    "spell_id": 1214190,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "cauldron-of-carnage",
+    "name": "Eruption Stomp",
+    "icon": "inv_gizmo_supersappercharge.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1214190",
+    "tags": []
+  }
+}

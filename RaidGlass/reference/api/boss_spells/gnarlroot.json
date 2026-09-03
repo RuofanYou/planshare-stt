@@ -1,0 +1,54 @@
+{
+  "421013": {
+    "spell_id": 421013,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "gnarlroot",
+    "name": "Doom Cultivation",
+    "icon": "trade_herbalism.jpg",
+    "color": "#60b336",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421013",
+    "tags": []
+  },
+  "421840": {
+    "spell_id": 421840,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "gnarlroot",
+    "name": "Uprooted Agony",
+    "icon": "inv_shadowflame_debuff.jpg",
+    "color": "#c53838",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421840",
+    "tags": []
+  },
+  "422026": {
+    "spell_id": 422026,
+    "duration": 12.5,
+    "cooldown": 0,
+    "spell_type": "gnarlroot",
+    "name": "Tortured Scream",
+    "icon": "ability_soulrenderdormazain_hellscream.jpg",
+    "color": "#7b47bf",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=422026",
+    "tags": []
+  },
+  "424352": {
+    "spell_id": 424352,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "gnarlroot",
+    "name": "Dreadfire Barrage",
+    "icon": "inv_shadowflame_buff.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=424352",
+    "tags": []
+  }
+}

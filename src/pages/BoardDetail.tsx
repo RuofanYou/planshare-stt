@@ -7,7 +7,7 @@ import {
   useMotionValue,
   animate,
 } from 'framer-motion'
-import { useBoard, useBoards, useLikeBoard } from '../api/hooks'
+import { useBoard, useBoards, useLikeBoard, useReportBoard } from '../api/hooks'
 import { formatDate, formatCount, difficultyLabel } from '../lib/format'
 import {
   staggerContainer,
@@ -17,6 +17,7 @@ import {
   dur,
   easeEpic,
 } from '../lib/motion'
+import { copyToClipboard } from '../lib/clipboard'
 import CopyButton from '../components/CopyButton'
 import BoardCard from '../components/BoardCard'
 import {
@@ -37,6 +38,13 @@ const COLLAPSE_LINE_THRESHOLD = 14
 
 /** 玻璃 Toast 停留时长（与 CopyButton 的 1.5s 成功态对齐） */
 const TOAST_DURATION = 1500
+const REPORT_REASONS = [
+  { value: 'wrong-info', label: '内容有误' },
+  { value: 'spam', label: '垃圾内容' },
+  { value: 'abuse', label: '违规内容' },
+  { value: 'copyright', label: '版权问题' },
+  { value: 'other', label: '其它' },
+] as const
 
 /**
  * 浏览量大数字 count-up：进场触发一次，从 0 滚到终值。
@@ -73,9 +81,7 @@ function ViewCountUp({ value }: { value: number }) {
 
 /**
  * 详情页侧栏点赞（服务端持久化版）。
- * 共享 LikeButton 是 mock 本地态（仅展示），本页需要真持久化，故页面级实现：
- * 点击调 useLikeBoard() 写后端 +1，乐观更新本地显示数（先 +1 再发请求，
- * 失败回滚），成功后 hooks 会失效列表/详情让计数与排序由后端真值重算。
+ * 点击调 useLikeBoard() 写后端 +1，乐观更新本地显示数；后端返回后以真值为准。
  * 造型沿用共享 LikeButton 的心形 + 金色语言，保持全站一致。
  */
 function PersistedLike({
@@ -89,52 +95,76 @@ function PersistedLike({
   const likeBoard = useLikeBoard()
   // 本会话内已点过赞则不再重复 +1（与全站「点一次」语义一致；刷新还原由后端真值接管）
   const [liked, setLiked] = useState(false)
-  // 乐观显示数：后端真值（count）+ 本地未落地的 +1
-  const display = liked ? count + 1 : count
+  const [display, setDisplay] = useState(count)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    setLiked(false)
+    setDisplay(count)
+    setError('')
+  }, [boardId])
+
+  useEffect(() => {
+    if (!liked && !likeBoard.isPending) setDisplay(count)
+  }, [count, liked, likeBoard.isPending])
 
   function handleLike() {
+    setError('')
     if (liked || likeBoard.isPending) return
     setLiked(true) // 乐观更新：先点亮 + 数字 +1
+    setDisplay(count + 1)
     likeBoard.mutate(boardId, {
-      onError: () => setLiked(false), // 失败回滚
+      onSuccess: (result) => setDisplay(result.likeCount),
+      onError: () => {
+        setLiked(false)
+        setDisplay(count)
+        setError('点赞失败，请稍后再试。')
+      },
     })
   }
 
   return (
-    <button
-      type="button"
-      className={`ps-like ps-like--default${liked ? ' is-liked' : ''}`}
-      aria-pressed={liked}
-      aria-label={liked ? '已点赞' : '点赞'}
-      disabled={likeBoard.isPending && !liked}
-      onClick={handleLike}
-    >
-      <motion.span
-        className="ps-like__icon"
-        animate={reduce ? undefined : { scale: liked ? [1, 1.25, 1] : 1 }}
-        transition={{ duration: dur.base, ease: easeEpic }}
+    <span className="ps-like-wrap">
+      <button
+        type="button"
+        className={`ps-like ps-like--default${liked ? ' is-liked' : ''}`}
+        aria-pressed={liked}
+        aria-label={liked ? '已点赞' : '点赞'}
+        disabled={likeBoard.isPending && !liked}
+        onClick={handleLike}
       >
-        <Icon name="heart" size={16} filled={liked} />
-      </motion.span>
-      <span className="ps-like__count">
-        {reduce ? (
-          display
-        ) : (
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={display}
-              className="ps-like__count-val"
-              initial={{ y: liked ? 8 : -8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: liked ? -8 : 8, opacity: 0 }}
-              transition={{ duration: dur.fast, ease: easeEpic }}
-            >
-              {display}
-            </motion.span>
-          </AnimatePresence>
-        )}
-      </span>
-    </button>
+        <motion.span
+          className="ps-like__icon"
+          animate={reduce ? undefined : { scale: liked ? [1, 1.25, 1] : 1 }}
+          transition={{ duration: dur.base, ease: easeEpic }}
+        >
+          <Icon name="heart" size={16} filled={liked} />
+        </motion.span>
+        <span className="ps-like__count">
+          {reduce ? (
+            display
+          ) : (
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={display}
+                className="ps-like__count-val"
+                initial={{ y: liked ? 8 : -8, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: liked ? -8 : 8, opacity: 0 }}
+                transition={{ duration: dur.fast, ease: easeEpic }}
+              >
+                {display}
+              </motion.span>
+            </AnimatePresence>
+          )}
+        </span>
+      </button>
+      {error && (
+        <span className="ps-like__error" role="status">
+          {error}
+        </span>
+      )}
+    </span>
   )
 }
 
@@ -225,6 +255,7 @@ export default function BoardDetail() {
   const navigate = useNavigate()
   const reduce = useReducedMotion()
   const boardQuery = useBoard(boardId)
+  const reportBoard = useReportBoard()
   const detail = boardQuery.data
   const board = detail?.board
 
@@ -234,10 +265,16 @@ export default function BoardDetail() {
   const collapsible = lineCount > COLLAPSE_LINE_THRESHOLD
 
   // 复制成功玻璃 Toast：CopyButton 内部已处理剪贴板，这里只负责站点级浮层提示
-  const [toastOn, setToastOn] = useState(false)
-  function flashToast() {
-    setToastOn(true)
-    window.setTimeout(() => setToastOn(false), TOAST_DURATION)
+  const [toastText, setToastText] = useState('')
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState<(typeof REPORT_REASONS)[number]['value']>('wrong-info')
+  const [reportDetail, setReportDetail] = useState('')
+  const [reportDone, setReportDone] = useState(false)
+  const reportDetailRequired = reportReason === 'other'
+  const reportDetailMissing = reportDetailRequired && reportDetail.trim() === ''
+  function flashToast(message = '已复制到剪贴板') {
+    setToastText(message)
+    window.setTimeout(() => setToastText(''), TOAST_DURATION)
   }
 
   // 同一 BOSS 其它板：异步拉 useBoards({ bossId })（后端已排序、已排除隐藏），去掉本板
@@ -255,13 +292,17 @@ export default function BoardDetail() {
 
   // 加载失败 / 未找到：统一玻璃空态
   if (boardQuery.isError || !detail || !board) {
-    const text = boardQuery.isError
-      ? '战术板加载失败，请稍后再试。'
-      : '没有找到这块战术板。'
+    const errorMessage = boardQuery.isError ? (boardQuery.error as Error)?.message : ''
+    const boardUnavailable = errorMessage === 'board not found'
+    const text = boardUnavailable
+      ? '这块战术板已不可见，可能已下架或被管理员隐藏。'
+      : boardQuery.isError
+        ? '战术板加载失败，请稍后再试。'
+        : '没有找到这块战术板。'
     return (
       <DetailFallback
         text={text}
-        isError={boardQuery.isError}
+        isError={boardQuery.isError && !boardUnavailable}
         onHome={() => navigate('/')}
       />
     )
@@ -274,26 +315,50 @@ export default function BoardDetail() {
   const diffLabel = difficultyLabel(board.difficulty)
 
   /** 复制文本到剪贴板（带非安全上下文降级），成功后弹站点级玻璃 Toast。 */
-  async function copyText(text: string) {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      // 剪贴板不可用（如非安全上下文）时降级：临时 textarea
-      const ta = document.createElement('textarea')
-      ta.value = text
-      ta.style.position = 'fixed'
-      ta.style.opacity = '0'
-      document.body.appendChild(ta)
-      ta.select()
-      try {
-        document.execCommand('copy')
-      } catch {
-        document.body.removeChild(ta)
-        return
-      }
-      document.body.removeChild(ta)
+  async function copyText(text: string, message = '已复制到剪贴板') {
+    const copied = await copyToClipboard(text)
+    if (!copied) {
+      flashToast('复制失败，请手动选中文本复制')
+      return false
     }
-    flashToast()
+    flashToast(message)
+    return true
+  }
+
+  function copyShareLink() {
+    void copyText(window.location.href, '链接已复制')
+  }
+
+  function clearReportError() {
+    if (reportBoard.error) reportBoard.reset()
+  }
+
+  function cancelReport() {
+    clearReportError()
+    setReportOpen(false)
+    setReportReason('wrong-info')
+    setReportDetail('')
+  }
+
+  function submitReport(e: React.FormEvent) {
+    e.preventDefault()
+    if (!board || reportBoard.isPending) return
+    if (reportDetailMissing) return
+    reportBoard.mutate(
+      {
+        boardId: board.id,
+        reason: reportReason,
+        detail: reportDetail.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setReportDone(true)
+          setReportOpen(false)
+          setReportReason('wrong-info')
+          setReportDetail('')
+        },
+      },
+    )
   }
 
   return (
@@ -381,6 +446,19 @@ export default function BoardDetail() {
             >
               复制战术
             </Button>
+            <Button
+              variant="secondary"
+              leadingIcon="copy"
+              onClick={copyShareLink}
+            >
+              复制链接
+            </Button>
+            <Button
+              variant="secondary"
+              to={`/submit?from=${encodeURIComponent(board.id)}`}
+            >
+              基于此投稿
+            </Button>
           </motion.div>
 
           {/* 战术正文块：深玻璃底、mono、保留换行、长文可折叠、右上角 icon 复制 */}
@@ -389,7 +467,7 @@ export default function BoardDetail() {
             aria-label="战术正文"
             variants={reduce ? undefined : staggerItem}
           >
-            <div className="ps-detail__plan-tools" onClick={flashToast}>
+            <div className="ps-detail__plan-tools" onClick={() => flashToast()}>
               <CopyButton text={board.contentText} variant="icon" />
             </div>
             <pre
@@ -450,6 +528,75 @@ export default function BoardDetail() {
             <div className="ps-detail__meta-block ps-detail__meta-block--like">
               <PersistedLike boardId={board.id} count={board.likeCount} />
             </div>
+            <div className="ps-detail__meta-rule" aria-hidden="true" />
+            <div className="ps-detail__meta-block ps-detail__report">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  clearReportError()
+                  setReportOpen((value) => !value)
+                  setReportDone(false)
+                }}
+              >
+                举报
+              </Button>
+              {reportDone && <p className="ps-detail__report-status">举报已提交，已进入管理员处理队列。</p>}
+              {reportOpen && (
+                <form className="ps-detail__report-form glass-strong" onSubmit={submitReport}>
+                  <label className="ps-detail__report-label" htmlFor="ps-report-reason">
+                    理由
+                  </label>
+                  <select
+                    id="ps-report-reason"
+                    className="ps-detail__report-select"
+                    value={reportReason}
+                    onChange={(e) => {
+                      setReportReason(e.target.value as typeof reportReason)
+                      clearReportError()
+                    }}
+                  >
+                    {REPORT_REASONS.map((reason) => (
+                      <option key={reason.value} value={reason.value}>
+                        {reason.label}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="ps-detail__report-label" htmlFor="ps-report-detail">
+                    {reportDetailRequired ? '补充说明（必填）' : '补充说明'}
+                  </label>
+                  <textarea
+                    id="ps-report-detail"
+                    className="ps-detail__report-textarea"
+                    value={reportDetail}
+                    onChange={(e) => {
+                      setReportDetail(e.target.value)
+                      clearReportError()
+                    }}
+                    rows={3}
+                    maxLength={200}
+                  />
+                  {reportDetailMissing && (
+                    <p className="ps-detail__report-error" role="alert">
+                      选择其它原因时请补充说明。
+                    </p>
+                  )}
+                  {reportBoard.error && (
+                    <p className="ps-detail__report-error" role="alert">
+                      {(reportBoard.error as Error).message}
+                    </p>
+                  )}
+                  <div className="ps-detail__report-actions">
+                    <Button type="button" variant="ghost" size="sm" onClick={cancelReport} disabled={reportBoard.isPending}>
+                      取消举报
+                    </Button>
+                    <Button type="submit" variant="primary" size="sm" disabled={reportBoard.isPending || reportDetailMissing}>
+                      {reportBoard.isPending ? '提交中…' : '提交举报'}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
             {/* 作者小署名（侧栏复用主体作者链接行为） */}
             {author && (
               <>
@@ -500,9 +647,9 @@ export default function BoardDetail() {
       {/* ---------------- 复制成功玻璃 Toast（站点级浮层，不阻塞操作） ----------------
           外层 fixed 容器负责水平居中，内层 motion 只动 opacity + y，
           避免 Framer 的 transform 覆盖掉 CSS 的 translateX 居中。 */}
-      <div className="ps-detail__toast-anchor" aria-hidden={!toastOn}>
+      <div className="ps-detail__toast-anchor" aria-hidden={!toastText}>
         <AnimatePresence>
-          {toastOn && (
+          {toastText && (
             <motion.div
               className="ps-detail__toast glass-strong"
               role="status"
@@ -514,7 +661,7 @@ export default function BoardDetail() {
               <span className="ps-detail__toast-icon" aria-hidden="true">
                 <Icon name="check" size={18} />
               </span>
-              <span className="ps-detail__toast-text">已复制到剪贴板</span>
+              <span className="ps-detail__toast-text">{toastText}</span>
             </motion.div>
           )}
         </AnimatePresence>

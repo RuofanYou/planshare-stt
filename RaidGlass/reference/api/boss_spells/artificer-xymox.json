@@ -1,0 +1,67 @@
+{
+  "362721": {
+    "spell_id": 362721,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "artificer-xymox",
+    "name": "Dimensional Tear",
+    "icon": "spell_arcane_portalironforge.jpg",
+    "color": "#ffc800",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362721",
+    "tags": []
+  },
+  "362801": {
+    "spell_id": 362801,
+    "duration": 5.5,
+    "cooldown": 0,
+    "spell_type": "artificer-xymox",
+    "name": "Glyph of Relocation",
+    "icon": "inv_axe_2h_broker_c_01.jpg",
+    "color": "#e61919",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362801",
+    "tags": []
+  },
+  "362885": {
+    "spell_id": 362885,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "artificer-xymox",
+    "name": "Stasis Trap",
+    "icon": "spell_broker_buff.jpg",
+    "color": "#00ffea",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362885",
+    "tags": []
+  },
+  "364465": {
+    "spell_id": 364465,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "artificer-xymox",
+    "name": "Forerunner Rings",
+    "icon": "spell_broker_groundstate.jpg",
+    "color": "",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=364465",
+    "tags": []
+  },
+  "367573": {
+    "spell_id": 367573,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "artificer-xymox",
+    "name": "Genesis Bulwark",
+    "icon": "inv_progenitor_runevessel.jpg",
+    "color": "#00ff00",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=367573",
+    "tags": []
+  }
+}

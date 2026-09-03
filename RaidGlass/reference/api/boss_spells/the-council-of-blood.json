@@ -1,0 +1,41 @@
+{
+  "330959": {
+    "spell_id": 330959,
+    "duration": 36,
+    "cooldown": 0,
+    "spell_type": "the-council-of-blood",
+    "name": "Danse Macabre",
+    "icon": "ability_rogue_shadowdance.jpg",
+    "color": "#2ee62e",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=330959",
+    "tags": []
+  },
+  "331634": {
+    "spell_id": 331634,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "the-council-of-blood",
+    "name": "Dark Recital",
+    "icon": "ability_warlock_soullink.jpg",
+    "color": "#6735d4",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=331634",
+    "tags": []
+  },
+  "347350": {
+    "spell_id": 347350,
+    "duration": 30,
+    "cooldown": 0,
+    "spell_type": "the-council-of-blood",
+    "name": "Dancing Fever",
+    "icon": "ability_deathknight_hemorrhagicfever.jpg",
+    "color": "#d65656",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=347350",
+    "tags": []
+  }
+}

@@ -1,0 +1,29 @@
+
+
+
+
+.container {
+
+    --hover-scale: 1.05;
+
+    cursor: pointer;
+
+    // for the "new"-overlay
+    position: relative;
+    overflow: hidden;
+
+    :global .icon-l {
+        border-width: 1.5px;
+    }
+
+    :global .h2 {
+        margin-bottom: 0;
+    }
+
+    &:hover {
+        border-color: var(--rg-stroke-strong);
+        background:
+            linear-gradient(145deg, rgba(201, 74, 43, 0.16), rgba(240, 177, 90, 0.10)),
+            rgba(42, 24, 14, 0.82);
+    }
+}

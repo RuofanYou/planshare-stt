@@ -1,0 +1,80 @@
+{
+  "459627": {
+    "spell_id": 459627,
+    "duration": 1.5,
+    "cooldown": 25,
+    "spell_type": "vexie-and-the-geargrinders",
+    "name": "Tank Buster",
+    "icon": "ability_vehicle_siegeenginecharge.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=459627",
+    "tags": []
+  },
+  "459671": {
+    "spell_id": 459671,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "vexie-and-the-geargrinders",
+    "name": "Spew Oil",
+    "icon": "spell_yorsahj_bloodboil_black.jpg",
+    "color": "hsl(170, 60%, 75%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=459671",
+    "tags": []
+  },
+  "459943": {
+    "spell_id": 459943,
+    "duration": 1,
+    "cooldown": 0,
+    "spell_type": "vexie-and-the-geargrinders",
+    "name": "Call Bikers",
+    "icon": "inv_viciousgoblintrike.jpg",
+    "color": "hsl(50, 80%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=459943",
+    "tags": []
+  },
+  "460603": {
+    "spell_id": 460603,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "vexie-and-the-geargrinders",
+    "name": "Mechanical Breakdown",
+    "icon": "ability_siege_engineer_detonate.jpg",
+    "color": "hsl(120, 70%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=460603",
+    "tags": []
+  },
+  "468149": {
+    "spell_id": 468149,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "vexie-and-the-geargrinders",
+    "name": "Exhaust Fumes",
+    "icon": "inv_misc_dust.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=468149",
+    "tags": []
+  },
+  "468207": {
+    "spell_id": 468207,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "vexie-and-the-geargrinders",
+    "name": "Incendiary Fire",
+    "icon": "spell_shaman_improvedfirenova.jpg",
+    "color": "hsl(300, 50%, 50%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=468207",
+    "tags": []
+  }
+}

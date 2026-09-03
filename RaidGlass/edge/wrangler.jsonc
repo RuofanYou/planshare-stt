@@ -1,0 +1,100 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "raidglass-refresh",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-15",
+  "triggers": {
+    "crons": ["0 */6 * * *"]
+  },
+  "vars": {
+    "UPSTREAM_ORIGIN": "https://api2.lorrgs.io",
+    "ALLOWED_CRON": "0 */6 * * *"
+  },
+  "d1_databases": [
+    {
+      "binding": "RANKING_DB",
+      "database_name": "raidglass-data",
+      "database_id": "7764d3d9-18cc-4506-a58f-de7f473fb47c"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "REFRESH_QUEUE",
+        "queue": "raidglass-refresh"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "raidglass-refresh",
+        "max_batch_size": 1,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+        "retry_delay": 60,
+        "max_concurrency": 4
+      }
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "REFRESH_COORDINATOR",
+        "class_name": "RefreshCoordinator"
+      }
+    ]
+  },
+  "exports": {
+    "RefreshCoordinator": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  },
+  "observability": {
+    "enabled": true
+  },
+  "env": {
+    "preview": {
+      "name": "raidglass-refresh-preview",
+      "triggers": {
+        "crons": []
+      },
+      "vars": {
+        "UPSTREAM_ORIGIN": "https://api2.lorrgs.io",
+        "ALLOWED_CRON": "* * * * *"
+      },
+      "d1_databases": [
+        {
+          "binding": "RANKING_DB",
+          "database_name": "raidglass-data-preview",
+          "database_id": "bc5f6867-3803-4a0d-9e41-376528090a6f"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "REFRESH_QUEUE",
+            "queue": "raidglass-refresh-preview"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "raidglass-refresh-preview",
+            "max_batch_size": 1,
+            "max_batch_timeout": 5,
+            "max_retries": 3,
+            "retry_delay": 60,
+            "max_concurrency": 4
+          }
+        ]
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "REFRESH_COORDINATOR",
+            "class_name": "RefreshCoordinator"
+          }
+        ]
+      }
+    }
+  }
+}

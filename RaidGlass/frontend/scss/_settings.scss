@@ -1,0 +1,88 @@
+/*
+    Settings that will affect various elements on the pages.
+    think of this like "theme-globals"
+*/
+
+
+// General
+:root {
+
+    // some global colors
+    --success: #4c9f76;
+    --danger: #b84a3d;
+    --info: #2a9ab2;
+    --warning: #b98b32;
+
+    // RaidGlass design tokens
+    --rg-canvas: #e7dbc3;
+    --rg-parchment: #f6eedc;
+    --rg-parchment-soft: #fff8e8;
+    --rg-parchment-deep: #b88a3d;
+    --rg-ink: #241b10;
+    --rg-text: #2f281d;
+    --rg-muted: #756449;
+    --rg-subtle: #9d8a68;
+    --rg-accent: #b88a3d;
+    --rg-accent-strong: #6f4516;
+    --rg-accent-soft: rgba(184, 138, 61, 0.14);
+    --rg-warning-text: #8a5f16;
+    --rg-footer-text: #6f5d43;
+    --rg-action-text: #fff9e7;
+    --rg-action-start: #2f2111;
+    --rg-action-mid: #6f4516;
+    --rg-action-end: #815512;
+    --rg-gold: #b88a3d;
+    --rg-gold-soft: rgba(184, 138, 61, 0.18);
+    --rg-crystal: #d8c397;
+    --rg-crystal-soft: rgba(216, 195, 151, 0.18);
+    --rg-glass: rgba(255, 248, 232, 0.74);
+    --rg-glass-strong: rgba(255, 250, 238, 0.92);
+    --rg-glass-soft: rgba(255, 248, 232, 0.52);
+    --rg-stroke: rgba(145, 101, 40, 0.24);
+    --rg-stroke-strong: rgba(111, 69, 22, 0.46);
+    --rg-gold-stroke: rgba(184, 138, 61, 0.58);
+    --rg-radius-sm: 10px;
+    --rg-radius-md: 20px;
+    --rg-space-1: 4px;
+    --rg-space-2: 8px;
+    --rg-space-3: 12px;
+    --rg-space-4: 16px;
+    --rg-space-6: 24px;
+    --rg-space-8: 32px;
+    --rg-shadow: 0 24px 64px rgba(72, 51, 18, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    --rg-shadow-soft: 0 12px 32px rgba(72, 51, 18, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.84);
+    --rg-control-min-desktop: 40px;
+    --rg-control-min-touch: 44px;
+    --rg-press-scale: 0.965;
+    --rg-press-release: 180ms cubic-bezier(0.2, 0.84, 0.32, 1);
+    --rg-surface-transition: 320ms cubic-bezier(0.2, 0.84, 0.32, 1);
+    --rg-spring-fast: 240ms cubic-bezier(0.2, 0.9, 0.28, 1);
+    --rg-spring-surface: 380ms cubic-bezier(0.18, 0.92, 0.26, 1);
+    --rg-focus-ring-width: 2px;
+    --rg-focus-ring-offset: 2px;
+    --rg-focus-ring-color: #5b330c;
+    --rg-motion-fast: 160ms ease;
+    --rg-motion-normal: 260ms ease;
+    --rg-font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    --rg-font-display: "SF Pro Display", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+
+    // timeline
+    --timeline-height: 52px;
+    --timeline-ruler-height: var(--timeline-height);
+    --rg-player-column-width: clamp(286px, 18vw, 320px);
+
+    // default mode settings
+    --timeline-fight-gap: 10px;
+}
+
+
+/* Page Specific */
+.spec_ranking {
+    --timeline-fight-gap: -1px;  // 1px overlap on border
+}
+
+@media (max-width: 959px) {
+    :root {
+        --rg-player-column-width: clamp(164px, 44vw, 184px);
+    }
+}

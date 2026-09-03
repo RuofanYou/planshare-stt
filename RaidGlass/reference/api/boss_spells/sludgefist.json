@@ -1,0 +1,41 @@
+{
+  "331314": {
+    "spell_id": 331314,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "sludgefist",
+    "name": "Destructive Impact",
+    "icon": "spell_frost_stun.jpg",
+    "color": "#34c0eb",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=331314",
+    "tags": []
+  },
+  "332318": {
+    "spell_id": 332318,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "sludgefist",
+    "name": "Destructive Stomp",
+    "icon": "spell_nature_earthquake.jpg",
+    "color": "#d69429",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=332318",
+    "tags": []
+  },
+  "332687": {
+    "spell_id": 332687,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "sludgefist",
+    "name": "Colossal Roar",
+    "icon": "ability_garrosh_hellscreams_warsong.jpg",
+    "color": "#c94444",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=332687",
+    "tags": []
+  }
+}

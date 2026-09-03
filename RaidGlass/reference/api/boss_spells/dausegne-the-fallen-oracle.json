@@ -1,0 +1,67 @@
+{
+  "359483": {
+    "spell_id": 359483,
+    "duration": 3.4,
+    "cooldown": 0,
+    "spell_type": "dausegne-the-fallen-oracle",
+    "name": "Domination Core",
+    "icon": "spell_progenitor_orb2.jpg",
+    "color": "#ffdd33",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=359483",
+    "tags": []
+  },
+  "360960": {
+    "spell_id": 360960,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "dausegne-the-fallen-oracle",
+    "name": "Staggering Barrage",
+    "icon": "spell_progenitor_beam.jpg",
+    "color": "#aa33ff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=360960",
+    "tags": []
+  },
+  "361513": {
+    "spell_id": 361513,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "dausegne-the-fallen-oracle",
+    "name": "Obliteration Arc",
+    "icon": "spell_progenitor_missile.jpg",
+    "color": "#4da6ff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361513",
+    "tags": []
+  },
+  "361651": {
+    "spell_id": 361651,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "dausegne-the-fallen-oracle",
+    "name": "Siphoned Barrier",
+    "icon": "inv_inscription_vantusrune_progenitor.jpg",
+    "color": "#33ff33",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361651",
+    "tags": []
+  },
+  "362805": {
+    "spell_id": 362805,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "dausegne-the-fallen-oracle",
+    "name": "Disintegration Halo",
+    "icon": "spell_progenitor_areadenial.jpg",
+    "color": "#ff3333",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362805",
+    "tags": []
+  }
+}

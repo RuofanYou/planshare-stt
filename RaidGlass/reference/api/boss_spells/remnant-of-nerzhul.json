@@ -1,0 +1,54 @@
+{
+  "350469": {
+    "spell_id": 350469,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "remnant-of-nerzhul",
+    "name": "Malevolence",
+    "icon": "ability_warlock_eradication.jpg",
+    "color": "#9e4cc2",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=350469",
+    "tags": []
+  },
+  "351066": {
+    "spell_id": 351066,
+    "duration": 2.6,
+    "cooldown": 0,
+    "spell_type": "remnant-of-nerzhul",
+    "name": "Shatter",
+    "icon": "achievement_boss_lichking.jpg",
+    "color": "#ff4747",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=351066",
+    "tags": []
+  },
+  "351067": {
+    "spell_id": 351067,
+    "duration": 2.6,
+    "cooldown": 0,
+    "spell_type": "remnant-of-nerzhul",
+    "name": "Shatter",
+    "icon": "inv_misc_desecrated_plategloves.jpg",
+    "color": "#ff4747",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=351067",
+    "tags": []
+  },
+  "351073": {
+    "spell_id": 351073,
+    "duration": 2.6,
+    "cooldown": 0,
+    "spell_type": "remnant-of-nerzhul",
+    "name": "Shatter",
+    "icon": "inv_misc_desecrated_platechest.jpg",
+    "color": "#ff4747",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=351073",
+    "tags": []
+  }
+}

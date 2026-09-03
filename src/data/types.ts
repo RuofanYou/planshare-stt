@@ -7,7 +7,7 @@
 export interface Raid {
   id: string
   name: string
-  /** 补丁 / 版本号，如 "12.0.5" */
+  /** 版本号，如 "12.0.5" */
   patch: string
   /** 该团本未隐藏的板数（后端统计） */
   boardCount: number
@@ -35,6 +35,9 @@ export interface Author {
   guildRecruit?: string
   /** 联系方式（仅展示 / 可复制） */
   guildContact?: string
+  creatorAccountId?: string
+  visibility?: 'draft' | 'semi_public' | 'approved' | 'hidden'
+  moderationStatus?: string
 }
 
 /** 难度：英雄 / 史诗（标签靠文字区分，不靠颜色） */
@@ -45,7 +48,7 @@ export interface Board {
   id: string
   title: string
   raidId: string
-  /** 所属 BOSS；为 null 表示通用 / 未挂具体 BOSS */
+  /** 所属 BOSS；历史数据可能为 null，新投稿 / 新上稿要求必须选择 BOSS */
   bossId: string | null
   difficulty: Difficulty
   /** 赛季 / 版本，如 "S3" */
@@ -81,7 +84,7 @@ export interface RaidDetail {
 export interface BoardDetail {
   board: Board
   raid: Raid
-  /** 通用板可能无 BOSS */
+  /** 历史数据可能无 BOSS */
   boss: Boss | null
   author: Author
 }
@@ -112,6 +115,127 @@ export interface CreateBoardInput {
   isFeatured: boolean
 }
 
+/** 游客投稿状态：pending 进入审核；approved/rejected/spam/withdrawn 为处理结果。 */
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'spam' | 'withdrawn'
+
+/** POST /api/submissions 请求体：游客投稿，不会直接公开。 */
+export interface CreateSubmissionInput {
+  title: string
+  raidId: string
+  bossId: string | null
+  difficulty: Difficulty
+  seasonVersion: string
+  description: string
+  contentText: string
+  submitterName: string
+  contact?: string
+  wantsCreatorProfile: boolean
+  creatorUsername?: string
+  creatorPassword?: string
+  creatorAvatarUrl?: string
+  creatorBio?: string
+  creatorGuildName?: string
+  creatorGuildRecruit?: string
+  creatorGuildContact?: string
+  website?: string
+}
+
+/** 管理员视角投稿：含联系方式与审核结果；公开站不读取此类型。 */
+export interface AdminSubmission extends CreateSubmissionInput {
+  id: string
+  status: SubmissionStatus
+  sourceKey?: string
+  spamReason?: string
+  reviewNote?: string
+  boardId?: string
+  authorId?: string
+  creatorAuth?: CreatorAuthResult
+  createdAt: string
+  reviewedAt?: string
+}
+
+/** 游客凭投稿编号查询到的有限状态，不暴露联系方式和后台来源信息。 */
+export interface SubmissionReceipt {
+  id: string
+  title: string
+  status: SubmissionStatus
+  reviewNote?: string
+  spamReason?: string
+  boardId?: string
+  createdAt: string
+  reviewedAt?: string
+}
+
+/** 创作者后台视角投稿进度：只展示自己的审核状态和处理结果。 */
+export interface CreatorSubmission {
+  id: string
+  title: string
+  raidId: string
+  bossId: string | null
+  difficulty: Difficulty
+  description: string
+  contentText: string
+  submitterName: string
+  status: SubmissionStatus
+  reviewNote?: string
+  spamReason?: string
+  boardId?: string
+  createdAt: string
+  reviewedAt?: string
+}
+
+/** POST /api/admin/submissions/:id/approve 请求体。 */
+export interface ApproveSubmissionInput {
+  mode: 'existingAuthor' | 'createAuthor' | 'plainAuthor'
+  authorId?: string
+  authorName?: string
+  avatarUrl?: string
+  bio?: string
+  guildName?: string
+  guildRecruit?: string
+  guildContact?: string
+  isFeatured?: boolean
+  note?: string
+}
+
+/** 投稿审核通过结果。 */
+export interface ApproveSubmissionResult {
+  submission: AdminSubmission
+  board: Board
+  author: Author
+  creatorAccount: AdminCreatorAccount | null
+}
+
+export type ReportReason = 'spam' | 'abuse' | 'wrong-info' | 'copyright' | 'other'
+export type ReportStatus = 'pending' | 'hidden' | 'dismissed'
+
+export interface BoardReport {
+  id: string
+  boardId: string
+  boardTitle?: string
+  boardDescription?: string
+  boardContent?: string
+  boardAuthorId?: string
+  boardUpdatedAt?: string
+  reason: ReportReason
+  detail?: string
+  status: ReportStatus
+  resolutionNote?: string
+  createdAt: string
+  reviewedAt?: string
+}
+
+export interface AuditLog {
+  id: string
+  actorType: 'admin' | 'creator'
+  actorId?: string
+  action: string
+  entityType: string
+  entityId?: string
+  detail?: Record<string, unknown>
+  createdAt: string
+}
+
 /* ============================ 管理员后台契约 ============================ */
 
 /**
@@ -121,7 +245,18 @@ export interface CreateBoardInput {
 export interface AdminBoard extends Board {
   /** 是否对公开列表隐藏 */
   isHidden: boolean
+  /** 隐藏来源：creator 表示创作者自助下架，admin 表示管理员治理隐藏 */
+  hiddenBy?: 'creator' | 'admin' | null
 }
+
+/** 创作者后台视角的自己的板：与后台板一样需要看到下架状态。 */
+export type CreatorBoard = AdminBoard
+
+/** POST /api/creator/boards 请求体：authorId/isFeatured 由后端强制决定。 */
+export type CreatorBoardInput = Omit<CreateBoardInput, 'authorId' | 'isFeatured'>
+
+/** PUT /api/creator/boards/:id 请求体：创作者不能修改归属和精选。 */
+export type UpdateCreatorBoardInput = Omit<UpdateBoardInput, 'authorId' | 'isFeatured'>
 
 /**
  * 管理员视角的作者：在公开 Author 形状上多带 boardCount（含隐藏板的总数）。
@@ -129,6 +264,22 @@ export interface AdminBoard extends Board {
 export interface AdminAuthor extends Author {
   /** 该作者名下板数 */
   boardCount: number
+}
+
+/** 管理员视角创作者账号：不包含密码哈希，只暴露运营所需信息。 */
+export interface AdminCreatorAccount extends CreatorUser {
+  author: AdminAuthor | null
+}
+
+/** POST /api/admin/creator-accounts/:id/reset-password 请求体。 */
+export interface ResetCreatorPasswordInput {
+  password: string
+}
+
+/** 管理员重置创作者密码响应。 */
+export interface ResetCreatorPasswordResult {
+  user: CreatorUser
+  revokedSessions: boolean
 }
 
 /**
@@ -164,4 +315,50 @@ export type UpdateAuthorInput = Partial<AuthorInput>
 /** POST /api/admin/login 响应 */
 export interface AdminLoginResult {
   token: string
+}
+
+/** 用户名密码登录后的创作者账号。 */
+export interface CreatorUser {
+  id: string
+  username: string
+  status: 'active' | 'suspended'
+  trustLevel?: 'review' | 'trusted'
+  approvedSubmissionCount?: number
+  authorId?: string
+  contact?: string
+  createdAt: string
+  updatedAt: string
+  lastLoginAt?: string
+}
+
+/** 创作者登录 / 注册响应。 */
+export interface CreatorAuthResult {
+  token: string
+  user: CreatorUser
+  author: Author | null
+}
+
+export interface CreatorProfileInput {
+  name?: string
+  avatarUrl?: string
+  bio?: string
+  guildName?: string
+  guildRecruit?: string
+  guildContact?: string
+}
+
+export interface CreatorPasswordInput {
+  currentPassword: string
+  nextPassword: string
+}
+
+export interface CreatorPasswordResult {
+  ok: true
+  revokedOtherSessions: boolean
+}
+
+/** GET /api/creator/me 响应。 */
+export interface CreatorMeResult {
+  user: CreatorUser
+  author: Author | null
 }

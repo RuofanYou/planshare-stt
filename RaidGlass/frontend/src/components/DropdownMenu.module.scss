@@ -1,0 +1,17 @@
+.trigger {
+    display: inline-grid;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.trigger:focus-visible {
+    border-radius: 5px;
+    outline: 3px solid var(--rg-accent-strong);
+    outline-offset: 2px;
+}

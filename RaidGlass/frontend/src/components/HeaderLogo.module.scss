@@ -1,0 +1,32 @@
+
+
+.container {
+    height: 3.23rem; // icon-l height
+    position: relative;
+}
+
+
+.logo {
+    display: grid;
+    place-items: center;
+    vertical-align: top; // align inside the div
+    margin-top: -1.25px; // offset for border
+    cursor: pointer;
+
+    // pick up the color set from "wow-<classname>"
+    color: var(--wow-color);
+    border: 1px solid currentColor;
+
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0;
+
+    &:hover {
+        color: var(--rg-accent);
+        transform: scale(1.1);
+    }
+
+    &:not(:hover) {
+        transition: all 0.75s 0.25s ease;
+    }
+}

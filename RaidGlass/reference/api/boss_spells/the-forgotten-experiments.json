@@ -1,0 +1,80 @@
+{
+  "404713": {
+    "spell_id": 404713,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "the-forgotten-experiments",
+    "name": "Bellowing Roar",
+    "icon": "ability_evoker_oppressingroar.jpg",
+    "color": "#7a50b5",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=404713",
+    "tags": []
+  },
+  "405042": {
+    "spell_id": 405042,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "the-forgotten-experiments",
+    "name": "Unstable Essence",
+    "icon": "ability_socererking_arcanemines.jpg",
+    "color": "#3ec9de",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=405042",
+    "tags": []
+  },
+  "406227": {
+    "spell_id": 406227,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "the-forgotten-experiments",
+    "name": "Deep Breath",
+    "icon": "ability_evoker_deepbreath.jpg",
+    "color": "#eb3f3f",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=406227",
+    "tags": []
+  },
+  "406358": {
+    "spell_id": 406358,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "the-forgotten-experiments",
+    "name": "Rending Charge",
+    "icon": "ability_xavius_tormentingswipe.jpg",
+    "color": "#eb3f3f",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=406358",
+    "tags": []
+  },
+  "407552": {
+    "spell_id": 407552,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "the-forgotten-experiments",
+    "name": "Temporal Anomaly",
+    "icon": "ability_evoker_temporalanomaly.jpg",
+    "color": "#e8bf46",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=407552",
+    "tags": []
+  },
+  "407775": {
+    "spell_id": 407775,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "the-forgotten-experiments",
+    "name": "Violent Eruption",
+    "icon": "spell_shadow_unstableaffliction_3_purple.jpg",
+    "color": "#eb3f3f",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=407775",
+    "tags": []
+  }
+}

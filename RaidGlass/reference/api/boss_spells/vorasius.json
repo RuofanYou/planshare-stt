@@ -1,0 +1,54 @@
+{
+  "1241768": {
+    "spell_id": 1241768,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "vorasius",
+    "name": "Shadowclaw Slam",
+    "icon": "inv_misc_rylakclaw.jpg",
+    "color": "rgb(232, 143, 42)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1241768",
+    "tags": []
+  },
+  "1254199": {
+    "spell_id": 1254199,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "vorasius",
+    "name": "Parasite Expulsion",
+    "icon": "inv_voidcreepermount_blue.jpg",
+    "color": "rgb(103, 163, 151)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1254199",
+    "tags": []
+  },
+  "1256855": {
+    "spell_id": 1256855,
+    "duration": 15,
+    "cooldown": 0,
+    "spell_type": "vorasius",
+    "name": "Void Breath",
+    "icon": "inv_cosmicvoid_missile.jpg",
+    "color": "rgb(80, 51, 245)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1256855",
+    "tags": []
+  },
+  "1260052": {
+    "spell_id": 1260052,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "vorasius",
+    "name": "Primordial Roar",
+    "icon": "spell_fire_twilightflamebreath.jpg",
+    "color": "rgb(196, 56, 242)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1260052",
+    "tags": []
+  }
+}

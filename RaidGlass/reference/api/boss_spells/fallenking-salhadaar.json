@@ -1,0 +1,67 @@
+{
+  "1246175": {
+    "spell_id": 1246175,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "fallenking-salhadaar",
+    "name": "Entropic Unraveling",
+    "icon": "inv_112_etherealwraps_empowered_blue.jpg",
+    "color": "rgb(247, 17, 63)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1246175",
+    "tags": []
+  },
+  "1247738": {
+    "spell_id": 1247738,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "fallenking-salhadaar",
+    "name": "Void Convergence",
+    "icon": "inv_112_raiddimensius_gravity.jpg",
+    "color": "rgb(79, 34, 227)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1247738",
+    "tags": []
+  },
+  "1248697": {
+    "spell_id": 1248697,
+    "duration": 14,
+    "cooldown": 0,
+    "spell_type": "fallenking-salhadaar",
+    "name": "Despotic Command",
+    "icon": "inv_cosmicvoid_debuff.jpg",
+    "color": "rgb(50, 150, 255)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1248697",
+    "tags": []
+  },
+  "1253032": {
+    "spell_id": 1253032,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "fallenking-salhadaar",
+    "name": "Shattering Twilight",
+    "icon": "inv_mace_2h_etherealking_d_01.jpg",
+    "color": "rgb(114, 20, 168)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1253032",
+    "tags": []
+  },
+  "1254081": {
+    "spell_id": 1254081,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "fallenking-salhadaar",
+    "name": "Fractured Projection",
+    "icon": "inv_112_raidtrinkets_netheroverlaymatrix.jpg",
+    "color": "rgb(234, 138, 237)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1254081",
+    "tags": []
+  }
+}

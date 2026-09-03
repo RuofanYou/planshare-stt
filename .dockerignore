@@ -5,6 +5,7 @@ dist
 .DS_Store
 .workflow
 *.log
+backups/
 server/planshare.db
 server/planshare.db-wal
 server/planshare.db-shm

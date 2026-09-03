@@ -34,8 +34,19 @@
   box-shadow: inset 0 1px 0 0 var(--glass-highlight);
 }
 
+.ps-copy--primary.is-failed {
+  background-image: none;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--blur-card);
+  backdrop-filter: var(--blur-card);
+  color: var(--color-ember-text);
+  border-color: var(--color-ember-border);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight), 0 0 0 1px var(--color-ember-glow);
+}
+
 /* 成功态盖掉 Button primary 的 ::before 顶部柔光（避免砖红柔光残留） */
-.ps-copy--primary.is-copied::before {
+.ps-copy--primary.is-copied::before,
+.ps-copy--primary.is-failed::before {
   display: none;
 }
 
@@ -71,4 +82,9 @@
 .ps-copy--icon.is-copied {
   color: var(--color-success);
   border-color: var(--color-success);
+}
+
+.ps-copy--icon.is-failed {
+  color: var(--color-ember-text);
+  border-color: var(--color-ember-border);
 }

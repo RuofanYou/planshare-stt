@@ -74,7 +74,7 @@ export default function Author() {
 
 /**
  * 作者主页主体（拿到数据后渲染）。
- * 头部三联统计从已加载的 boards 实时聚合（mock 只读）。
+ * 头部三联统计从已加载的公开 boards 实时聚合。
  */
 function AuthorView({
   author,

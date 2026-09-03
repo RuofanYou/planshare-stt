@@ -11,6 +11,7 @@ import {
   Skeleton,
   SkeletonCard,
   EmptyState,
+  Icon,
 } from '../components/ui'
 import './Category.css'
 
@@ -21,6 +22,15 @@ const DIFFICULTY_FILTERS: { key: DifficultyFilter; label: string }[] = [
   { key: 'all', label: '全部' },
   { key: 'heroic', label: '英雄' },
   { key: 'mythic', label: '史诗' },
+]
+
+type SortMode = 'recommended' | 'latest' | 'likes' | 'views'
+
+const SORT_OPTIONS: { key: SortMode; label: string }[] = [
+  { key: 'recommended', label: '推荐排序' },
+  { key: 'latest', label: '最新上传' },
+  { key: 'likes', label: '最多点赞' },
+  { key: 'views', label: '最多浏览' },
 ]
 
 /**
@@ -50,6 +60,7 @@ export default function Category() {
   // 选中的 BOSS：数据异步到位，先留空，加载完默认选第一个
   const [selectedBossId, setSelectedBossId] = useState<string>('')
   const [difficulty, setDifficulty] = useState<DifficultyFilter>('all')
+  const [sortMode, setSortMode] = useState<SortMode>('recommended')
 
   // BOSS 列表到位后，若当前未选或所选已不在列表中，回落到第一个
   useEffect(() => {
@@ -65,9 +76,22 @@ export default function Category() {
   // 难度前端过滤（后端排序已固化，过滤不打乱顺序）
   const boards = useMemo(() => {
     const list = boardsQuery.data ?? []
-    if (difficulty === 'all') return list
-    return list.filter((b) => b.difficulty === difficulty)
-  }, [boardsQuery.data, difficulty])
+    const filtered =
+      difficulty === 'all' ? list : list.filter((b) => b.difficulty === difficulty)
+
+    return [...filtered].sort((a, b) => {
+      if (sortMode === 'latest') return Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
+      if (sortMode === 'likes') return b.likeCount - a.likeCount
+      if (sortMode === 'views') return b.viewCount - a.viewCount
+      return 0
+    })
+  }, [boardsQuery.data, difficulty, sortMode])
+
+  const selectedBoss = bosses.find((boss) => boss.id === selectedBossId)
+  const submitContextUrl =
+    raid?.id && selectedBossId
+      ? `/submit?raidId=${encodeURIComponent(raid.id)}&bossId=${encodeURIComponent(selectedBossId)}`
+      : '/submit'
 
   /* ---------- 团本加载中：整页玻璃骨架屏 ---------- */
   if (raidQuery.isLoading) {
@@ -109,15 +133,20 @@ export default function Category() {
         />
       </motion.div>
 
-      {/* 团本头：史诗金渐变标题 H1 + 补丁号徽标 */}
+      {/* 团本头：市场式列表页头 */}
       <motion.header
         className="ps-cat-head"
         variants={reduce ? undefined : fadeUp}
         initial="hidden"
         animate="show"
       >
-        <h1 className="ps-cat-head__title text-gold-grad">{raid.name}</h1>
-        <Tag variant="gold">补丁 {raid.patch}</Tag>
+        <div className="ps-cat-head__copy">
+          <Tag variant="gold">{raid.patch} 版本</Tag>
+          <h1 className="ps-cat-head__title text-gold-grad">{raid.name}</h1>
+          <p className="ps-cat-head__desc">
+            选择 BOSS 后浏览可复制的战术板，按推荐、最新、点赞或浏览量快速比较。
+          </p>
+        </div>
       </motion.header>
 
       {/* BOSS 选择：玻璃分段控件，选中态金色文字 + 段底浮起高亮 + 金 hairline。
@@ -161,35 +190,60 @@ export default function Category() {
         </motion.div>
       )}
 
-      {/* 列表工具条：难度筛选玻璃 chip + 结果计数 */}
+      {/* 列表工具条：结果数量 + 难度筛选 + 排序 */}
       <motion.div
         className="ps-cat-toolbar"
         variants={reduce ? undefined : fadeUp}
         initial="hidden"
         animate="show"
       >
-        <div className="ps-cat-filter" role="group" aria-label="按难度筛选">
-          {DIFFICULTY_FILTERS.map((opt) => {
-            const active = opt.key === difficulty
-            return (
-              <button
-                key={opt.key}
-                type="button"
-                aria-pressed={active}
-                className={active ? 'ps-cat-chip is-active' : 'ps-cat-chip'}
-                onClick={() => setDifficulty(opt.key)}
-              >
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
-        {/* 仅在板数据就绪后报数，避免加载中闪「共 0 块」 */}
-        {boardsEnabled && boardsQuery.isSuccess && (
+        <div className="ps-cat-toolbar__main">
           <span className="ps-cat-toolbar__count" aria-live="polite">
-            共 {boards.length} 块
+            {boardsEnabled && boardsQuery.isSuccess
+              ? `${boards.length} 块战术板`
+              : '正在加载战术板'}
           </span>
-        )}
+          {selectedBoss && (
+            <span className="ps-cat-toolbar__scope">
+              {selectedBoss.name}
+            </span>
+          )}
+        </div>
+        <div className="ps-cat-toolbar__controls">
+          <div className="ps-cat-filter" role="group" aria-label="按难度筛选">
+            {DIFFICULTY_FILTERS.map((opt) => {
+              const active = opt.key === difficulty
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  aria-pressed={active}
+                  className={active ? 'ps-cat-chip is-active' : 'ps-cat-chip'}
+                  onClick={() => setDifficulty(opt.key)}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+          <label className="ps-cat-sort">
+            <span className="ps-cat-sort__label">排序</span>
+            <span className="ps-cat-sort__select-wrap">
+              <select
+                className="ps-cat-sort__select"
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value as SortMode)}
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chevron" size={16} className="ps-cat-sort__icon" />
+            </span>
+          </label>
+        </div>
       </motion.div>
 
       {/* 板区：加载骨架 / 加载失败 / 空态 / 列表 */}
@@ -213,7 +267,7 @@ export default function Category() {
         >
           {boards.map((board) => (
             <motion.div key={board.id} variants={reduce ? undefined : staggerItem}>
-              <BoardCard board={board} />
+              <BoardCard board={board} variant="market" />
             </motion.div>
           ))}
         </motion.div>
@@ -227,9 +281,13 @@ export default function Category() {
                 ? '这个 BOSS 还没有战术板。'
                 : '当前难度下还没有战术板。'
           }
-          actionLabel={difficulty !== 'all' ? '查看全部难度' : undefined}
+          actionLabel={difficulty !== 'all' ? '查看全部难度' : boardsEnabled ? '投稿补一份' : undefined}
           onAction={
-            difficulty !== 'all' ? () => setDifficulty('all') : undefined
+            difficulty !== 'all'
+              ? () => setDifficulty('all')
+              : boardsEnabled
+                ? () => navigate(submitContextUrl)
+                : undefined
           }
         />
       )}

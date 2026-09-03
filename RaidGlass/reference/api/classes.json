@@ -1,0 +1,221 @@
+{
+  "shaman": {
+    "name": "Shaman",
+    "name_slug": "shaman",
+    "specs": [
+      "shaman-restoration",
+      "shaman-enhancement",
+      "shaman-elemental"
+    ],
+    "spec_ids": [
+      262,
+      263,
+      264
+    ],
+    "color": "#0070DD"
+  },
+  "other": {
+    "name": "Other",
+    "name_slug": "other",
+    "specs": [
+      "other-externals",
+      "other-potions",
+      "other-trinkets"
+    ],
+    "spec_ids": [
+      null,
+      null,
+      null
+    ],
+    "color": "#cccccc"
+  },
+  "rogue": {
+    "name": "Rogue",
+    "name_slug": "rogue",
+    "specs": [
+      "rogue-assassination",
+      "rogue-outlaw",
+      "rogue-subtlety"
+    ],
+    "spec_ids": [
+      261,
+      259,
+      260
+    ],
+    "color": "#FFF468"
+  },
+  "demonhunter": {
+    "name": "Demon Hunter",
+    "name_slug": "demonhunter",
+    "specs": [
+      "demonhunter-vengeance",
+      "demonhunter-havoc",
+      "demonhunter-devourer"
+    ],
+    "spec_ids": [
+      577,
+      581,
+      1480
+    ],
+    "color": "#A330C9"
+  },
+  "racials": {
+    "name": "Racials",
+    "name_slug": "racials",
+    "specs": [],
+    "spec_ids": [],
+    "color": ""
+  },
+  "warlock": {
+    "name": "Warlock",
+    "name_slug": "warlock",
+    "specs": [
+      "warlock-affliction",
+      "warlock-demonology",
+      "warlock-destruction"
+    ],
+    "spec_ids": [
+      265,
+      266,
+      267
+    ],
+    "color": "#8788EE"
+  },
+  "priest": {
+    "name": "Priest",
+    "name_slug": "priest",
+    "specs": [
+      "priest-discipline",
+      "priest-holy",
+      "priest-shadow"
+    ],
+    "spec_ids": [
+      258,
+      256,
+      257
+    ],
+    "color": "#FFFFFF"
+  },
+  "paladin": {
+    "name": "Paladin",
+    "name_slug": "paladin",
+    "specs": [
+      "paladin-protection",
+      "paladin-holy",
+      "paladin-retribution"
+    ],
+    "spec_ids": [
+      70,
+      65,
+      66
+    ],
+    "color": "#F48CBA"
+  },
+  "evoker": {
+    "name": "Evoker",
+    "name_slug": "evoker",
+    "specs": [
+      "evoker-preservation",
+      "evoker-augmentation",
+      "evoker-devastation"
+    ],
+    "spec_ids": [
+      1468,
+      1473,
+      1467
+    ],
+    "color": "#33937F"
+  },
+  "warrior": {
+    "name": "Warrior",
+    "name_slug": "warrior",
+    "specs": [
+      "warrior-protection",
+      "warrior-arms",
+      "warrior-fury"
+    ],
+    "spec_ids": [
+      71,
+      72,
+      73
+    ],
+    "color": "#C69B6D"
+  },
+  "druid": {
+    "name": "Druid",
+    "name_slug": "druid",
+    "specs": [
+      "druid-guardian",
+      "druid-restoration",
+      "druid-feral",
+      "druid-balance"
+    ],
+    "spec_ids": [
+      104,
+      103,
+      102,
+      105
+    ],
+    "color": "#FF7C0A"
+  },
+  "mage": {
+    "name": "Mage",
+    "name_slug": "mage",
+    "specs": [
+      "mage-arcane",
+      "mage-fire",
+      "mage-frost"
+    ],
+    "spec_ids": [
+      63,
+      62,
+      64
+    ],
+    "color": "#3FC7EB"
+  },
+  "monk": {
+    "name": "Monk",
+    "name_slug": "monk",
+    "specs": [
+      "monk-brewmaster",
+      "monk-mistweaver",
+      "monk-windwalker"
+    ],
+    "spec_ids": [
+      270,
+      269,
+      268
+    ],
+    "color": "#00FF98"
+  },
+  "hunter": {
+    "name": "Hunter",
+    "name_slug": "hunter",
+    "specs": [
+      "hunter-survival",
+      "hunter-beastmastery",
+      "hunter-marksmanship"
+    ],
+    "spec_ids": [
+      254,
+      255,
+      253
+    ],
+    "color": "#AAD372"
+  },
+  "deathknight": {
+    "name": "Death Knight",
+    "name_slug": "deathknight",
+    "specs": [
+      "deathknight-blood",
+      "deathknight-frost",
+      "deathknight-unholy"
+    ],
+    "spec_ids": [
+      252,
+      250,
+      251
+    ],
+    "color": "#C41E3A"
+  }
+}

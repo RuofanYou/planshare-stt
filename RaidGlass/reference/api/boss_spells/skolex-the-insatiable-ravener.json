@@ -1,0 +1,80 @@
+{
+  "359770": {
+    "spell_id": 359770,
+    "duration": 7,
+    "cooldown": 0,
+    "spell_type": "skolex-the-insatiable-ravener",
+    "name": "Ravening Burrow",
+    "icon": "ability_argus_soulburst.jpg",
+    "color": "#19d9e3",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=359770",
+    "tags": []
+  },
+  "359829": {
+    "spell_id": 359829,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "skolex-the-insatiable-ravener",
+    "name": "Dust Flail",
+    "icon": "ability_butcher_whirl.jpg",
+    "color": "#e3ad19",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=359829",
+    "tags": []
+  },
+  "359975": {
+    "spell_id": 359975,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "skolex-the-insatiable-ravener",
+    "name": "Riftmaw",
+    "icon": "inv_netherportal.jpg",
+    "color": "",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=359975",
+    "tags": []
+  },
+  "359979": {
+    "spell_id": 359979,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "skolex-the-insatiable-ravener",
+    "name": "Rend",
+    "icon": "inv_sword_2h_artifactsoulrend_d_06.jpg",
+    "color": "",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=359979",
+    "tags": []
+  },
+  "360451": {
+    "spell_id": 360451,
+    "duration": 6.5,
+    "cooldown": 0,
+    "spell_type": "skolex-the-insatiable-ravener",
+    "name": "Retch",
+    "icon": "spell_nature_acid_01.jpg",
+    "color": "#9919e3",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=360451",
+    "tags": []
+  },
+  "364622": {
+    "spell_id": 364622,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "skolex-the-insatiable-ravener",
+    "name": "Final Consumption",
+    "icon": "spell_shadow_unholyfrenzy.jpg",
+    "color": "",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=364622",
+    "tags": []
+  }
+}

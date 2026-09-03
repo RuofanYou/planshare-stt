@@ -1,0 +1,41 @@
+{
+  "421343": {
+    "spell_id": 421343,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "smolderon",
+    "name": "Brand of Damnation",
+    "icon": "inv_knife_1h_firelandsraid_d_01.jpg",
+    "color": "hsl(270, 80%, 70%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421343",
+    "tags": []
+  },
+  "421455": {
+    "spell_id": 421455,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "smolderon",
+    "name": "Overheated",
+    "icon": "ability_warlock_inferno.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421455",
+    "tags": []
+  },
+  "422172": {
+    "spell_id": 422172,
+    "duration": 30,
+    "cooldown": 0,
+    "spell_type": "smolderon",
+    "name": "World In Flames",
+    "icon": "ability_racial_foregedinflames.jpg",
+    "color": "hsl(120, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=422172",
+    "tags": []
+  }
+}

@@ -1,0 +1,51 @@
+
+
+.url_input {
+
+    display: flex;
+    flex-wrap: nowrap;  // input-group sets it to wrap
+    gap: 0.4rem;
+
+    input {
+        font-size: large;
+        border-color: var(--wow-artifact);
+        border-radius: var(--border-radius);
+    }
+
+    button {
+
+        --color: var(--wow-artifact);
+
+        border: 1px solid var(--color);
+
+        width: 41px;
+        height: 41px;
+        flex-shrink: 0;
+
+        background:
+            linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.48)),
+            var(--rg-glass);
+        color: var(--color);
+        border-color: var(--color);
+
+        border-radius: var(--border-radius);
+
+        svg {
+            height: 1.75em;
+            width: 1.75em;
+        }
+
+
+        &:disabled,
+        &:disabled:hover {
+            cursor: default;
+            --color: var(--rg-subtle);
+            border-color: var(--color);
+        }
+
+        &:not(:disabled):hover {
+            --color: var(--rg-accent);
+            background-color: var(--bg-dark-hover);
+        }
+    }
+}

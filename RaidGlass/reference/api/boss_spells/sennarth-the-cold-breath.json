@@ -1,0 +1,93 @@
+{
+  "371976": {
+    "spell_id": 371976,
+    "duration": 7,
+    "cooldown": 0,
+    "spell_type": "sennarth-the-cold-breath",
+    "name": "Chilling Blast",
+    "icon": "spell_fire_blueflamering.jpg",
+    "color": "#2996cc",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=371976",
+    "tags": []
+  },
+  "372082": {
+    "spell_id": 372082,
+    "duration": 7,
+    "cooldown": 0,
+    "spell_type": "sennarth-the-cold-breath",
+    "name": "Enveloping Webs",
+    "icon": "inv_misc_web_01.jpg",
+    "color": "#af60bf",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=372082",
+    "tags": []
+  },
+  "372238": {
+    "spell_id": 372238,
+    "duration": 9,
+    "cooldown": 0,
+    "spell_type": "sennarth-the-cold-breath",
+    "name": "Call Spiderlings",
+    "icon": "inv_misc_monsterspidercarapace_01.jpg",
+    "color": "#60bf30",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=372238",
+    "tags": []
+  },
+  "372648": {
+    "spell_id": 372648,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "sennarth-the-cold-breath",
+    "name": "Pervasive Cold",
+    "icon": "ability_mage_chilledtothebone.jpg",
+    "color": "#bf3030",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=372648",
+    "tags": []
+  },
+  "373027": {
+    "spell_id": 373027,
+    "duration": 9,
+    "cooldown": 0,
+    "spell_type": "sennarth-the-cold-breath",
+    "name": "Suffocating Webs",
+    "icon": "inv_misc_web_02.jpg",
+    "color": "#af60bf",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=373027",
+    "tags": []
+  },
+  "373405": {
+    "spell_id": 373405,
+    "duration": 9,
+    "cooldown": 0,
+    "spell_type": "sennarth-the-cold-breath",
+    "name": "Gossamer Burst",
+    "icon": "priest_icon_chakra.jpg",
+    "color": "#ffd500",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=373405",
+    "tags": []
+  },
+  "373817": {
+    "spell_id": 373817,
+    "duration": 7,
+    "cooldown": 0,
+    "spell_type": "sennarth-the-cold-breath",
+    "name": "Chilling Aura",
+    "icon": "spell_frost_coldhearted.jpg",
+    "color": "#45e6cb",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=373817",
+    "tags": []
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "413443": {
+    "spell_id": 413443,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "nymue-weaver-of-the-cycle",
+    "name": "Life Ward",
+    "icon": "spell_nature_skinofearth.jpg",
+    "color": "hsl(120, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=413443",
+    "tags": []
+  },
+  "420907": {
+    "spell_id": 420907,
+    "duration": 7.5,
+    "cooldown": 0,
+    "spell_type": "nymue-weaver-of-the-cycle",
+    "name": "Viridian Rain",
+    "icon": "ability_evoker_dreamflight.jpg",
+    "color": "hsl(175, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=420907",
+    "tags": []
+  },
+  "426519": {
+    "spell_id": 426519,
+    "duration": 14,
+    "cooldown": 0,
+    "spell_type": "nymue-weaver-of-the-cycle",
+    "name": "Weaver's Burden",
+    "icon": "inv_10_enchanting2_magicswirl_green.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=426519",
+    "tags": []
+  }
+}

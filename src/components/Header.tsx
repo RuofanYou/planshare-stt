@@ -20,8 +20,8 @@ export default function Header() {
     <header className="ps-header">
       <div className="container ps-header__inner">
         {/* wordmark：金色渐变，回首页 */}
-        <Link to="/" className="ps-header__brand" aria-label="PlanShare 首页">
-          <span className="text-gold-grad">PlanShare</span>
+        <Link to="/" className="ps-header__brand" aria-label="找板子首页">
+          <span className="text-gold-grad">找板子</span>
         </Link>
 
         {/* 主导航 */}
@@ -42,6 +42,38 @@ export default function Header() {
           >
             按团本浏览
           </Link>
+          <NavLink
+            to="/loot"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            装备掉落
+          </NavLink>
+          <NavLink
+            to="/submit"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            投稿
+          </NavLink>
+          <NavLink
+            to="/translator"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            翻译器
+          </NavLink>
+          <NavLink
+            to="/creator"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            创作者
+          </NavLink>
         </nav>
       </div>
     </header>

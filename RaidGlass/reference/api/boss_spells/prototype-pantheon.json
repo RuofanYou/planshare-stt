@@ -1,0 +1,80 @@
+{
+  "360295": {
+    "spell_id": 360295,
+    "duration": 30,
+    "cooldown": 0,
+    "spell_type": "prototype-pantheon",
+    "name": "Necrotic Ritual",
+    "icon": "ability_warlock_cremation.jpg",
+    "color": "#33ffbb",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=360295",
+    "tags": []
+  },
+  "360687": {
+    "spell_id": 360687,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "prototype-pantheon",
+    "name": "Runecarver's Deathtouch",
+    "icon": "spell_necro_deathsdoor.jpg",
+    "color": "#8a2ee6",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=360687",
+    "tags": []
+  },
+  "361568": {
+    "spell_id": 361568,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "prototype-pantheon",
+    "name": "Withering Seeds",
+    "icon": "ability_ardenweald_mage.jpg",
+    "color": "#3480eb",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361568",
+    "tags": []
+  },
+  "361789": {
+    "spell_id": 361789,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "prototype-pantheon",
+    "name": "Hand of Destruction",
+    "icon": "spell_shadow_unholystrength.jpg",
+    "color": "#e62e2e",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361789",
+    "tags": []
+  },
+  "364941": {
+    "spell_id": 364941,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "prototype-pantheon",
+    "name": "Windswept Wings",
+    "icon": "inv_icon_wing06b.jpg",
+    "color": "#2ee6e6",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=364941",
+    "tags": []
+  },
+  "365126": {
+    "spell_id": 365126,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "prototype-pantheon",
+    "name": "Wracking Pain",
+    "icon": "spell_animarevendreth_wave.jpg",
+    "color": "#e6b82e",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=365126",
+    "tags": []
+  }
+}

@@ -1,0 +1,41 @@
+
+
+.spec_button {
+
+    &.active {
+        img {
+            border-width: 2px;
+        }
+    }
+
+    &:not(.active):not(:hover) {
+        opacity: 0.3;
+        border: 0.5;
+    }
+}
+
+
+.spell_table {
+
+    border: 1px solid sienna;
+
+    tr {
+        border: 1px solid var(--rg-stroke);
+
+        &:hover {
+            font-weight: bold;
+            background-color: var(--rg-accent-soft);
+        }
+    }
+
+    thead {
+        background-color: var(--rg-glass-strong);
+    }
+
+    td {
+        padding: 4px 8px;
+    }
+
+
+
+}

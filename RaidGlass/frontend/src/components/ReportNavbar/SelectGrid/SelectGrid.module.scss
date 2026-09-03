@@ -1,0 +1,53 @@
+
+
+.icon {
+
+    // have to add some dummy as otherwise `.icon` wont be exported
+    dummy: 2;
+
+    // causes issues with some z-index overlap in the player widget
+    // cba fixing it now.
+    // --hover-scale: 1.3;
+
+    &__selected {
+
+        img {
+            border: 1.5px solid var(--rg-accent);
+         }
+    }
+}
+
+
+// container for the items for each row
+.row__items__container {
+    --item-width: 6rem;
+
+    display: grid;
+
+    width: 100%; // fill the parent container
+    grid-template-columns: repeat(auto-fit, var(--item-width));
+
+    gap: 0.25rem;
+}
+
+
+// container for a single item
+.item__container {
+
+    // size
+    width: var(--item-width);
+    height: 32px; // same as icon-m
+    padding: 3px; // to center a icon-s inside incl border
+
+    // style
+    background: var(--rg-glass-strong);
+
+    // interaction
+    user-select: none;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--rg-stroke-strong);
+        background-color: rgba(255, 255, 255, 0.84);
+    }
+}

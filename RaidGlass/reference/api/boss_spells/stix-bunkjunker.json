@@ -1,0 +1,67 @@
+{
+  "464112": {
+    "spell_id": 464112,
+    "duration": 1.25,
+    "cooldown": 50,
+    "spell_type": "stix-bunkjunker",
+    "name": "Demolish",
+    "icon": "inv_misc_enggizmos_12.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=464112",
+    "tags": []
+  },
+  "464149": {
+    "spell_id": 464149,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "stix-bunkjunker",
+    "name": "Incinerator",
+    "icon": "ability_ironmaidens_bombardment.jpg",
+    "color": "hsl(35, 75%,50%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=464149",
+    "tags": []
+  },
+  "464399": {
+    "spell_id": 464399,
+    "duration": 1,
+    "cooldown": 5,
+    "spell_type": "stix-bunkjunker",
+    "name": "Electromagnetic Sorting",
+    "icon": "inv_10_engineering_manufacturedparts_mechanicalparts_color3.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=464399",
+    "tags": []
+  },
+  "467117": {
+    "spell_id": 467117,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "stix-bunkjunker",
+    "name": "Overdrive / Trash Compactor",
+    "icon": "spell_nature_unrelentingstorm.jpg",
+    "color": "hsl(120, 70%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=467117",
+    "tags": []
+  },
+  "1217954": {
+    "spell_id": 1217954,
+    "duration": 1,
+    "cooldown": 3,
+    "spell_type": "stix-bunkjunker",
+    "name": "Meltdown",
+    "icon": "inv_misc_enggizmos_15.jpg",
+    "color": "##3fbfbd",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1217954",
+    "tags": []
+  }
+}

@@ -1,0 +1,141 @@
+.loadingPage {
+    min-width: 0;
+}
+
+.loadingIntro {
+    width: min(720px, 100%);
+    margin-bottom: clamp(26px, 3vw, 44px);
+
+    h1,
+    p {
+        margin: 0;
+    }
+
+    h1 {
+        color: var(--rg-ink);
+        font-family: var(--rg-font-display);
+        font-size: clamp(2rem, 1.5rem + 2vw, 3.8rem);
+        font-weight: 750;
+        line-height: 1;
+        letter-spacing: -0.048em;
+    }
+
+    p {
+        margin-top: 14px;
+        color: var(--rg-muted);
+        font-size: clamp(1rem, 0.94rem + 0.24vw, 1.14rem);
+        line-height: 1.6;
+    }
+}
+
+.loadingEyebrow {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--rg-accent-strong);
+    font-size: 0.76rem;
+    font-weight: 790;
+    letter-spacing: 0.14em;
+}
+
+.loadingSurface {
+    position: relative;
+    min-height: 510px;
+    overflow: hidden;
+    border: 1px solid rgba(145, 101, 40, 0.15);
+    border-radius: 26px;
+    background: rgba(255, 252, 245, 0.72);
+    box-shadow: var(--rg-shadow-soft);
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.56) 48%, transparent 76%);
+        transform: translateX(-100%);
+        animation: loading-sweep 1.8s ease-in-out infinite;
+    }
+}
+
+.loadingContext {
+    min-height: 190px;
+    padding: clamp(26px, 3vw, 42px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 34%);
+    gap: 16px 40px;
+    border-bottom: 1px solid rgba(145, 101, 40, 0.11);
+
+    span,
+    strong,
+    small {
+        display: block;
+        border-radius: 999px;
+        background: rgba(184, 138, 61, 0.11);
+    }
+
+    span {
+        width: 30%;
+        height: 11px;
+    }
+
+    strong {
+        grid-column: 1;
+        width: 72%;
+        height: 48px;
+    }
+
+    small {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        height: 52px;
+        align-self: center;
+    }
+}
+
+.loadingRows {
+    padding-top: 66px;
+    display: grid;
+
+    span {
+        height: 52px;
+        border-top: 1px solid rgba(145, 101, 40, 0.10);
+        background:
+            linear-gradient(90deg, rgba(184, 138, 61, 0.09) 0 20%, transparent 20%),
+            linear-gradient(90deg, transparent 26%, rgba(184, 138, 61, 0.07) 26% 42%, transparent 42%);
+    }
+}
+
+@keyframes loading-sweep {
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@media (max-width: 959px) {
+    .loadingIntro {
+        padding-inline: 8px;
+    }
+
+    .loadingSurface {
+        min-height: 440px;
+        border-radius: 22px;
+    }
+
+    .loadingContext {
+        min-height: 176px;
+        padding: 22px;
+        grid-template-columns: minmax(0, 1fr);
+
+        small {
+            grid-column: 1;
+            grid-row: auto;
+            width: 100%;
+            height: 46px;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loadingSurface::after {
+        animation: none;
+    }
+}

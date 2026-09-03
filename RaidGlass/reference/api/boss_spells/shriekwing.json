@@ -1,0 +1,41 @@
+{
+  "328921": {
+    "spell_id": 328921,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "shriekwing",
+    "name": "Blood Shroud",
+    "icon": "ability_deathwing_bloodcorruption_earth.jpg",
+    "color": "#3f8c49",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=328921",
+    "tags": []
+  },
+  "342863": {
+    "spell_id": 342863,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "shriekwing",
+    "name": "Echoing Screech",
+    "icon": "spell_nature_wispsplode.jpg",
+    "color": "#7af6ff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=342863",
+    "tags": []
+  },
+  "345397": {
+    "spell_id": 345397,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "shriekwing",
+    "name": "Wave of Blood",
+    "icon": "ability_ironmaidens_whirlofblood.jpg",
+    "color": "#c94444",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=345397",
+    "tags": []
+  }
+}

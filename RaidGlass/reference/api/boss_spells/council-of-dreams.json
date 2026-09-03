@@ -1,0 +1,80 @@
+{
+  "418757": {
+    "spell_id": 418757,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "council-of-dreams",
+    "name": "Polymorph Bomb",
+    "icon": "inv_duckbaby_mallard.jpg",
+    "color": "hsl(270, 85%, 70%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=418757",
+    "tags": []
+  },
+  "420525": {
+    "spell_id": 420525,
+    "duration": 12.5,
+    "cooldown": 0,
+    "spell_type": "council-of-dreams",
+    "name": "Blind Rage",
+    "icon": "spell_winston_rage.jpg",
+    "color": "hsl(330, 60%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=420525",
+    "tags": []
+  },
+  "420947": {
+    "spell_id": 420947,
+    "duration": 12.5,
+    "cooldown": 0,
+    "spell_type": "council-of-dreams",
+    "name": "Barreling Charge",
+    "icon": "ability_xavius_tormentingswipe.jpg",
+    "color": "hsl(10, 60%, 55%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=420947",
+    "tags": []
+  },
+  "421020": {
+    "spell_id": 421020,
+    "duration": 18,
+    "cooldown": 0,
+    "spell_type": "council-of-dreams",
+    "name": "Agonizing Claws",
+    "icon": "spell_druid_bloodythrash.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=421020",
+    "tags": []
+  },
+  "421029": {
+    "spell_id": 421029,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "council-of-dreams",
+    "name": "Song of the Dragon",
+    "icon": "inv_misc_firedancer_01.jpg",
+    "color": "hsl(45, 85%, 70%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421029",
+    "tags": []
+  },
+  "421292": {
+    "spell_id": 421292,
+    "duration": 22,
+    "cooldown": 0,
+    "spell_type": "council-of-dreams",
+    "name": "Constricting Thicket",
+    "icon": "spell_nature_stranglevines.jpg",
+    "color": "hsl(90, 60%, 55%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421292",
+    "tags": []
+  }
+}

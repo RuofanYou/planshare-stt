@@ -1,0 +1,52 @@
+
+.container {
+    display: flex;
+    gap: 1rem;
+
+    // the width we currently need for the 2 select grids
+    flex-basis: 1088px;
+
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+.submit_button {
+    --hover-scale: 1.1;
+
+    --color: var(--wow-artifact);
+
+    border: 1px solid var(--rg-stroke);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.48)),
+        var(--rg-glass);
+
+    border-color: var(--color);
+    color: var(--color);
+
+    border-radius: .25rem;
+    height: 40px;
+    width: 6rem; // same width as the select grid items
+    padding: 7px 16px;
+
+    font-size: larger;
+
+    &:not(:disabled):hover {
+        --color: var(--rg-accent);
+        background-color: rgba(255, 255, 255, 0.88);
+    }
+
+    &:disabled,
+    &:disabled:hover {
+        --hover-scale: 1.0;
+        --color: var(--rg-subtle);
+
+        cursor: default;
+        border-color: var(--color);
+    }
+}
+
+.patreon_info {
+    display: flex;
+    align-items: center;
+}

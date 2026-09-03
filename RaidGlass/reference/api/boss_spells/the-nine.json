@@ -1,0 +1,41 @@
+{
+  "350039": {
+    "spell_id": 350039,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "the-nine",
+    "name": "Arthura's Crushing Gaze",
+    "icon": "spell_ice_lament.jpg",
+    "color": "#47eaff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=350039",
+    "tags": []
+  },
+  "350542": {
+    "spell_id": 350542,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "the-nine",
+    "name": "Fragments of Destiny",
+    "icon": "spell_frost_ice-shards.jpg",
+    "color": "#2977ff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=350542",
+    "tags": []
+  },
+  "355294": {
+    "spell_id": 355294,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "the-nine",
+    "name": "Resentment",
+    "icon": "spell_animamaw_buff.jpg",
+    "color": "#a1b2cc",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=355294",
+    "tags": []
+  }
+}

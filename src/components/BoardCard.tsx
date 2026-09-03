@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Board } from '../data/types'
-import { useRaidsMap, useAuthorsMap, useBossName } from '../api/hooks'
+import { useRaidsMap, useAuthorsMap, useBossName, useLikeBoard } from '../api/hooks'
 import { GlassCard, Tag, Avatar, Stat } from './ui'
 import DifficultyTag from './DifficultyTag'
 import LikeButton from './LikeButton'
@@ -8,8 +8,21 @@ import './BoardCard.css'
 
 interface BoardCardProps {
   board: Board
-  /** compact = 作者主页内列表用，更紧凑 */
-  variant?: 'default' | 'compact'
+  /** compact = 作者主页内列表用；market = 浏览页模板市场卡 */
+  variant?: 'default' | 'compact' | 'market'
+}
+
+const PREVIEW_LINE_COUNT = 4
+
+function getBoardPreviewLines(board: Board): string[] {
+  const lines = board.contentText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, PREVIEW_LINE_COUNT)
+
+  if (lines.length > 0) return lines
+  return [board.description || board.title]
 }
 
 /**
@@ -21,12 +34,14 @@ export default function BoardCard({ board, variant = 'default' }: BoardCardProps
   // 卡片只拿到 id，名称从共享缓存的查询表 / 轻量 hook 反查，避免每张卡各发请求。
   const raidsMap = useRaidsMap()
   const authorsMap = useAuthorsMap()
+  const likeBoard = useLikeBoard()
   const raidName = raidsMap.get(board.raidId)?.name
   const bossName = useBossName(board.raidId, board.bossId)
   const author = authorsMap.get(board.authorId)
 
   // 适用范围：团本 · BOSS（BOSS 可能为 null）
   const scope = [raidName, bossName].filter(Boolean).join(' · ')
+  const previewLines = variant === 'market' ? getBoardPreviewLines(board) : []
 
   return (
     <GlassCard as="article" interactive className={`ps-card ps-card--${variant}`}>
@@ -39,6 +54,20 @@ export default function BoardCard({ board, variant = 'default' }: BoardCardProps
       )}
 
       <Link to={`/board/${board.id}`} className="ps-card__link">
+        {variant === 'market' && (
+          <div className="ps-card__preview" aria-hidden="true">
+            <pre className="ps-card__preview-code">
+              {previewLines.map((line, index) => (
+                <span key={`${board.id}-preview-${index}`} className="ps-card__preview-row">
+                  <span className="ps-card__preview-index">{index + 1}</span>
+                  <span className="ps-card__preview-text">{line}</span>
+                </span>
+              ))}
+            </pre>
+            <span className="ps-card__preview-mark">{board.difficulty === 'mythic' ? 'M' : 'H'}</span>
+          </div>
+        )}
+
         <h3 className="ps-card__title">{board.title}</h3>
 
         <p className="ps-card__scope">{scope}</p>
@@ -63,7 +92,14 @@ export default function BoardCard({ board, variant = 'default' }: BoardCardProps
         )}
         <div className="ps-card__metrics">
           <Stat kind="view" value={board.viewCount} label="浏览量" />
-          <LikeButton count={board.likeCount} size="compact" />
+          <LikeButton
+            count={board.likeCount}
+            size="compact"
+            onLike={async () => {
+              const result = await likeBoard.mutateAsync(board.id)
+              return result.likeCount
+            }}
+          />
         </div>
       </div>
     </GlassCard>

@@ -1,0 +1,5 @@
+{
+  "rankingTopN": 10,
+  "deploymentManifestSchemaVersion": 2,
+  "combatRoles": ["mdps", "rdps", "heal", "tank"]
+}

@@ -1,0 +1,41 @@
+{
+  "348987": {
+    "spell_id": 348987,
+    "duration": 9,
+    "cooldown": 0,
+    "spell_type": "soulrender-dormazain",
+    "name": "Break Shackles",
+    "icon": "inv_belt_18.jpg",
+    "color": "#b07f6b",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=348987",
+    "tags": []
+  },
+  "350615": {
+    "spell_id": 350615,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "soulrender-dormazain",
+    "name": "Adds",
+    "icon": "inv_mawguardpet_red.jpg",
+    "color": "#24cbd1",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=350615",
+    "tags": []
+  },
+  "352933": {
+    "spell_id": 352933,
+    "duration": 30,
+    "cooldown": 0,
+    "spell_type": "soulrender-dormazain",
+    "name": "Dance",
+    "icon": "spell_animarevendreth_wave.jpg",
+    "color": "#4cb840",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=352933",
+    "tags": []
+  }
+}

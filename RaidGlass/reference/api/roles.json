@@ -1,0 +1,182 @@
+{
+  "roles": [
+    {
+      "id": 2001,
+      "name": "Mixed",
+      "code": "mix",
+      "specs": [],
+      "spec_ids": [],
+      "metrics": [
+        "dps",
+        "hps",
+        "bossdps"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Tank",
+      "code": "tank",
+      "specs": [
+        "warrior-protection",
+        "paladin-protection",
+        "deathknight-blood",
+        "monk-brewmaster",
+        "druid-guardian",
+        "demonhunter-vengeance"
+      ],
+      "spec_ids": [
+        73,
+        66,
+        250,
+        268,
+        104,
+        581
+      ],
+      "metrics": [
+        "dps",
+        "hps",
+        "bossdps"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Healer",
+      "code": "heal",
+      "specs": [
+        "paladin-holy",
+        "priest-discipline",
+        "priest-holy",
+        "shaman-restoration",
+        "monk-mistweaver",
+        "druid-restoration",
+        "evoker-preservation"
+      ],
+      "spec_ids": [
+        65,
+        256,
+        257,
+        264,
+        270,
+        105,
+        1468
+      ],
+      "metrics": [
+        "dps",
+        "hps",
+        "bossdps"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Melee",
+      "code": "mdps",
+      "specs": [
+        "warrior-arms",
+        "warrior-fury",
+        "paladin-retribution",
+        "hunter-survival",
+        "rogue-assassination",
+        "rogue-outlaw",
+        "rogue-subtlety",
+        "deathknight-frost",
+        "deathknight-unholy",
+        "shaman-enhancement",
+        "monk-windwalker",
+        "druid-feral",
+        "demonhunter-havoc"
+      ],
+      "spec_ids": [
+        71,
+        72,
+        70,
+        255,
+        259,
+        260,
+        261,
+        251,
+        252,
+        263,
+        269,
+        103,
+        577
+      ],
+      "metrics": [
+        "dps",
+        "bossdps"
+      ]
+    },
+    {
+      "id": 1001,
+      "name": "Items",
+      "code": "item",
+      "specs": [
+        "other-externals",
+        "other-potions",
+        "other-trinkets"
+      ],
+      "spec_ids": [
+        null,
+        null,
+        null
+      ],
+      "metrics": [
+        "dps",
+        "hps",
+        "bossdps"
+      ]
+    },
+    {
+      "id": 1002,
+      "name": "Utility",
+      "code": "util",
+      "specs": [],
+      "spec_ids": [],
+      "metrics": [
+        "dps",
+        "hps",
+        "bossdps"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Range",
+      "code": "rdps",
+      "specs": [
+        "hunter-beastmastery",
+        "hunter-marksmanship",
+        "priest-shadow",
+        "shaman-elemental",
+        "mage-arcane",
+        "mage-fire",
+        "mage-frost",
+        "warlock-affliction",
+        "warlock-demonology",
+        "warlock-destruction",
+        "druid-balance",
+        "demonhunter-devourer",
+        "evoker-augmentation",
+        "evoker-devastation"
+      ],
+      "spec_ids": [
+        253,
+        254,
+        258,
+        262,
+        62,
+        63,
+        64,
+        265,
+        266,
+        267,
+        102,
+        1480,
+        1473,
+        1467
+      ],
+      "metrics": [
+        "dps",
+        "bossdps"
+      ]
+    }
+  ]
+}

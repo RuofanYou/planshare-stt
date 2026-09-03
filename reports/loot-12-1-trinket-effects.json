@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": 1,
+  "gameBuild": "12.1.0.69111",
+  "accessedAt": "2026-08-05",
+  "purpose": "只为网页生成饰品效果；中文来自 Wago Spell zhCN，数值来自已选物品档位 tooltip。",
+  "sources": [
+    {
+      "name": "Wago DB2 ItemXItemEffect",
+      "urlTemplate": "https://wago.tools/db2/ItemXItemEffect/csv?build=12.1.0.69111&filter%5BItemID%5D={itemId}"
+    },
+    {
+      "name": "Wago DB2 ItemEffect",
+      "urlTemplate": "https://wago.tools/db2/ItemEffect/csv?build=12.1.0.69111&filter%5BID%5D={itemEffectId}"
+    },
+    {
+      "name": "Wago DB2 Spell zhCN",
+      "urlTemplate": "https://wago.tools/db2/Spell/csv?build=12.1.0.69111&locale=zhCN&filter%5BID%5D={spellId}"
+    },
+    {
+      "name": "Wowhead PTR tooltip",
+      "purpose": "只定位已选 item bonus 的实际数值与效果结构"
+    }
+  ],
+  "result": {
+    "trinketRecords": 44,
+    "effectRecords": 43,
+    "staticOnlyRecords": 1,
+    "unresolved": 0
+  },
+  "records": [
+    {
+      "itemId": 158367,
+      "name": "米利克萨之牙",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 267402,
+          "text": "挤压毒牙上的毒腺，向前方锥形范围内喷洒出毒雾。毒雾在3秒内每1秒造成(37 × 1)点自然伤害，最多可叠加3次。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/158367?dataEnv=2&locale=0",
+        "sha256": "12df1a6488ac1ebf33bb259d1995c48866bf28fb340987568f919c680e51a1e5"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          267402
+        ],
+        "mappingPayloadSha256": [
+          "800bdbde5263f39300be93755b70c66be31faf23602182e57366f586d9640fb2"
+        ],
+        "templatePayloadSha256": {
+          "267402": "6200330fb3fba1be2ebdf2438a13aba20394f01dc95d40bb403f252e15be47c7"
+        }
+      }
+    },
+    {
+      "itemId": 158368,
+      "name": "塞塔里斯的亵渎遗物",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1294746,
+          "text": "用腐烂伤口诅咒目标，在15秒内造成(478 × 1)点自然伤害。\r\n伤口存在期间，你的伤害性法术有很高的几率加深伤口，额外造成(30 × 1)点自然伤害。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/158368?dataEnv=2&locale=0",
+        "sha256": "a8626a089b39860c0cf7e9da578208c953d108c82b7cfc8b42b196e51203ae77"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1294746,
+          1294747
+        ],
+        "mappingPayloadSha256": [
+          "e70a143f9c1483280c26c71ab1fbe3dc8fb7495aa98cc5f830add7734101dea5",
+          "ead8bb31d66b957c9f4e6cecdb040814ed3c28c92985f89af03a2e5c9f8153bf"
+        ],
+        "templatePayloadSha256": {
+          "1294746": "39319a798d14e375df3fe9d0bf43162823383d591662e1ebe40c121d71a8e734",
+          "1294747": "d1627a8efab7c2f8a1cec583b29973acb3eba5c91a350c6e9cac745aec326514"
+        }
+      }
+    },
+    {
+      "itemId": 158374,
+      "name": "瓶中的电荷元素",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 267177,
+          "text": "你的攻击和技能有几率赋予你惊人力量。当叠加至12层时，你将释放闪电，造成(132 × 1)点自然伤害。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/158374?dataEnv=2&locale=0",
+        "sha256": "834fd12a6b7c97eb2c92cfaf04fbc5a35b00fb1421c7b2672786f4850a9a7717"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          267177
+        ],
+        "mappingPayloadSha256": [
+          "f6ee6afe09a54f031d7a7a7a968fb002e1a2e1f7fa91ac76b3d35a5ff4d84437"
+        ],
+        "templatePayloadSha256": {
+          "267177": "55bfae77f03e8547ba20085740041f4c9d4f1e4f272067f0adb1fd20fa6ade82"
+        }
+      }
+    },
+    {
+      "itemId": 159617,
+      "name": "金辉飞羽",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 271107,
+          "text": "你的动作闪烁着金色的羽毛，使你的全能提高79，持续20秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/159617?bonus=9024&dataEnv=2&locale=0",
+        "sha256": "c1b97993578253175d69f732cbccdb2a62aaf26000631a81a32cd6a2753aefaa"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          271107
+        ],
+        "mappingPayloadSha256": [
+          "56dde742bc320acf8ba5a1d80b96abe8f69ecdeca8fd507606b2a30f1c0aeb9b"
+        ],
+        "templatePayloadSha256": {
+          "271107": "59fe9c71a6c25734679e07564dd0548a229e6619b1d7eb3762ae8413a8347e63"
+        }
+      }
+    },
+    {
+      "itemId": 159618,
+      "name": "姆沁巴的仪式绷带",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 265946,
+          "text": "用仪式的绷带包裹自己，可在6秒内吸收（3263 × (1 + 全能)）点伤害。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/159618?bonus=9024&dataEnv=2&locale=0",
+        "sha256": "c632e6de869247bdadcf32ae33b40fcaecf18aee8b8006997d67ac846bf193b4"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          265946
+        ],
+        "mappingPayloadSha256": [
+          "cfe6b9f80eee736401ee6130e0154b5b70d9260509975a6e717db7f74f5800ff"
+        ],
+        "templatePayloadSha256": {
+          "265946": "4844213e901de15221fa5a5eb679b8044ec17cbeb14f9b7eaf3e1f7760e65c90"
+        }
+      }
+    },
+    {
+      "itemId": 193748,
+      "name": "基拉卡的灼热余烬",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 384649,
+          "text": "你的有益法术和技能有较高的几率在一名盟友身上制造一个爆燃灰烬。灰烬会在1秒后爆燃，从而灼烧伤口，恢复818点生命值，并释放出259点火焰伤害，由附近的敌人分摊。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/193748?dataEnv=2&locale=0",
+        "sha256": "7ecff4637a93e465a24284b1f6a15452c004a7925489e5c8f378063787ce5570"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          384649
+        ],
+        "mappingPayloadSha256": [
+          "2991546305f7100d1e57e620a69e45ae30b017724426a04d9f66f886a5133c45"
+        ],
+        "templatePayloadSha256": {
+          "384649": "5956623bc27f36acccdbc2dca41a67a05a2b72ff1771c8f487c8dd4edc55d8ce"
+        }
+      }
+    },
+    {
+      "itemId": 193757,
+      "name": "红玉雏龙蛋壳",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 383812,
+          "text": "你的法术和技能有一定几率召唤一只红玉雏龙，它会尝试帮助你并协助你战斗。"
+        },
+        {
+          "spellId": 389843,
+          "text": "召唤你的红玉雏龙以检查目标的情况，并让其学会如何派上用场。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/193757?dataEnv=2&locale=0",
+        "sha256": "0b25e9b61d912554e4502b2463ec09814904f0d9341d36875405ae1d391710ac"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          383812,
+          389843
+        ],
+        "mappingPayloadSha256": [
+          "e8e910879e0523757d2ae5dca7c55c2c1df5540d7d9b6a78a291071f554a56f9",
+          "bf117b5261b9706df4b14025a25e9f39296ba2a6448e2f7c838bd33c7eb131c8"
+        ],
+        "templatePayloadSha256": {
+          "383812": "d0f9da6d9bcd745d8b2595a3aed2d7dc7b4a6b33dc33165f6ed89ca29bdaf168",
+          "389843": "630546380094a142b5c8a644ec5634713489575e5ce47b6e89eb2b573918bcd6"
+        }
+      }
+    },
+    {
+      "itemId": 193762,
+      "name": "缚炎者之蹄",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 383926,
+          "text": "与烈焰绑定在一起，持续20秒，你的攻击有较高几率使你的力量提高10点，该效果最多可叠加6次。绑定完成时你会释放出一道燃尽波浪，基于你从绑定中获得的力量最多造成2832点火焰伤害，该伤害由附近所有敌人分摊。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/193762?dataEnv=2&locale=0",
+        "sha256": "c855bb9ae2b74762c3eec39fe8d4f1a6d9561c5e72198630776b3698642fc1fe"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          383926
+        ],
+        "mappingPayloadSha256": [
+          "27fc8a62d1894b6cc6ecb5653bb4bca846800732de5acda4258c09dfb8092dfe"
+        ],
+        "templatePayloadSha256": {
+          "383926": "b7b918921c75c0215b1448406569b0cd78021db3574d45aae8f7c8200527118d"
+        }
+      }
+    },
+    {
+      "itemId": 250214,
+      "name": "光塔核心",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250527,
+          "text": "你受到圣光的庇护，精通提高80。\r\n\r\n你的伤害法术和技能有几率召唤一束辉光在附近降下，当你站在其中时会给予你精通提高140的赐福。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250214?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "5440329b246f157f31c5d76d9de17d84103636f3ec680b05c645fd865c54dc68"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250527
+        ],
+        "mappingPayloadSha256": [
+          "f4baaef30ee71e299c3718360e627d2faf9c818f8159738844ba2d045e4fa481"
+        ],
+        "templatePayloadSha256": {
+          "1250527": "40ce334aae3cad610ef2c39ecaf4ae8e9d91797e7797fdf7fb469c3ff31eee1b"
+        }
+      }
+    },
+    {
+      "itemId": 250215,
+      "name": "货运者水壶",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250533,
+          "text": "小酌一口从货物中偷来的饮品，使你的爆击提高481，持续15秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250215?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "b2dc088828d739e339f420f465065baedc6b6672f8675eb523897ad0a8b84e73"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250533
+        ],
+        "mappingPayloadSha256": [
+          "5812c29f85c605255a9a3c3459b3f2d3af22590c40995177bfb4938ee2f8dbce"
+        ],
+        "templatePayloadSha256": {
+          "1250533": "021e9ce9a4dec4ba4665ecb6b481db22070ec3bc50d5d93424f362de5f97d8a3"
+        }
+      }
+    },
+    {
+      "itemId": 250225,
+      "name": "虚空处刑指令",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250557,
+          "text": "标记处刑目标，使你的急速提高240，持续20秒。当目标被标记时，虚空驱使你消灭目标，每次对其攻击都会额外获得17爆击，最高可获得(17 × 15)爆击。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250225?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "201928ed32b6b05b83bc525132b881700d8897ba9ac5749f49fc5869c37840de"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250557
+        ],
+        "mappingPayloadSha256": [
+          "129f119f619d7e6ec3919a7dbc8a4d825a121c2b16b3e5d3ea84dda4b371c1b8"
+        ],
+        "templatePayloadSha256": {
+          "1250557": "034b80b705728ee752b35bc04b494c5f39414be6097595dcce113423b46c1d4e"
+        }
+      }
+    },
+    {
+      "itemId": 250228,
+      "name": "共鸣咆哮石",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250564,
+          "text": "你的伤害技能有几率呼应萨祖克斯的愤怒咆哮，使爆击提高135，持续30秒。\r\n\r\n在此期间，你的每次攻击都会使爆击额外提高18，最多可叠加5层。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250228?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "372de4e3e7cc0e998c36b13dc15faf2788c66a50091de042eebeccbef37643dd"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250564
+        ],
+        "mappingPayloadSha256": [
+          "fa7ca756db61831d924480ba6fc5378022c63317e45abdb0de54cbe6b84cd895"
+        ],
+        "templatePayloadSha256": {
+          "1250564": "048ff10c6a5467a88774fa4508f3cd332f12dcbcf97e07ed44f3416ce234f741"
+        }
+      }
+    },
+    {
+      "itemId": 250229,
+      "name": "战争之神神像",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250567,
+          "text": "你已向纳洛拉克证明了自己的价值。你的技能有几率与战争之神的狂怒咆哮产生共鸣，使你获得197点力量，持续15秒。\r\n\r\n附近获得纳洛拉克青睐的盟友将受到激励，在10秒内移动速度提高25%。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250229?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "ba408b0bcfabfaf01993c3cb509db4dfd083322097df2d75528365612a9e1e87"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250567
+        ],
+        "mappingPayloadSha256": [
+          "45ad7d1ef1286a16b156ffe0567a0eafdd8a7f3ec3ed6f1d76acc51344eb06e8"
+        ],
+        "templatePayloadSha256": {
+          "1250567": "ac3588844c91255ca8856035c3987f63b8c1c84680d82f920485f3ea56330ff3"
+        }
+      }
+    },
+    {
+      "itemId": 250238,
+      "name": "贪噬狂野之种",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250580,
+          "text": "唤醒血棘之根，在目标周围爆发，对附近敌人造成(30222 × 1)点自然伤害，由范围内所有敌人分摊。你吸收其精华，在10秒内获得288精通。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250238?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "d8a729ea7216e84caa06a655544eaf0021ce5e8f3f7aeee25942680142c63734"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250580,
+          1259351
+        ],
+        "mappingPayloadSha256": [
+          "57d72be0bda7de38908707e652a74ced1aec9b467adc21ee21a0c1008b409b77",
+          "d0039838b9a974b91b1c0e976b92f43ebfccdf1898fc9e1f1b31c3d3059031a7"
+        ],
+        "templatePayloadSha256": {
+          "1250580": "0cc39df9a54d8e9395f98f787bbe4df929f598d5a698355827f3bb0bc30a9b88",
+          "1259351": "657718fdc148df49e95cae32ae0663f02377d5d67c4551f3a6fd5db662a70650"
+        }
+      }
+    },
+    {
+      "itemId": 250243,
+      "name": "魔力之心的联结烈焰",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250587,
+          "text": "形成邪能护盾，持续10秒，吸收接下来受到伤害的30%，最高117094点。护盾存在期间，被吸收伤害的一部分将储存为不稳定的邪能。\r\n\r\n护盾效果结束或破碎时，能量会产生爆发并对附近敌人造成火焰伤害，由这些敌人均摊。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250243?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "9c9440cb606d589f66bd6ecd7ef2f301d1a16ca5bb5d37b06c389b3d979e961b"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250587,
+          1283373
+        ],
+        "mappingPayloadSha256": [
+          "eaa237a7d69db3ed6f0c25cc1a7b9ac22f8b49e003a7fa1b6ebda1a64369d645",
+          "1a7ace2c49394244cf7e328c63c018edde30d969d8b4fe84110de2dcadfbdbc5"
+        ],
+        "templatePayloadSha256": {
+          "1250587": "15a4e8a15efcf8ecdd39a698fb82a352b07787956ce3212ef0db346e97ff3424",
+          "1283373": "5308d990f6d3290efe4f3d1dfec891ae1b213d7aa30ceef404875d7fa19d7fd4"
+        }
+      }
+    },
+    {
+      "itemId": 250245,
+      "name": "虫群之瘤",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250589,
+          "text": "你的攻击有一定几率释放剧毒寄生虫在你周围爆裂，造成总计9261点自然伤害，由附近敌人分摊，并为你恢复5826点生命值。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250245?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "f1be067fa9689bc03f262e7da5add6cc3d98d3f745872cfe5bbe193d11bb95a8"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250589
+        ],
+        "mappingPayloadSha256": [
+          "8374698aff84f078f7e469090252f5df2e29eacc21c16fdbf773554d6d9407ad"
+        ],
+        "templatePayloadSha256": {
+          "1250589": "34eddfafdf8e8275474d6edb368ec30eff72cd1a63dfb896e8f05a321d7af17c"
+        }
+      }
+    },
+    {
+      "itemId": 250248,
+      "name": "真菌药剂",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250591,
+          "text": "你获得纳洛拉克的生长恩赐。你的治疗法术和技能有一定几率立即为目标恢复17485点生命值，并在其附近生成一朵持续10秒的发光蘑菇。\r\n\r\n如果有盟友踩中并吸收蘑菇，将额外恢复9992点生命值。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250248?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "162a7754b2ebcbf7b02d9d9aeab664745588ac67cab362d66d4d1614087c78c1"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250591
+        ],
+        "mappingPayloadSha256": [
+          "9c072a5b63cdbaf1a97c823a9cd6e4d54da05d527ee10853cf412a583b94f440"
+        ],
+        "templatePayloadSha256": {
+          "1250591": "b78686b63ab00efa3a36d283c66139a614876f9841a990f2095c6f409fcda20d"
+        }
+      }
+    },
+    {
+      "itemId": 250254,
+      "name": "光耀希望之种",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1263644,
+          "text": "用光明之花环绕你的友方目标，在12秒内为其恢复（8358 × (8)）点生命值。\r\n\r\n如果目标生命值低于50%，光明之花会在绚烂光芒中完全绽放，立即为其恢复75232点生命值。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250254?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "df238a0a70dea1d5eb596c50eec89771c20f9f2280ac14232cfecdb53252af36"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1263644,
+          1285918
+        ],
+        "mappingPayloadSha256": [
+          "a815bb3f66e2f4b0766dca921024e9aa5304cfe1f13b831868a71838fac3bbba",
+          "b803fc872d794392a49b14dca747949587c160ec51494d0ce87f5c257cac6707"
+        ],
+        "templatePayloadSha256": {
+          "1263644": "0a9c700b1ec4c62a072769c68c19fe1cb9d975b208a9373b1dc2514c5999b24a",
+          "1285918": "5a2431431ea99433fe4c35b149b6bde57353aa9b5586b3642eb701daec600553"
+        }
+      }
+    },
+    {
+      "itemId": 250255,
+      "name": "动荡的邪心水晶",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1254339,
+          "text": "释放水晶中蕴藏的邪能之力，牺牲你生命值的7913点来强化目标盟友，持续10秒，吸收133746点伤害。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250255?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "3cc5f96ef42d02086d3913a19401c33755597f1b714c9c196d760d7642d3c5b2"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1254339,
+          1266821
+        ],
+        "mappingPayloadSha256": [
+          "b9d6f3a7d96c6d2f6bd051db19ed7eea455743fe6e6692e94fdd5709bdc4de6c",
+          "e1232bc05975f840323456736187f047530103c79a067104440d448eaa7ecf3b"
+        ],
+        "templatePayloadSha256": {
+          "1254339": "93b91ad7ae87294d991860395ad16ccd208e141e9c8f3ecd9780098404ec2a61",
+          "1266821": "209de9d6b505a6d7b77370f1ce457f6fa3b2e7ceb99dc6c978ff6caa12d848d1"
+        }
+      }
+    },
+    {
+      "itemId": 250259,
+      "name": "黎明之根的幼苗",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1250604,
+          "text": "你的法术和技能有一定几率拔出一个光诞鞭笞者协助你战斗，持续15秒，造成最高（1 × (1997 × 10)）点物理伤害。\r\n\r\n光诞鞭笞者随即枯萎，爆裂出灌注光明的汁液，对附近敌人造成总计(1 × 5200)点神圣伤害并由所有目标分摊。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/250259?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "5c81f2046904fb1f56f9c4c9da5fe88bfefb4c067e8c95777a889f7d86e40a18"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1250604
+        ],
+        "mappingPayloadSha256": [
+          "a9bfa6ac5fe8af07d78f867a5f4e3134d093d468297138df945a5f06677c96a8"
+        ],
+        "templatePayloadSha256": {
+          "1250604": "c8ab3c0cdb7b41d2c706aca3d71ac38f981700d82958ccbdaa67f11e94473430"
+        }
+      }
+    },
+    {
+      "itemId": 270160,
+      "name": "大副的甲壳结界",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295328,
+          "text": "部署甲壳结界，在30秒内吸收最多40%的承受伤害，直至累计化解481587点伤害。当你的生命值降至40%以下时，甲壳结界会变得更加坚固，改为使受到的伤害降低80%。\r\n\r\n只要甲壳结界存在，就会对近战攻击者造成19168点物理伤害。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270160?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "6deb2f01cd1d22ca96ed071a2263b7cd2d797b64226abcec8f97e4ce93dacafb"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295323,
+          1295328
+        ],
+        "mappingPayloadSha256": [
+          "9abcd47b2462b7b831785868a310bbaf49f245e997cfd46058f1dc2dc3d19510",
+          "f2c4d68a89f858573fd63acb6ffcf6ad4bea97a36046010f9335bafee97139fa"
+        ],
+        "templatePayloadSha256": {
+          "1295323": "decc7aefd06f4fa37983db632988850b9201df437b8fd70d315344860d1b05c6",
+          "1295328": "f9e7cf2052f5e788ccf9a920d7bd8c5f16395e8bc6caf40d70fa7562e9d2092e"
+        }
+      }
+    },
+    {
+      "itemId": 270161,
+      "name": "幽影恶念之牙",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295219,
+          "text": "你的伤害性法术有很高的几率令目标沾染幽影恶念，在1分钟内每3秒造成(232 × 1)点暗影伤害，最多可叠加30次。\r\n\r\n幽影恶念会在目标死亡时爆发，造成等同于其剩余伤害300%的伤害（由附近的敌人均摊），并施加幽影恶念。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270161?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "113d7fcba81a6d1ceb3edda2f635b3eaa6301f38bf319d572f29e27110ad573b"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295219
+        ],
+        "mappingPayloadSha256": [
+          "66b1c66f3e04f24e5e44458b0584ee0826ff10949eb981642b88a991478058ac"
+        ],
+        "templatePayloadSha256": {
+          "1295219": "241fb3f32ba9df035aff02aa2cf4b08b4e17cf163f42936dac166f47f7c1a2db"
+        }
+      }
+    },
+    {
+      "itemId": 270162,
+      "name": "盘魂者仪式容器",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1291894,
+          "text": "在2秒内召唤5个盘魂者密教徒精魂并献祭其精华，每个精魂为你的一名盟友施加一道屏障，使受到的伤害降低50%，持续20秒或直到防止了(353491 × 1)点伤害。\r\n\r\n盟友死亡会使此冷却时间缩短30秒，并立即召唤一个盘魂教徒精魂进行献祭。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270162?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "b3202f870e455eed99be7c17d5716bce6bafa75673702f272bbb4cd6f936d729"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1291885,
+          1291894
+        ],
+        "mappingPayloadSha256": [
+          "920b619af0992d0fabe4f505ac7dc776ed7e4704a20e04e500bf7ac678431788",
+          "93fe786aeae65815da8fb1fc3611eafcb6954c170dcbcd465e3b31c93ef74fd5"
+        ],
+        "templatePayloadSha256": {
+          "1291885": "89a338f69a65be6f6aae91c694978fc04e022dfcd0efc6c840f1270f78612f7b",
+          "1291894": "432d767f053c5b3bc7869deda18bda1a2c46f64211330c9015feaf23b8a73da3"
+        }
+      }
+    },
+    {
+      "itemId": 270163,
+      "name": "斯索拉克的凶猛",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295617,
+          "text": "根据附近敌人的数量，你的攻击有很高的几率顺势接续毁伤、断肢或风暴打击。\r\n\r\n你的杀戮本能已打磨至巅峰，在击败一名敌人后，你的下一次攻击必定触发此效果。每10秒只能触发一次。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270163?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "b1618fdf709c9e45828f6d17990b41128bb22941173270c850e32382ed0c9826"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295617,
+          1307356
+        ],
+        "mappingPayloadSha256": [
+          "39b1b445534ce60960536c14164a5359aca8de1ae7448ad0215c4b6f9ed32e63",
+          "6143281cf7f095f1fbce4afd47d4066d4890e2d988a8a9a91b1101afb6c1dd78"
+        ],
+        "templatePayloadSha256": {
+          "1295617": "b36e7ad148057380746f5bcfebfbfb5b20a732824b053c5926f3f4c857751de8",
+          "1307356": "f4b846ebd97b1215ebbc233897ee1caf21504f3ad3e99db92cdd7a376304a0a8"
+        }
+      }
+    },
+    {
+      "itemId": 270164,
+      "name": "盖博的无底袋",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1292291,
+          "text": "施放法术和技能时，你有几率从包里掏出一件价值存疑的神器，以各种方式提高你的副属性。包里可能已经没有鱼了，但也说不准。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270164?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "b275c885c8bc328dbfa5a93d040b1cc10b431ea9672ce7ef97756f53dded9527"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1292291
+        ],
+        "mappingPayloadSha256": [
+          "8b8046d4727e078f30c5f8cc1dd1b162c6ddda906aeb24e545370589905fbdca"
+        ],
+        "templatePayloadSha256": {
+          "1292291": "ae056fe762e20fc43b20b5e5ad9009da08a356f75eab67a7d6de4dedc768c3cc"
+        }
+      }
+    },
+    {
+      "itemId": 270165,
+      "name": "守护者的躁动核心",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1292065,
+          "text": "你的攻击有很高的几率使你获得乌拉特克的专注，使你的急速提高127，持续12秒。多次施加的效果可以重叠。\r\n\r\n当有两个或更多效果同时激活时，你的专注力会进一步增强，使该效果提高20%。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270165?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "f507daba72296e0db5c97a9421645666da5948415e1aff5f55d5d3f2a7397fee"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1292065
+        ],
+        "mappingPayloadSha256": [
+          "525537f530f32826fbb3451496f165c31da9c698994be7efc4791a81f5ee645e"
+        ],
+        "templatePayloadSha256": {
+          "1292065": "27f14746e3359a9251470f3c62f5aa14696b13e5f26ea184a3ac5c74161d7f6d"
+        }
+      }
+    },
+    {
+      "itemId": 270166,
+      "name": "瓦什尼克的血色深仇",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295553,
+          "text": "你的攻击有极高几率在体内积攒血色深仇。叠加至15次时，深仇便会爆发，化作猩红的胆汁鞭笞你的目标及附近所有的敌人，造成(88216 × 1)点暗影伤害（由他们共同分摊）。每额外击中一个敌人，伤害提高30%，最多150%。\r\n\r\n如果只有一名敌人被击中，高度浓缩的胆汁将在接下来的3秒内额外造成(88216 × 25 / 100 × 1)点暗影伤害。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270166?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "4d90b2f7480f1f46c6fc4262e9756dace67ad0d8fa202b0ab599faad03c3c394"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295553
+        ],
+        "mappingPayloadSha256": [
+          "a943b38320b045da684ee37e16023ce88294b147ba7e4bdfcad2100c2103572e"
+        ],
+        "templatePayloadSha256": {
+          "1295553": "8e43d35610084158bf608d9f2e8f463e63dbbe46f3097a1dcbbf089e8f0c0927"
+        }
+      }
+    },
+    {
+      "itemId": 270167,
+      "name": "唤波者的海石",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295058,
+          "text": "你的法术有很高的几率呼唤海洋，赋予潮汐洞察，使你的智力提高65，最多叠加6次。达到巅峰后，你的法术转而会削弱潮汐洞察，然后重新开始循环。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270167?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "59ac51df361119bbac6e6d20b926a5a332e9faac9819ed5fa809e2dc51e5203f"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295058
+        ],
+        "mappingPayloadSha256": [
+          "1781561ee202ffc53c876ea5b8626fea761083376c35eb7adac7d1a765b40a2f"
+        ],
+        "templatePayloadSha256": {
+          "1295058": "1b1baf031add0fa4784c7f27ae552d4ec7317e86d2bc1bfec86840e93c2c7c03"
+        }
+      }
+    },
+    {
+      "itemId": 270168,
+      "name": "剧毒狂怒之泉",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1297908,
+          "text": "引导剧毒狂怒洪流，持续2秒，对你的目标造成(1 × 819839)点自然伤害，并向附近的所有敌人飞溅，造成(1 × 144279)点自然伤害。超过8个目标时造成的伤害降低。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270168?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "216329f46528ad9e0ef032ac1db9929bd26940192cc69450e5ce22e242d088c4"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1297908,
+          1297911
+        ],
+        "mappingPayloadSha256": [
+          "af9cc1a6e24b4c22fa7701fb9a3507b652e06c698e7807ef912ec0f2399fa2f3",
+          "712dd920fc20388310d343c5d1602fbfdf5fbe48bade1765ecfa5345a922e408"
+        ],
+        "templatePayloadSha256": {
+          "1297908": "d96d562248cc6c7c99640d9f22db4891a43bfccac4aa6df2a127ac94de887f10",
+          "1297911": "9105a1af27b2e123ae6e06aa546d54a65a98f00993545331fcc8c70dafcb913f"
+        }
+      }
+    },
+    {
+      "itemId": 270169,
+      "name": "妖术领主的厄运神像",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295884,
+          "text": "你的法术会使你受到妖术领主的厄运的折磨，使你的智力降低4点，最多可叠加30次。此效果每6秒只能触发一次。"
+        },
+        {
+          "spellId": 1295885,
+          "text": "消耗妖术领主的厄运的力量，每层效果使你的智力提高31点，持续30秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270169?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "7cbf0f1a92397b638ad24530d291208ccb99cf3f739e37c3a28d51769854fec2"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295884,
+          1295885
+        ],
+        "mappingPayloadSha256": [
+          "e61f3f6aeec5db1aa48a16465b02f1bb1fcd4582fdeca80812197b5616c17ada",
+          "43820e206cb0303d9be485b4a6927269d62f60db3fe8a4457ff35ead439420a1"
+        ],
+        "templatePayloadSha256": {
+          "1295884": "d269fe91787a14174e268bbfe30f18b1ba7f55bf630dceaf148ff2b5223789f5",
+          "1295885": "44aebb9bdf4f7ed3bcac2df9c79ac9d568671eb70b10061b78276934e420012e"
+        }
+      }
+    },
+    {
+      "itemId": 270170,
+      "name": "维克斯胡尔的涌流腺体",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295833,
+          "text": "释放出一股腐灼毒液，对你的目标造成(50239 × 1 / 0.200000003)点自然伤害。敌人每残存1%的生命值，伤害就提高1%。\r\n\r\n击败敌人能够将其体液催化为额外的毒液，使此冷却时间缩短5秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270170?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "119162a6fee5e2283d270137dc4a8967f627828539fe1fedb3255539a8c4f948"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295832,
+          1295833
+        ],
+        "mappingPayloadSha256": [
+          "008f3da1fac6f7ac0abae7c0b8a007fd46e46dd2eeeff54cc31c676419f60c2c",
+          "2e6c959692fd8a5448764060e13c18cec6681bebb4d37c733358443f81bf333f"
+        ],
+        "templatePayloadSha256": {
+          "1295832": "d0e9d07438deeff19db2f673dab188b63bf1fda816d968f630405eb80dffcd6c",
+          "1295833": "f4af9520e2b3184cf026f5203d74d9b4c09a189f7572a7fe8b65cec6657ec3a8"
+        }
+      }
+    },
+    {
+      "itemId": 270171,
+      "name": "超自然抗毒剂",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295775,
+          "text": "你的治疗有很高几率向目标注入超自然抗毒剂，持续30秒，为你盟友恢复相当于其受到任何伤害75%的生命值，直到总计恢复141608点生命值。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270171?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "79855d80742b6fc93f91294ef1344a3cb9de87125e8b1e08e39db01dcfccfc52"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295775
+        ],
+        "mappingPayloadSha256": [
+          "80e7c949d584dae0fd7ad28291965c15441b0689ea2f1a3c31a92aa0fa61a193"
+        ],
+        "templatePayloadSha256": {
+          "1295775": "c2aee13701f8a284df23e3af548f1368fa7e4aa4bea7628fe378d0f72e06745e"
+        }
+      }
+    },
+    {
+      "itemId": 270173,
+      "name": "祖尔金的处斩技法",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1291728,
+          "text": "你的攻击有几率随后触发处斩，朝你的目标掷出一把巨大的战斧，造成(44003 × 1)点物理伤害。\r\n\r\n目标每损失1%的生命值，伤害就会提高2%。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270173?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "75ac45917432fcad921c4ffcd3966575b922ac3a0d87e590ea1b1b197c8e3b94"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1291728
+        ],
+        "mappingPayloadSha256": [
+          "08e03a07cdc294ba731cf10a59c6432fb003118115bf6d0412df7c0eee0e6d50"
+        ],
+        "templatePayloadSha256": {
+          "1291728": "637b317692ad9d405ef6d64a89f8669ec29e7e0b3fea1922005414f84b5e092f"
+        }
+      }
+    },
+    {
+      "itemId": 270174,
+      "name": "呼啸枢纽神像",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295643,
+          "text": "躲闪、招架或格挡有很高的几率唤来鼓舞之风，使你的力量或敏捷提高521点，加速提高142，持续12秒。\r\n\r\n如果你在15秒秒内没有躲闪、招架或格挡，此效果会立即触发。每1分钟只能触发一次。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270174?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "84c231796e3163020f6d436ed9d12b0785f127aa3fa56c92f1d8b2b8de438fcd"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295643
+        ],
+        "mappingPayloadSha256": [
+          "65687d8b2490404f2f332b2f93e14f47e46609184a46de2ec4931af3082c40a2"
+        ],
+        "templatePayloadSha256": {
+          "1295643": "8b7fecd6acf2d21a2e0dd03582b6c95f618144b10bf625b4398192f3007efe27"
+        }
+      }
+    },
+    {
+      "itemId": 270175,
+      "name": "乌拉特克贪婪之心",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1297761,
+          "text": "咬下心脏，拥抱贪食的饥饿，获得437力量或敏捷，持续20秒。\r\n\r\n在饥饿感持续期间，每次攻击都有极高几率吞噬目标的一块血肉，造成13921点物理伤害，并使你的力量或敏捷进一步提高49点。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/270175?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "71785807999c242989fd87b09aac48375801265d05600fe844e590494b86df2b"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1297760,
+          1297761
+        ],
+        "mappingPayloadSha256": [
+          "b7a30d54077e28fbf97f46c737cbf0d3c54c27a163f0c9db15bda0601ab268b4",
+          "848d0f14cc40a281af226cf31391c057dcaf319a4230c9f48fce3024374b7560"
+        ],
+        "templatePayloadSha256": {
+          "1297760": "24438b94b513135ec7c9adca72516fa87ec74847d05bc9c62a8b93d623db702e",
+          "1297761": "e4c1a6b61d1696db87ce87f6c39d787a501b6eab9fbf419043d39e9bb9ac263e"
+        }
+      }
+    },
+    {
+      "itemId": 273649,
+      "name": "达萨的束风纹章",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295275,
+          "text": "引导2秒，风随达扎尔之令，使你的急速提高120，最多持续20秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/273649?bonus=9024&dataEnv=2&locale=0",
+        "sha256": "44e6bef9464829efee29d0e671e2b144cd09c38bfd893996a530ec4e1d55d8b0"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1294744,
+          1295275
+        ],
+        "mappingPayloadSha256": [
+          "e48b87d56c8bc3f6ece176e2074a41c4365bf93323e08e9a1533d158a30d6673",
+          "801b9577baeb90280fa110f9ae2af7b1eb040ded9d93955f8737b5541f09004d"
+        ],
+        "templatePayloadSha256": {
+          "1294744": "7962889532d8a3a9e6e78105937a8603949def6e1289a30c7a4c28ab9d6c314a",
+          "1295275": "f99c63a6b278724fde2b84f0cb40c754c399a426c6f3279fb6ba9f6db0e83ba9"
+        }
+      }
+    },
+    {
+      "itemId": 273794,
+      "name": "蠕动毒蛇之结",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1293304,
+          "text": "你的伤害性法术有一定几率成功蛊惑一条毒蛇，让它对着你的目标喷吐毒液，造成(18378 × 1)点自然伤害，该伤害将由附近的敌人共同分摊。每额外击中一个敌人，伤害提高30%，最多150%。\r\n\r\n主要目标还将在接下来的15秒内，额外承受(18378 × 1)点自然伤害。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/273794?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "f2c866af0cdfc6ac0c76f485d0fac7e5c77a77b17d8d1b58ac0a778e826832e6"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1293304
+        ],
+        "mappingPayloadSha256": [
+          "294dfef41600b7eb493f65cbbfb6f3def02f7763063495de434ab8be5b3dc7ff"
+        ],
+        "templatePayloadSha256": {
+          "1293304": "f1b64c370ea6ed6469c6638d812dfc26a955e8ffc20f2303c54699c868afcefb"
+        }
+      }
+    },
+    {
+      "itemId": 273795,
+      "name": "盘卷牙石",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1293311,
+          "text": "以你的目标为核心，连续释放出3次涂毒撕咬，总计造成（(85974 × 3) × 1）)点自然伤害，该伤害将由附近的敌人共同分摊。每额外击中一个敌人，伤害提高30%，最多150%。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/273795?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "00d8fec9c1cb174293114002234b6dfbfcff80626e5a6371375b5a8c317ede1b"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1293311,
+          1295491
+        ],
+        "mappingPayloadSha256": [
+          "b65ee4a34b80e268ce92b57b7bdd167db7393ce82475782cec5f1b22b5a850e8",
+          "afab8f8d24a180a092938cccd3c4e2b3fba8d69c6ccea0d57b1574855db40c70"
+        ],
+        "templatePayloadSha256": {
+          "1293311": "6078950963991397f29ea153382cc558c009e112dab93982f1aeaa01050f8372",
+          "1295491": "cb426f9bb9446acd5f702fc07f22bb9021bda03f35784fcc7ef87458fbc64998"
+        }
+      }
+    },
+    {
+      "itemId": 273796,
+      "name": "一瓶肮脏的烈性毒液",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1293316,
+          "text": "只需小口啜饮这瓶毒液，就能使你的一项随机次要属性提升964，持续15秒。但代价是，随后你的另一项随机次要属性将降低138，同样持续15秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/273796?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "63605d252a971203b03c206c5f422fa5acf2496dd8f3a9fbb71a8ec93dc2b5cb"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1293316,
+          1295179
+        ],
+        "mappingPayloadSha256": [
+          "d3324f77cd71f6e053300047db25464659ac4876567fb09fb194c4fdf760c0c8",
+          "c541f1ffee7a33404526af7314683d957791690e504f43b780384e48f269978a"
+        ],
+        "templatePayloadSha256": {
+          "1293316": "c744329a90eaa6102b4eca7f37d86da33a753c1f00a703aacf08834a0b21fd44",
+          "1295179": "abfe8eb8e0ebe77e2c23ad99d6b5f4dd52a91047076aa4a4247caf1997001e18"
+        }
+      }
+    },
+    {
+      "itemId": 273797,
+      "name": "破损的阿曼尼战旗",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1293326,
+          "text": "重重地插下这面战旗，持续15秒！在这面战旗周围12码范围内战斗，将使你内心充满战斗狂热，让你最高的次要属性提升574。在战旗存在期间，只要成功击败至少1名敌人，就能使战旗的持续时间延长5秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/273797?bonus=12854&dataEnv=2&locale=0",
+        "sha256": "77e667f71926530d56a06640df12a480016bc6b4fce513d4ebcd7a1b603d5dba"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1293326,
+          1295725
+        ],
+        "mappingPayloadSha256": [
+          "344ed40e25c03f596fc88dfb7a2efa46f5dbbda5dcb94d9396eaee836992b9f7",
+          "07eb144d89c8ac782d46181ac935c1347f575af96e3f08f9ca614754ead3dd3d"
+        ],
+        "templatePayloadSha256": {
+          "1293326": "a88e2496fbb343096ad6a7d07ad7046e3a18a0c9657d644403092d469a29cc00",
+          "1295725": "0ff4bfa556bd3486b7ad10fdd81efdd29a3fd0ed6c12318342f9a080b53aa11c"
+        }
+      }
+    },
+    {
+      "itemId": 274890,
+      "name": "附魔孢子",
+      "staticOnly": true,
+      "effects": [],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/274890?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "8b2c9f7978221a00e5f7693023e5f35fa89d389a26de03857550885b18297d64"
+      },
+      "wago": {
+        "itemEffectSpellIds": [],
+        "mappingPayloadSha256": [],
+        "templatePayloadSha256": {}
+      }
+    },
+    {
+      "itemId": 274891,
+      "name": "12型齿轮传动装置",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295443,
+          "text": "你的急速提高789，持续12秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/274891?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "cb79d665887ecc1af5db228763f140a3a86a55c9ccf3cd5b538af4951d095d2a"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295443
+        ],
+        "mappingPayloadSha256": [
+          "6e2c7e5502eab93491738fcb454a869a0f4abbc8ebcd63e228b168ae228cb11c"
+        ],
+        "templatePayloadSha256": {
+          "1295443": "0310fa97015e2d01197d8e0ed1835bad7df2b91b61198ed3c1b1afcc27267b45"
+        }
+      }
+    },
+    {
+      "itemId": 274892,
+      "name": "坚韧魔血药瓶",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295445,
+          "text": "你的法术和技能有几率使你的主属性提高199点，持续20秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/274892?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "9079f5b40f9ef63553ada2b377155d3d806f1b2a6437fba8401b8eb936e2149c"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295445
+        ],
+        "mappingPayloadSha256": [
+          "756d22db71e68725a9118c4223fd73f6023f79b3b69e435a8b1bd4db43b579e1"
+        ],
+        "templatePayloadSha256": {
+          "1295445": "6bd4df62e5c4fbc2199ae38d5b15918db6b2c5daac4730cdc04274a6be8aaa07"
+        }
+      }
+    },
+    {
+      "itemId": 274893,
+      "name": "冰霜晶棱蝎钉刺",
+      "staticOnly": false,
+      "effects": [
+        {
+          "spellId": 1295447,
+          "text": "你的法术有一定几率使你的爆击提高577，持续10秒。"
+        }
+      ],
+      "tooltip": {
+        "url": "https://nether.wowhead.com/tooltip/item/274893?bonus=12793&dataEnv=2&locale=0",
+        "sha256": "a1a2a8f5a00d18cf0bd6ef7beba75f764733eafde4dbc8780844b1e133b63dbc"
+      },
+      "wago": {
+        "itemEffectSpellIds": [
+          1295447
+        ],
+        "mappingPayloadSha256": [
+          "ba4c7a4abc733ffc34825d7bbaa7a554ff98ec8f45a43ac41444d35fe45459fd"
+        ],
+        "templatePayloadSha256": {
+          "1295447": "48836e11491d3e4563ff34cf21011ebc3c7410024cdf230655a3462578603ec1"
+        }
+      }
+    }
+  ]
+}

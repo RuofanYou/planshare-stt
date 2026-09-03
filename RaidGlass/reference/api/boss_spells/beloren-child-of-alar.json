@@ -1,0 +1,54 @@
+{
+  "1241291": {
+    "spell_id": 1241291,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "beloren-child-of-alar",
+    "name": "Light Dive",
+    "icon": "inv_phoenix2pet_yellow.jpg",
+    "color": "rgb(237, 208, 76)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1241291",
+    "tags": []
+  },
+  "1242260": {
+    "spell_id": 1242260,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "beloren-child-of-alar",
+    "name": "Infused Quills",
+    "icon": "ability_evoker_azurestrike.jpg",
+    "color": "rgb(222, 87, 222)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1242260",
+    "tags": []
+  },
+  "1242515": {
+    "spell_id": 1242515,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "beloren-child-of-alar",
+    "name": "Voidlight Convergence",
+    "icon": "inv_12_dualityphoenix_lightvoid_channel.jpg",
+    "color": "rgb(230, 46, 113)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1242515",
+    "tags": []
+  },
+  "1246709": {
+    "spell_id": 1246709,
+    "duration": 30.5,
+    "cooldown": 0,
+    "spell_type": "beloren-child-of-alar",
+    "name": "Death Drop + Rebirth",
+    "icon": "inv_12_dualityphoenix_phoenix_rebirth.jpg",
+    "color": "rgb(74, 169, 247)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1246709",
+    "tags": []
+  }
+}

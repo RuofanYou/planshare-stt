@@ -1,0 +1,93 @@
+{
+  "361989": {
+    "spell_id": 361989,
+    "duration": 8.75,
+    "cooldown": 0,
+    "spell_type": "anduin-wrynn",
+    "name": "Blasphemy",
+    "icon": "ability_priest_focusedwill.jpg",
+    "color": "#a134eb",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=361989",
+    "tags": []
+  },
+  "362405": {
+    "spell_id": 362405,
+    "duration": 35,
+    "cooldown": 0,
+    "spell_type": "anduin-wrynn",
+    "name": "Kingsmourne Hungers",
+    "icon": "ability_deathknight_hungeringruneblade.jpg",
+    "color": "#34c6eb",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362405",
+    "tags": []
+  },
+  "362505": {
+    "spell_id": 362505,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "anduin-wrynn",
+    "name": "Domination's Grasp (Intermission)",
+    "icon": "spell_animamaw_buff.jpg",
+    "color": "#00ff00",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=362505",
+    "tags": []
+  },
+  "365030": {
+    "spell_id": 365030,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "anduin-wrynn",
+    "name": "Wicked Star",
+    "icon": "spell_priest_divinestar_shadow2.jpg",
+    "color": "#d42020",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=365030",
+    "tags": []
+  },
+  "365295": {
+    "spell_id": 365295,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "anduin-wrynn",
+    "name": "Befouled Barrier",
+    "icon": "inv_soulbarrier.jpg",
+    "color": "#ebde34",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=365295",
+    "tags": []
+  },
+  "365805": {
+    "spell_id": 365805,
+    "duration": 3.5,
+    "cooldown": 0,
+    "spell_type": "anduin-wrynn",
+    "name": "Empowered Hopebreaker",
+    "icon": "inv_sword_1h_artifactruneblade_d_01.jpg",
+    "color": "#17b6e6",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=365805",
+    "tags": []
+  },
+  "365958": {
+    "spell_id": 365958,
+    "duration": 2.75,
+    "cooldown": 0,
+    "spell_type": "anduin-wrynn",
+    "name": "Hopelessness",
+    "icon": "ability_priest_halo_shadow.jpg",
+    "color": "#a134eb",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=365958",
+    "tags": []
+  }
+}

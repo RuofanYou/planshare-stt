@@ -1,0 +1,41 @@
+{
+  "351680": {
+    "spell_id": 351680,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "fatescribe-rohkalo",
+    "name": "Destiny",
+    "icon": "spell_animamaw_buff.jpg",
+    "color": "#ffda24",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=351680",
+    "tags": []
+  },
+  "354265": {
+    "spell_id": 354265,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "fatescribe-rohkalo",
+    "name": "Twist Fate",
+    "icon": "spell_animamaw_debuff.jpg",
+    "color": "#af24ff",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=354265",
+    "tags": []
+  },
+  "357739": {
+    "spell_id": 357739,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "fatescribe-rohkalo",
+    "name": "Intermisson",
+    "icon": "spell_shadow_painfulafflictions.jpg",
+    "color": "#4bbf68",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=357739",
+    "tags": []
+  }
+}

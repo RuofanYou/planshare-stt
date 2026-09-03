@@ -1,0 +1,67 @@
+{
+  "460181": {
+    "spell_id": 460181,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "onearmed-bandit",
+    "name": "Pay-Line",
+    "icon": "inv_10_fishing_dragonislescoins_gold.jpg",
+    "color": "hsl(40, 70%, 50%)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=460181",
+    "tags": []
+  },
+  "460472": {
+    "spell_id": 460472,
+    "duration": 2.5,
+    "cooldown": 30,
+    "spell_type": "onearmed-bandit",
+    "name": "The Big Hit",
+    "icon": "ability_warrior_decisivestrike.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=460472",
+    "tags": []
+  },
+  "461060": {
+    "spell_id": 461060,
+    "duration": 2,
+    "cooldown": 30,
+    "spell_type": "onearmed-bandit",
+    "name": "Spin To Win!",
+    "icon": "achievement_battleground_templeofkotmogu_02.jpg",
+    "color": "hsl(120, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=461060",
+    "tags": []
+  },
+  "464772": {
+    "spell_id": 464772,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "onearmed-bandit",
+    "name": "Reward",
+    "icon": "ability_mage_fierypayback.jpg",
+    "color": "hsl(100, 70%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=464772",
+    "tags": []
+  },
+  "469993": {
+    "spell_id": 469993,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "onearmed-bandit",
+    "name": "Foul Exhaust",
+    "icon": "inv_elemental_mote_shadow01.jpg",
+    "color": "hsl(280, 75%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=469993",
+    "tags": []
+  }
+}

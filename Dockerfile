@@ -11,7 +11,8 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# 上线务必用环境变量覆盖 ADMIN_PASSWORD；HOST=0.0.0.0 让容器外可达
+# 上线务必用环境变量设置 ADMIN_PASSWORD；HOST=0.0.0.0 让容器外可达。
+# 未设置 ADMIN_PASSWORD 或仍用默认值时，公网绑定会拒绝启动。
 ENV PORT=8080 HOST=0.0.0.0
 EXPOSE 8080
 

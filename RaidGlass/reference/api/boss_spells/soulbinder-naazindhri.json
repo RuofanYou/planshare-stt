@@ -1,0 +1,67 @@
+{
+  "1225582": {
+    "spell_id": 1225582,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "soulbinder-naazindhri",
+    "name": "Soul Calling",
+    "icon": "ability_racial_etherealconnection.jpg",
+    "color": "rgb(160, 76, 245)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1225582",
+    "tags": []
+  },
+  "1225616": {
+    "spell_id": 1225616,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "soulbinder-naazindhri",
+    "name": "Soulfire Convergence",
+    "icon": "ability_socererking_arcanereplication_nightborne.jpg",
+    "color": "rgb(122, 216, 235)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1225616",
+    "tags": []
+  },
+  "1227276": {
+    "spell_id": 1227276,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "soulbinder-naazindhri",
+    "name": "Soulfray Annihilation",
+    "icon": "spell_arcane_arcane03.jpg",
+    "color": "rgb(237, 100, 230)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1227276",
+    "tags": []
+  },
+  "1241100": {
+    "spell_id": 1241100,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "soulbinder-naazindhri",
+    "name": "Mystic Lash",
+    "icon": "spell_arcane_arcane01_nightborne.jpg",
+    "color": "rgb(201, 162, 113)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1241100",
+    "tags": []
+  },
+  "1242088": {
+    "spell_id": 1242088,
+    "duration": 4,
+    "cooldown": 15,
+    "spell_type": "soulbinder-naazindhri",
+    "name": "Arcane Expulsion",
+    "icon": "spell_nature_astralrecalgroup.jpg",
+    "color": "rgb(227, 39, 111)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1242088",
+    "tags": []
+  }
+}

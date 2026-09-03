@@ -15,12 +15,38 @@ import type {
   CreateBoardInput,
   AdminBoard,
   AdminAuthor,
+  AdminCreatorAccount,
   UpdateBoardInput,
   AuthorInput,
   UpdateAuthorInput,
   AdminLoginResult,
+  CreateSubmissionInput,
+  AdminSubmission,
+  SubmissionReceipt,
+  ApproveSubmissionInput,
+  ApproveSubmissionResult,
+  CreatorMeResult,
+  CreatorSubmission,
+  CreatorAuthResult,
+  CreatorProfileInput,
+  CreatorPasswordInput,
+  CreatorPasswordResult,
+  CreatorUser,
+  CreatorBoard,
+  CreatorBoardInput,
+  UpdateCreatorBoardInput,
+  ResetCreatorPasswordResult,
+  ReportReason,
+  BoardReport,
+  AuditLog,
+  Boss,
 } from '../data/types'
 import { getToken, clearToken, UnauthorizedError } from './adminAuth'
+import {
+  getCreatorToken,
+  clearCreatorToken,
+  CreatorUnauthorizedError,
+} from './creatorAuth'
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
@@ -73,6 +99,41 @@ async function adminRequest<T>(path: string, init?: RequestInit): Promise<T> {
       // 忽略
     }
     throw new UnauthorizedError(detail || '登录已失效，请重新登录')
+  }
+  if (!res.ok) {
+    let detail = ''
+    try {
+      const body = (await res.json()) as { error?: string }
+      detail = body?.error ?? ''
+    } catch {
+      // 忽略
+    }
+    throw new Error(detail || `请求失败（${res.status}）：${path}`)
+  }
+  return res.json() as Promise<T>
+}
+
+/** 创作者鉴权请求：自动附 Creator token，401 时清登录态。 */
+async function creatorRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getCreatorToken()
+  const res = await fetch(apiUrl(path), {
+    ...init,
+    headers: {
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
+  })
+  if (res.status === 401) {
+    clearCreatorToken()
+    let detail = ''
+    try {
+      const body = (await res.json()) as { error?: string }
+      detail = body?.error ?? ''
+    } catch {
+      // 忽略
+    }
+    throw new CreatorUnauthorizedError(detail || '创作者登录已失效，请重新登录')
   }
   if (!res.ok) {
     let detail = ''
@@ -147,6 +208,32 @@ export function likeBoard(boardId: string): Promise<LikeResult> {
   })
 }
 
+/** POST /api/boards/:id/reports -> 举报公开板。 */
+export function reportBoard(
+  boardId: string,
+  input: { reason: ReportReason; detail?: string },
+): Promise<BoardReport> {
+  return request<BoardReport>(`/api/boards/${encodeURIComponent(boardId)}/reports`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+/** POST /api/submissions -> 游客投稿，进入审核队列，不直接公开。 */
+export function createSubmission(input: CreateSubmissionInput): Promise<AdminSubmission> {
+  const creatorToken = getCreatorToken()
+  return request<AdminSubmission>('/api/submissions', {
+    method: 'POST',
+    headers: creatorToken ? { Authorization: `Bearer ${creatorToken}` } : undefined,
+    body: JSON.stringify(input),
+  })
+}
+
+/** GET /api/submissions/:id/receipt -> 游客凭投稿编号查询审核状态。 */
+export function getSubmissionReceipt(id: string): Promise<SubmissionReceipt> {
+  return request<SubmissionReceipt>(`/api/submissions/${encodeURIComponent(id)}/receipt`)
+}
+
 /** POST /api/boards -> 新建 Board（受保护：需管理员 token；后端生成 id / 时间戳 / 计数） */
 export function createBoard(input: CreateBoardInput): Promise<Board> {
   return adminRequest<Board>('/api/boards', {
@@ -165,6 +252,77 @@ export function adminLogin(password: string): Promise<AdminLoginResult> {
   })
 }
 
+/* ============================ 创作者登录 ============================ */
+
+export function creatorLogin(username: string, password: string): Promise<CreatorAuthResult> {
+  return request<CreatorAuthResult>('/api/creator/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  })
+}
+
+/** GET /api/creator/me -> 当前创作者身份与绑定作者。 */
+export function getCreatorMe(): Promise<CreatorMeResult> {
+  return creatorRequest<CreatorMeResult>('/api/creator/me')
+}
+
+export function getCreatorSubmissions(): Promise<CreatorSubmission[]> {
+  return creatorRequest<CreatorSubmission[]>('/api/creator/submissions')
+}
+
+export function withdrawCreatorSubmission(id: string): Promise<CreatorSubmission> {
+  return creatorRequest<CreatorSubmission>(`/api/creator/submissions/${encodeURIComponent(id)}/withdraw`, {
+    method: 'POST',
+  })
+}
+
+export function updateCreatorProfile(input: CreatorProfileInput): Promise<CreatorMeResult> {
+  return creatorRequest<CreatorMeResult>('/api/creator/profile', {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateCreatorPassword(input: CreatorPasswordInput): Promise<CreatorPasswordResult> {
+  return creatorRequest<CreatorPasswordResult>('/api/creator/password', {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export function creatorLogout(): Promise<{ ok: true }> {
+  return creatorRequest<{ ok: true }>('/api/creator/logout', {
+    method: 'POST',
+  })
+}
+
+export function getCreatorBoards(): Promise<CreatorBoard[]> {
+  return creatorRequest<CreatorBoard[]>('/api/creator/boards')
+}
+
+export function createCreatorBoard(input: CreatorBoardInput): Promise<CreatorBoard> {
+  return creatorRequest<CreatorBoard>('/api/creator/boards', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateCreatorBoard(
+  id: string,
+  patch: UpdateCreatorBoardInput,
+): Promise<CreatorBoard> {
+  return creatorRequest<CreatorBoard>(`/api/creator/boards/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteCreatorBoard(id: string): Promise<{ ok: true }> {
+  return creatorRequest<{ ok: true }>(`/api/creator/boards/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+}
+
 /** GET /api/admin/boards -> AdminBoard[]（全部，含隐藏；按 updatedAt 倒序） */
 export function getAdminBoards(): Promise<AdminBoard[]> {
   return adminRequest<AdminBoard[]>('/api/admin/boards')
@@ -173,6 +331,136 @@ export function getAdminBoards(): Promise<AdminBoard[]> {
 /** GET /api/admin/authors -> AdminAuthor[]（全部，每个带 boardCount） */
 export function getAdminAuthors(): Promise<AdminAuthor[]> {
   return adminRequest<AdminAuthor[]>('/api/admin/authors')
+}
+
+/** GET /api/admin/submissions -> 投稿审核队列。 */
+export function getAdminSubmissions(): Promise<AdminSubmission[]> {
+  return adminRequest<AdminSubmission[]>('/api/admin/submissions')
+}
+
+/** GET /api/admin/creator-accounts -> 创作者账号列表。 */
+export function getAdminCreatorAccounts(): Promise<AdminCreatorAccount[]> {
+  return adminRequest<AdminCreatorAccount[]>('/api/admin/creator-accounts')
+}
+
+/** PUT /api/admin/creator-accounts/:id -> 管理员暂停 / 恢复创作者账号。 */
+export function updateCreatorAccountStatus(
+  id: string,
+  status: CreatorUser['status'],
+): Promise<CreatorUser> {
+  return adminRequest<CreatorUser>(`/api/admin/creator-accounts/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  })
+}
+
+export function getAdminReports(): Promise<BoardReport[]> {
+  return adminRequest<BoardReport[]>('/api/admin/reports')
+}
+
+export function getAdminAuditLogs(): Promise<AuditLog[]> {
+  return adminRequest<AuditLog[]>('/api/admin/audit-logs')
+}
+
+export function hideBoardFromReport(id: string, note?: string): Promise<BoardReport> {
+  return adminRequest<BoardReport>(`/api/admin/reports/${encodeURIComponent(id)}/hide-board`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
+}
+
+export function dismissReport(id: string, note?: string): Promise<BoardReport> {
+  return adminRequest<BoardReport>(`/api/admin/reports/${encodeURIComponent(id)}/dismiss`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
+}
+
+export function createRaid(input: { id?: string; name: string; patch: string }): Promise<Raid> {
+  return adminRequest<Raid>('/api/admin/raids', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateRaid(id: string, patch: { name?: string; patch?: string }): Promise<Raid> {
+  return adminRequest<Raid>(`/api/admin/raids/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteRaid(id: string): Promise<{ ok: true }> {
+  return adminRequest<{ ok: true }>(`/api/admin/raids/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+}
+
+export function createBoss(input: { id?: string; raidId: string; name: string; order: number }): Promise<Boss> {
+  return adminRequest<Boss>('/api/admin/bosses', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateBoss(
+  id: string,
+  patch: { raidId?: string; name?: string; order?: number },
+): Promise<Boss> {
+  return adminRequest<Boss>(`/api/admin/bosses/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteBoss(id: string): Promise<{ ok: true }> {
+  return adminRequest<{ ok: true }>(`/api/admin/bosses/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+}
+
+/** POST /api/admin/creator-accounts/:id/reset-password -> 管理员重置创作者密码。 */
+export function resetCreatorPassword(
+  id: string,
+  password: string,
+): Promise<ResetCreatorPasswordResult> {
+  return adminRequest<ResetCreatorPasswordResult>(
+    `/api/admin/creator-accounts/${encodeURIComponent(id)}/reset-password`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    },
+  )
+}
+
+/** POST /api/admin/submissions/:id/approve -> 通过投稿并发布正式板。 */
+export function approveSubmission(
+  id: string,
+  body: ApproveSubmissionInput,
+): Promise<ApproveSubmissionResult> {
+  return adminRequest<ApproveSubmissionResult>(
+    `/api/admin/submissions/${encodeURIComponent(id)}/approve`,
+    {
+      method: 'POST',
+      body: JSON.stringify(body),
+    },
+  )
+}
+
+/** POST /api/admin/submissions/:id/reject -> 驳回投稿。 */
+export function rejectSubmission(id: string, note?: string): Promise<AdminSubmission> {
+  return adminRequest<AdminSubmission>(`/api/admin/submissions/${encodeURIComponent(id)}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
+}
+
+/** POST /api/admin/submissions/:id/spam -> 标记垃圾。 */
+export function markSubmissionSpam(id: string, note?: string): Promise<AdminSubmission> {
+  return adminRequest<AdminSubmission>(`/api/admin/submissions/${encodeURIComponent(id)}/spam`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  })
 }
 
 /** PUT /api/boards/:id -> 更新后的最新 Board（patch 为任意子集） */

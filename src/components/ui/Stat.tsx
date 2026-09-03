@@ -8,7 +8,7 @@ type StatKind = 'view' | 'like'
 export interface StatProps {
   /** 统计种类，决定图标 */
   kind: StatKind
-  /** 数值（mock，只读展示） */
+  /** 数值（只读展示） */
   value: number
   /** inline = 卡片底栏紧凑；large = 详情侧栏 epic 大数字 */
   size?: 'inline' | 'large'

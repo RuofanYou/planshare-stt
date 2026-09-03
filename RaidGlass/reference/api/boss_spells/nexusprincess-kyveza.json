@@ -1,0 +1,67 @@
+{
+  "435405": {
+    "spell_id": 435405,
+    "duration": 29,
+    "cooldown": 0,
+    "spell_type": "nexusprincess-kyveza",
+    "name": "Starless Night",
+    "icon": "spell_shadow_twilight.jpg",
+    "color": "#bf4040",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=435405",
+    "tags": []
+  },
+  "436971": {
+    "spell_id": 436971,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "nexusprincess-kyveza",
+    "name": "Assassination",
+    "icon": "ability_theblackarrow.jpg",
+    "color": "hsl(270, 60%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=436971",
+    "tags": []
+  },
+  "437620": {
+    "spell_id": 437620,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "nexusprincess-kyveza",
+    "name": "Nether Rift",
+    "icon": "spell_priest_void-blast.jpg",
+    "color": "#d17a32",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=437620",
+    "tags": []
+  },
+  "438245": {
+    "spell_id": 438245,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "nexusprincess-kyveza",
+    "name": "Twilight Massacre",
+    "icon": "ability_mage_netherwindpresence.jpg",
+    "color": "hsl(300, 60%, 60%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=438245",
+    "tags": []
+  },
+  "440377": {
+    "spell_id": 440377,
+    "duration": 35,
+    "cooldown": 0,
+    "spell_type": "nexusprincess-kyveza",
+    "name": "Void Shredders",
+    "icon": "ability_mount_voidelfstridermount.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=440377",
+    "tags": []
+  }
+}

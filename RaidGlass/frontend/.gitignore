@@ -1,0 +1,27 @@
+__pycache__/
+*.py[cod]
+*.swp
+*.*~
+*~
+*.sublime-workspace
+*.scannerwork
+.vscode
+
+static
+build
+node_modules
+tsconfig.tsbuildinfo
+.wrangler
+.raidglass-snapshot-backups
+
+# 本地环境变量由部署环境注入，禁止进入仓库
+.env
+.env.*
+
+# 公开快照由版本化缓存生成，源码树只保留静态输入
+public/api
+public/assets
+public/snapshot-manifest.json
+
+# rollup-plugin-visualizer output
+stats.html

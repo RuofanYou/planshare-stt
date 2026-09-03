@@ -1,0 +1,54 @@
+{
+  "360006": {
+    "spell_id": 360006,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "lords-of-dread",
+    "name": "Cloud of Carrion",
+    "icon": "spell_shadow_carrionswarm.jpg",
+    "color": "#51cc14",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=360006",
+    "tags": []
+  },
+  "360145": {
+    "spell_id": 360145,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "lords-of-dread",
+    "name": "Fearful Trepidation",
+    "icon": "spell_nzinsanity_fearofdeath.jpg",
+    "color": "#5f29cc",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=360145",
+    "tags": []
+  },
+  "360300": {
+    "spell_id": 360300,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "lords-of-dread",
+    "name": "Swarm of Decay",
+    "icon": "spell_nature_naturetouchdecay.jpg",
+    "color": "#e62e2e",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=360300",
+    "tags": []
+  },
+  "360516": {
+    "spell_id": 360516,
+    "duration": 0,
+    "cooldown": 0,
+    "spell_type": "lords-of-dread",
+    "name": "Among Us",
+    "icon": "spell_nzinsanity_shortsighted.jpg",
+    "color": "#cc29b1",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=360516",
+    "tags": []
+  }
+}

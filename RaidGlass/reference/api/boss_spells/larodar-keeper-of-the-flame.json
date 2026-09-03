@@ -1,0 +1,67 @@
+{
+  "417634": {
+    "spell_id": 417634,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "larodar-keeper-of-the-flame",
+    "name": "Raging Inferno",
+    "icon": "ability_mage_fierypayback.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=417634",
+    "tags": []
+  },
+  "421316": {
+    "spell_id": 421316,
+    "duration": 18,
+    "cooldown": 0,
+    "spell_type": "larodar-keeper-of-the-flame",
+    "name": "Consuming Flame",
+    "icon": "ability_mage_burnout.jpg",
+    "color": "hsl(120, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=421316",
+    "tags": []
+  },
+  "425025": {
+    "spell_id": 425025,
+    "duration": 10,
+    "cooldown": 0,
+    "spell_type": "larodar-keeper-of-the-flame",
+    "name": "Furious Outburst",
+    "icon": "spell_shaman_improvedfirenova.jpg",
+    "color": "hsl(220, 80%, 70%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=425025",
+    "tags": []
+  },
+  "427319": {
+    "spell_id": 427319,
+    "duration": 18,
+    "cooldown": 0,
+    "spell_type": "larodar-keeper-of-the-flame",
+    "name": "Flash Fire",
+    "icon": "inv_misc_volatilefire.jpg",
+    "color": "hsl(330, 70%, 65%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=427319",
+    "tags": []
+  },
+  "429973": {
+    "spell_id": 429973,
+    "duration": 2.5,
+    "cooldown": 0,
+    "spell_type": "larodar-keeper-of-the-flame",
+    "name": "Smoldering Backdraft",
+    "icon": "ability_racial_flayer.jpg",
+    "color": "hsl(265, 70%, 70%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=429973",
+    "tags": []
+  }
+}

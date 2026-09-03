@@ -1,0 +1,66 @@
+
+
+
+.captcha {
+
+    --color-yellow: var(--rg-gold);
+
+
+    display: flex;
+    align-items: center;
+    user-select: none;
+    
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+
+    /* background: hsla(0 0% 0%, 0.5); */
+    /* // border: 1px solid hsl(0 0% 30%); */
+    /* border-radius: 5px; */
+    color: var(--rg-text);
+    
+    font-size: 0.9rem;
+
+    border-radius: var(--rg-radius-sm);
+    border: 1px solid var(--color-yellow);
+    
+    /* font-family: "Open Sans"; */
+    
+    text-align: center;
+    font-weight: 400;
+    font-style: normal;
+    line-height: normal;
+    /* text-transform: uppercase; */
+
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.56)),
+        var(--rg-gold-soft);
+
+    cursor: url("/log/cur/gauntlet.cur"), auto;
+    transition: background-color .2s, color .2s;
+
+    &:hover {
+        color: var(--rg-accent-strong);
+        border: 1px solid var(--rg-accent);
+        background-color: rgba(255, 255, 255, 0.86);
+        
+        .fake_checkbox {
+            border: 1px solid var(--rg-accent);
+            background-color: rgba(240, 177, 90, 0.12);
+        }
+    }
+}
+
+
+.fake_checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--color-yellow);
+    background-color: rgba(255, 255, 255, 0.72);
+    cursor: url("/log/cur/gauntlet_active.cur"), auto;
+
+    &:hover {
+        &::after {
+            content: "✕";
+        }
+    }
+}

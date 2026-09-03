@@ -1,0 +1,25 @@
+
+
+.button {
+    display: inline-grid;
+    width: var(--rg-control-min-touch) !important;
+    min-width: var(--rg-control-min-touch);
+    height: var(--rg-control-min-touch) !important;
+    padding: 0;
+    place-items: center;
+    text-align: center;
+
+    background-color: rgba(255, 255, 255, 0.58);
+    border-color: var(--rg-stroke) !important;
+    color: var(--rg-text);
+    cursor: pointer;
+
+    &:global.disabled {
+        background-color: rgba(255, 255, 255, 0.34);
+    }
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.84);
+        border-color: var(--rg-stroke-strong) !important;
+    }
+}

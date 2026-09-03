@@ -1,7 +1,7 @@
 /**
  * Icon —— 命名图标单一来源（整站唯一权威）。
  * 把全站各页内联重复的 Lucide 风格 SVG path 收进这一处：
- * arrow / star / eye / heart / copy / check / chevron / empty / error / author / question。
+ * arrow / star / eye / heart / copy / check / chevron / search / empty / error / author / question。
  * 各处不再手写 svg path，统一 <Icon name=".." size=.. />。
  *
  * 约定：
@@ -20,6 +20,7 @@ export type IconName =
   | 'copy' // 复制
   | 'check' // 对勾（复制成功 / Toast）
   | 'chevron' // 右向 chevron（面包屑分隔）
+  | 'search' // 搜索
   | 'empty' // 空态线框（列表为空）
   | 'error' // 错误态警示三角
   | 'author' // 作者占位（找不到作者）
@@ -114,6 +115,13 @@ export default function Icon({
       return (
         <svg {...common} {...strokeProps} strokeWidth={1.75}>
           <path d="m9 6 6 6-6 6" />
+        </svg>
+      )
+    case 'search':
+      return (
+        <svg {...common} {...strokeProps} strokeWidth={1.75}>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m16.5 16.5 4 4" />
         </svg>
       )
     case 'empty':

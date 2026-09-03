@@ -1,0 +1,80 @@
+{
+  "375580": {
+    "spell_id": 375580,
+    "duration": 1.5,
+    "cooldown": 0,
+    "spell_type": "dathea-ascended",
+    "name": "Zephyr Slam",
+    "icon": "ability_skyreach_wind_wall.jpg",
+    "color": "#74f0f2",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=375580",
+    "tags": []
+  },
+  "376943": {
+    "spell_id": 376943,
+    "duration": 14,
+    "cooldown": 0,
+    "spell_type": "dathea-ascended",
+    "name": "Cyclone",
+    "icon": "creatureportrait_cyclone_nodebris.jpg",
+    "color": "#cc3d3d",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=376943",
+    "tags": []
+  },
+  "387849": {
+    "spell_id": 387849,
+    "duration": 50,
+    "cooldown": 0,
+    "spell_type": "dathea-ascended",
+    "name": "Coalescing Storm",
+    "icon": "inv_10_elementalspiritfoozles_air.jpg",
+    "color": "#47663d",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=387849",
+    "tags": []
+  },
+  "388410": {
+    "spell_id": 388410,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "dathea-ascended",
+    "name": "Crosswinds",
+    "icon": "inv_10_jewelcrafting_bg_air.jpg",
+    "color": "#6fd1c4",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=388410",
+    "tags": []
+  },
+  "391382": {
+    "spell_id": 391382,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "dathea-ascended",
+    "name": "Blowback",
+    "icon": "inv_misc_volatileair.jpg",
+    "color": "#d18726",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=391382",
+    "tags": []
+  },
+  "391600": {
+    "spell_id": 391600,
+    "duration": 15,
+    "cooldown": 0,
+    "spell_type": "dathea-ascended",
+    "name": "Conductive Mark",
+    "icon": "spell_shaman_staticshock.jpg",
+    "color": "#297bcc",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=391600",
+    "tags": []
+  }
+}

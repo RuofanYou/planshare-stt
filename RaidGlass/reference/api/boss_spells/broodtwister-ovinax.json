@@ -1,0 +1,54 @@
+{
+  "442432": {
+    "spell_id": 442432,
+    "duration": 16,
+    "cooldown": 0,
+    "spell_type": "broodtwister-ovinax",
+    "name": "Ingest Black Blood",
+    "icon": "inv_achievement_raidnerubian_swarmmother.jpg",
+    "color": "#bf4040",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=442432",
+    "tags": []
+  },
+  "442526": {
+    "spell_id": 442526,
+    "duration": 7.5,
+    "cooldown": 0,
+    "spell_type": "broodtwister-ovinax",
+    "name": "Experimental Dosage",
+    "icon": "spell_deathknight_bloodplague.jpg",
+    "color": "#8917ca",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=442526",
+    "tags": []
+  },
+  "443003": {
+    "spell_id": 443003,
+    "duration": 9.5,
+    "cooldown": 0,
+    "spell_type": "broodtwister-ovinax",
+    "name": "Volatile Concoction",
+    "icon": "spell_shadow_unstableaffliction_2.jpg",
+    "color": "#478fb3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=443003",
+    "tags": []
+  },
+  "446344": {
+    "spell_id": 446344,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "broodtwister-ovinax",
+    "name": "Sticky Web",
+    "icon": "inv_ability_web_debuff.jpg",
+    "color": "#ca17a3",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=446344",
+    "tags": []
+  }
+}

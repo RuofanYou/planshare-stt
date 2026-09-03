@@ -1,0 +1,28 @@
+{
+  "442530": {
+    "spell_id": 442530,
+    "duration": 8,
+    "cooldown": 10,
+    "spell_type": "the-bloodbound-horror",
+    "name": "Goresplatter",
+    "icon": "spell_shadow_corpseexplode.jpg",
+    "color": "hsl(0, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=442530",
+    "tags": []
+  },
+  "444363": {
+    "spell_id": 444363,
+    "duration": 5,
+    "cooldown": 40,
+    "spell_type": "the-bloodbound-horror",
+    "name": "Gruesome Disgorge",
+    "icon": "ability_warlock_shadowflame.jpg",
+    "color": "hsl(120, 50%, 50%)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=444363",
+    "tags": []
+  }
+}

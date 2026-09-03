@@ -1,0 +1,67 @@
+{
+  "1221622": {
+    "spell_id": 1221622,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "rotmire",
+    "name": "Awaken Fungi",
+    "icon": "inv_misc_food_96_zangarcaps.jpg",
+    "color": "rgb(227, 111, 175)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1221622",
+    "tags": []
+  },
+  "1221637": {
+    "spell_id": 1221637,
+    "duration": 16,
+    "cooldown": 0,
+    "spell_type": "rotmire",
+    "name": "Fungal Bloom",
+    "icon": "inv_misc_herb_plaguebloom.jpg",
+    "color": "rgb(219, 81, 237)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1221637",
+    "tags": []
+  },
+  "1221781": {
+    "spell_id": 1221781,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "rotmire",
+    "name": "Putrid Fist",
+    "icon": "inv_misc_herb_ancientlichen.jpg",
+    "color": "rgb(179, 176, 145)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1221781",
+    "tags": []
+  },
+  "1221787": {
+    "spell_id": 1221787,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "rotmire",
+    "name": "Bursting Postules",
+    "icon": "inv_misc_herb_zoanthid.jpg",
+    "color": "rgb(153, 52, 97)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1221787",
+    "tags": []
+  },
+  "1222088": {
+    "spell_id": 1222088,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "rotmire",
+    "name": "Festering Vines",
+    "icon": "ability_creature_poison_04.jpg",
+    "color": "rgb(27, 128, 87)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1222088",
+    "tags": []
+  }
+}
