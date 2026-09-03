@@ -201,7 +201,7 @@ function validatePayload(payload, target, requestKind) {
 }
 
 function compactRanking(payload, requestKind) {
-    if (!Array.isArray(payload.reports) || payload.reports.length === 0) {
+    if (!Array.isArray(payload.reports)) {
         throw new TargetRefreshError(`upstream_${requestKind}_reports_empty`, `${requestKind} reports are empty`);
     }
     const sourceReportCount = Number.isInteger(payload.source_report_count)
@@ -232,7 +232,6 @@ function reusableRanking(record, target, upstreamUpdated, log) {
         validatePayload(ranking, target, "stored");
         if (
             !Array.isArray(ranking.reports)
-            || ranking.reports.length < 1
             || ranking.reports.length > TOP_N
             || ranking.edge_top_n !== TOP_N
             || !Number.isInteger(ranking.source_report_count)

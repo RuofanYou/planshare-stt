@@ -1076,10 +1076,10 @@
     "spell_type": "other-trinkets",
     "tags": [],
     "event_type": "cast",
-    "wowhead_data": "item=249346&ilvl=289&bonus=6646:10356",
+    "wowhead_data": "item=249346&bonus=6646:10356",
     "until": null,
     "extra_filter": "",
     "tooltip": "",
-    "query": true
+    "query": false
   }
 }

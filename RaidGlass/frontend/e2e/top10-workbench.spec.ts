@@ -343,7 +343,7 @@ test("移动端单人作业使用原生模态、显式复制并在目标切换�
     expect(geometry.bottom).toBeLessThanOrEqual(845);
     expect(geometry.minControlSize).toBeGreaterThanOrEqual(44);
 
-    await page.getByRole("button", { name: "复制文本" }).click();
+    await page.getByRole("button", { name: "复制 STT 格式" }).click();
     await expect(page.getByRole("button", { name: "已复制" })).toBeVisible();
     await page.screenshot({ path: `${SCREENSHOT_ROOT}/copy-note-mobile-390x844.png`, fullPage: true });
 

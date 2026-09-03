@@ -10,6 +10,10 @@ function timestamp(value) {
     return typeof value === "string" && !Number.isNaN(Date.parse(value));
 }
 
+function count(value) {
+    return Number.isInteger(value) && value > 0;
+}
+
 function validReleaseManifest(manifest) {
     return Boolean(
         manifest
@@ -20,6 +24,11 @@ function validReleaseManifest(manifest) {
         && hash(manifest.source_tree_hash)
         && identifier(manifest.build_id)
         && identifier(manifest.release_id)
+        && identifier(manifest.matrix_id)
+        && count(manifest.expected_count)
+        && count(manifest.spec_expected)
+        && count(manifest.comp_expected)
+        && manifest.spec_expected + manifest.comp_expected === manifest.expected_count
         && timestamp(manifest.published_at)
         && Number.isInteger(manifest.static_file_count)
         && manifest.static_file_count > 0

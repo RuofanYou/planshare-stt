@@ -40,6 +40,11 @@ function validateManifest(manifest) {
     assert.match(manifest.source_tree_hash, /^[a-f0-9]{64}$/);
     assert.match(manifest.build_id, /^[A-Za-z0-9._-]{1,128}$/);
     assert.match(manifest.release_id, /^[A-Za-z0-9._-]{1,128}$/);
+    assert.match(manifest.matrix_id, /^[A-Za-z0-9._-]{1,128}$/);
+    assert.ok(Number.isInteger(manifest.expected_count) && manifest.expected_count > 0);
+    assert.ok(Number.isInteger(manifest.spec_expected) && manifest.spec_expected > 0);
+    assert.ok(Number.isInteger(manifest.comp_expected) && manifest.comp_expected > 0);
+    assert.equal(manifest.spec_expected + manifest.comp_expected, manifest.expected_count);
     assert.ok(!Number.isNaN(Date.parse(manifest.published_at)));
     assert.ok(Number.isInteger(manifest.static_file_count) && manifest.static_file_count > 0);
 }
@@ -68,23 +73,23 @@ function validateSpecRanking(payload, expected) {
 function validateCompRanking(payload, bossSlug) {
     assert.equal(payload.boss_slug, bossSlug);
     assert.equal(payload.edge_top_n, 10);
-    assert.ok(Array.isArray(payload.reports) && payload.reports.length > 0 && payload.reports.length <= 10);
+    assert.ok(Array.isArray(payload.reports) && payload.reports.length <= 10);
     assert.ok(!Number.isNaN(Date.parse(payload.updated)));
     validateRefresh(payload.refresh);
 }
 
 const specCases = [
-    ["/api/spec_ranking/mage-fire/imperator-averzian?difficulty=heroic&metric=dps", {
-        bossSlug: "imperator-averzian", specSlug: "mage-fire", difficulty: "heroic", metric: "dps",
+    ["/api/spec_ranking/deathknight-blood/entombed-sentinels?difficulty=heroic&metric=dps", {
+        bossSlug: "entombed-sentinels", specSlug: "deathknight-blood", difficulty: "heroic", metric: "dps",
     }],
-    ["/api/spec_ranking/mage-fire/imperator-averzian?difficulty=mythic&metric=bossdps", {
-        bossSlug: "imperator-averzian", specSlug: "mage-fire", difficulty: "mythic", metric: "bossdps",
+    ["/api/spec_ranking/mage-fire/nekzali-the-soulcoiler?difficulty=mythic&metric=bossdps", {
+        bossSlug: "nekzali-the-soulcoiler", specSlug: "mage-fire", difficulty: "mythic", metric: "bossdps",
     }],
-    ["/api/spec_ranking/priest-holy/imperator-averzian?difficulty=mythic&metric=hps", {
-        bossSlug: "imperator-averzian", specSlug: "priest-holy", difficulty: "mythic", metric: "hps",
+    ["/api/spec_ranking/priest-holy/ulatek?difficulty=mythic&metric=hps", {
+        bossSlug: "ulatek", specSlug: "priest-holy", difficulty: "mythic", metric: "hps",
     }],
-    ["/api/spec_ranking/deathknight-blood/imperator-averzian?difficulty=mythic&metric=bossdps", {
-        bossSlug: "imperator-averzian", specSlug: "deathknight-blood", difficulty: "mythic", metric: "bossdps",
+    ["/api/spec_ranking/warlock-demonology/the-twin-fangs?difficulty=mythic&metric=dps", {
+        bossSlug: "the-twin-fangs", specSlug: "warlock-demonology", difficulty: "mythic", metric: "dps",
     }],
 ];
 const [manifest, health, refreshState, home, specResponses, comp] = await Promise.all([
@@ -93,7 +98,7 @@ const [manifest, health, refreshState, home, specResponses, comp] = await Promis
     fetchRequired("/api/admin/refresh-state", "json"),
     fetchRequired("/", "html"),
     Promise.all(specCases.map(([path]) => fetchRequired(path, "json"))),
-    fetchRequired("/api/comp_ranking/imperator-averzian", "json"),
+    fetchRequired("/api/comp_ranking/entombed-sentinels", "json"),
 ]);
 
 validateManifest(manifest);
@@ -104,21 +109,23 @@ if (expectedManifestPath) {
 
 assert.equal(health.ok, true);
 assert.equal(health.mode, "worker-assets-d1");
-assert.equal(health.expected_count, 1870);
-assert.equal(health.available_count, 1870);
-assert.equal(refreshState.expected_count, 1870);
-assert.equal(refreshState.available_count, 1870);
-assert.equal(refreshState.spec_expected, 1860);
-assert.equal(refreshState.spec_available, 1860);
-assert.equal(refreshState.comp_expected, 10);
-assert.equal(refreshState.comp_available, 10);
+assert.equal(health.matrix_id, manifest.matrix_id);
+assert.equal(health.expected_count, manifest.expected_count);
+assert.equal(health.available_count, manifest.expected_count);
+assert.equal(refreshState.matrix_id, manifest.matrix_id);
+assert.equal(refreshState.expected_count, manifest.expected_count);
+assert.equal(refreshState.available_count, manifest.expected_count);
+assert.equal(refreshState.spec_expected, manifest.spec_expected);
+assert.equal(refreshState.spec_available, manifest.spec_expected);
+assert.equal(refreshState.comp_expected, manifest.comp_expected);
+assert.equal(refreshState.comp_available, manifest.comp_expected);
 for (const key of ["release_id", "build_id", "source_tree_hash", "published_at"]) {
     assert.equal(health[key], manifest[key], `health mismatch: ${key}`);
     assert.equal(refreshState[key], manifest[key], `refresh-state mismatch: ${key}`);
 }
 assert.match(home, /<html lang="zh-CN"/);
 specResponses.forEach((payload, index) => validateSpecRanking(payload, specCases[index][1]));
-validateCompRanking(comp, "imperator-averzian");
+validateCompRanking(comp, "entombed-sentinels");
 
 const entryPaths = Array.from(home.matchAll(/(?:src|href)="(\/log\/assets\/[^\"]+)"/g), (match) => match[1]);
 assert.ok(entryPaths.length >= 2, "live index has no hashed entries");

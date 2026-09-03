@@ -135,7 +135,7 @@ export function createReleaseVerifier({
         const paths = [
             "/snapshot-manifest.json",
             "/api/health",
-            "/api/spec_ranking/mage-fire/imperator-averzian?difficulty=heroic&metric=dps",
+            "/api/spec_ranking/deathknight-blood/entombed-sentinels?difficulty=heroic&metric=dps",
             "/",
         ];
         try {
@@ -154,8 +154,9 @@ export function createReleaseVerifier({
             return manifest.release_id === releaseId
                 && health.ok === true
                 && health.release_id === releaseId
-                && health.expected_count === 1870
-                && health.available_count === 1870
+                && health.expected_count === manifest.expected_count
+                && health.available_count === manifest.expected_count
+                && health.matrix_id === manifest.matrix_id
                 && ranking.edge_top_n === 10
                 && Array.isArray(ranking.reports)
                 && ranking.reports.length > 0

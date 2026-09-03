@@ -44,6 +44,11 @@ function validateManifest(manifest) {
     assert.match(manifest.source_tree_hash, /^[a-f0-9]{64}$/);
     assert.match(manifest.build_id, /^[A-Za-z0-9._-]{1,128}$/);
     assert.match(manifest.release_id, /^[A-Za-z0-9._-]{1,128}$/);
+    assert.match(manifest.matrix_id, /^[A-Za-z0-9._-]{1,128}$/);
+    assert.ok(Number.isInteger(manifest.expected_count) && manifest.expected_count > 0);
+    assert.ok(Number.isInteger(manifest.spec_expected) && manifest.spec_expected > 0);
+    assert.ok(Number.isInteger(manifest.comp_expected) && manifest.comp_expected > 0);
+    assert.equal(manifest.spec_expected + manifest.comp_expected, manifest.expected_count);
     assert.ok(!Number.isNaN(Date.parse(manifest.published_at)));
     assert.ok(Number.isInteger(manifest.static_file_count) && manifest.static_file_count > 0);
     for (const obsolete of [
@@ -76,7 +81,7 @@ for (const root of [publicRoot, buildRoot]) {
 }
 
 const matrix = await buildRankingMatrix(buildRoot);
-assert.equal(matrix.length, 1860, "static metadata matrix must contain 1860 spec targets");
+assert.equal(matrix.length, publicManifest.spec_expected, "static metadata matrix count mismatch");
 
 const indexHtml = await readFile(join(buildRoot, "index.html"), "utf8");
 const entryPaths = Array.from(indexHtml.matchAll(/(?:src|href)="(\/log\/assets\/[^\"]+)"/g), (match) => match[1]);
@@ -108,7 +113,9 @@ console.info(JSON.stringify({
     release_id: publicManifest.release_id,
     build_id: publicManifest.build_id,
     source_tree_hash: publicManifest.source_tree_hash,
+    matrix_id: publicManifest.matrix_id,
+    expected_count: publicManifest.expected_count,
     spec_expected: matrix.length,
-    comp_expected: 10,
+    comp_expected: publicManifest.comp_expected,
     artifact_hash: await stableTreeHash(buildRoot),
 }));

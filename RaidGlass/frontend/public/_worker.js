@@ -13,7 +13,6 @@ const STATIC_JSON_HEADERS = {
   "Cache-Control": "public, max-age=3600",
 };
 
-const EXPECTED_COUNTS = Object.freeze({ total: 1870, spec: 1860, comp: 10 });
 const STALE_AFTER_MS = 8 * 60 * 60 * 1000;
 const ALLOWED_DIFFICULTIES = new Set(["heroic", "mythic"]);
 const SAFE_SLUG = /^[a-z0-9][a-z0-9&=-]{0,95}$/;
@@ -63,6 +62,15 @@ export async function loadManifest(request, env) {
     || manifest.build_id.length === 0
     || typeof manifest.release_id !== "string"
     || manifest.release_id.length === 0
+    || typeof manifest.matrix_id !== "string"
+    || manifest.matrix_id.length === 0
+    || !Number.isInteger(manifest.expected_count)
+    || manifest.expected_count < 1
+    || !Number.isInteger(manifest.spec_expected)
+    || manifest.spec_expected < 1
+    || !Number.isInteger(manifest.comp_expected)
+    || manifest.comp_expected < 1
+    || manifest.spec_expected + manifest.comp_expected !== manifest.expected_count
     || !/^[a-f0-9]{64}$/.test(manifest.source_tree_hash || "")
     || !(
       manifest.published_at === null
@@ -231,7 +239,6 @@ function validRanking(ranking, target) {
     || typeof ranking.updated !== "string"
     || Number.isNaN(Date.parse(ranking.updated))
     || !Array.isArray(ranking.reports)
-    || ranking.reports.length < 1
     || ranking.reports.length > 10
     || ranking.edge_top_n !== 10
     || !Number.isInteger(ranking.source_report_count)
@@ -330,7 +337,7 @@ function isCount(value) {
   return Number.isInteger(value) && value >= 0;
 }
 
-function publicGlobalStatus(status, servedAt) {
+function publicGlobalStatus(status, servedAt, manifest) {
   const countKeys = [
     "expected_count", "available_count", "fresh_count", "stale_count", "unchecked_count",
     "spec_expected", "spec_available", "spec_fresh", "spec_stale", "spec_unchecked",
@@ -341,9 +348,10 @@ function publicGlobalStatus(status, servedAt) {
     || status.schema_version !== 2
     || !["refreshing", "fresh", "stale"].includes(status.status)
     || countKeys.some((key) => !isCount(status[key]))
-    || status.expected_count !== EXPECTED_COUNTS.total
-    || status.spec_expected !== EXPECTED_COUNTS.spec
-    || status.comp_expected !== EXPECTED_COUNTS.comp
+    || status.matrix_id !== manifest.matrix_id
+    || status.expected_count !== manifest.expected_count
+    || status.spec_expected !== manifest.spec_expected
+    || status.comp_expected !== manifest.comp_expected
     || status.spec_expected + status.comp_expected !== status.expected_count
     || typeof status.checked_at !== "string"
     || Number.isNaN(Date.parse(status.checked_at))
@@ -355,21 +363,19 @@ function publicGlobalStatus(status, servedAt) {
   };
 }
 
-async function loadGlobalStatus(env, servedAt) {
+async function loadGlobalStatus(env, servedAt, manifest) {
   const row = await env.RANKING_DB.prepare(
     "SELECT payload_json FROM global_status WHERE singleton = 1",
   ).first();
   if (!row || typeof row.payload_json !== "string") return null;
-  return publicGlobalStatus(JSON.parse(row.payload_json), servedAt);
+  return publicGlobalStatus(JSON.parse(row.payload_json), servedAt, manifest);
 }
 
 async function serveGlobalStatus(request, env, mode) {
   const servedAt = new Date();
   try {
-    const [refresh, manifest] = await Promise.all([
-      loadGlobalStatus(env, servedAt),
-      loadManifest(request, env),
-    ]);
+    const manifest = await loadManifest(request, env);
+    const refresh = await loadGlobalStatus(env, servedAt, manifest);
     if (!refresh) return json({ error: "refresh_status_unavailable", retryable: true }, 503);
     if (mode === "health") {
       return json({
@@ -377,6 +383,7 @@ async function serveGlobalStatus(request, env, mode) {
         service: "raidglass-web",
         mode: "worker-assets-d1",
         freshness: refresh.status,
+        matrix_id: refresh.matrix_id,
         available_count: refresh.available_count,
         expected_count: refresh.expected_count,
         release_id: manifest.release_id,

@@ -1,0 +1,41 @@
+{
+  "1280935": {
+    "spell_id": 1280935,
+    "duration": 2,
+    "cooldown": 0,
+    "spell_type": "vashnik-the-malignant",
+    "name": "Dripping Fangs",
+    "icon": "ability_creature_poison_01.jpg",
+    "color": "rgb(168, 146, 118)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1280935",
+    "tags": []
+  },
+  "1282516": {
+    "spell_id": 1282516,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "vashnik-the-malignant",
+    "name": "Malignant Catalyst",
+    "icon": "inv_ability_poison_groundstate.jpg",
+    "color": "rgb(130, 135, 80)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1282516",
+    "tags": []
+  },
+  "1284663": {
+    "spell_id": 1284663,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "vashnik-the-malignant",
+    "name": "Imbibe",
+    "icon": "spell_nature_poisoncleansingtotem.jpg",
+    "color": "rgb(227, 18, 91)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1284663",
+    "tags": []
+  }
+}

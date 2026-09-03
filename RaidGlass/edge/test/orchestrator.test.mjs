@@ -81,7 +81,7 @@ test("六小时 Cron 将目标切成最多 20 个的 schema v2 单消息", async
     assert.equal(result.status, "enqueued");
     assert.deepEqual(fixture.sent.map((message) => message.targets.length), [20, 20, 1]);
     assert.equal(fixture.sent.every((message) => message.schema_version === 2), true);
-    assert.equal(fixture.coordinator.beginArgs[5], "midnight-s1-1870-v3");
+    assert.equal(fixture.coordinator.beginArgs[5], "midnight-s2-1683-v1");
 });
 
 test("重复或重叠 Cron 由 Durable Object 拒绝且零排队", async () => {

@@ -2,7 +2,7 @@
 
 RaidGlass 是部署在 [zhaobanzi.pages.dev/log](https://zhaobanzi.pages.dev/log/) 的魔兽世界 Top10 时间轴参考站。
 
-生产链保持单一：Cloudflare Cron 每 6 小时触发刷新，Queue 分发 1870 个目标，SQLite Durable Object 协调单轮状态，D1 保存动态排行，`raidglass-web` 提供静态资源与同源 API，PlanShare Pages 网关承载 `/log/*`。整条链使用 Cloudflare Workers Free 能力；免费额度耗尽时请求会失败并保留旧排行，项目不自动升级付费。
+生产链保持单一：Cloudflare Cron 每 6 小时触发刷新，Queue 分发 Midnight Season 2 的 1683 个目标（1674 个专精、9 个阵容），SQLite Durable Object 协调单轮状态，D1 保存动态排行，`raidglass-web` 提供静态资源与同源 API，PlanShare Pages 网关承载 `/log/*`。整条链使用 Cloudflare Workers Free 能力；免费额度耗尽时请求会失败并保留旧排行，项目不自动升级付费。
 
 ## 单一权威
 

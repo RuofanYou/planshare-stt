@@ -213,7 +213,7 @@ test("生成表面提供 20 目标、可筛选战斗、完整图片与空阵容�
     const classes = await readJson(sourceRoot, "api/classes.json");
     const roles = await readJson(sourceRoot, "api/roles.json");
     const zone = await readJson(sourceRoot, "api/current_season/zones/1.json");
-    assert.deepEqual(roles.roles.map(({ code }) => code).sort(), ["rdps", "tank"]);
+    assert.deepEqual(roles.roles.map(({ code }) => code).sort(), ["heal", "mdps", "rdps", "tank"]);
 
     const imagePaths = new Set([
         ...Object.values(classes).map(({ name_slug }) => `assets/images/classes/${name_slug}.webp`),

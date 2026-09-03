@@ -1,10 +1,8 @@
 {
-  "name": "Midnight Season 1",
-  "slug": "midnight_s1",
+  "name": "Midnight Season 2",
+  "slug": "midnight_s2",
   "raids": [
-    46.1,
-    46.2,
-    46.3,
-    50
+    53.1,
+    51.2
   ]
 }

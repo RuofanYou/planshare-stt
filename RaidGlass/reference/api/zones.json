@@ -830,5 +830,93 @@
         "phase_type": "static"
       }
     ]
+  },
+  {
+    "id": 51.2,
+    "name": "The Tidebound Grotto",
+    "name_slug": "the-tidebound-grotto",
+    "icon": "achievement_boss_elitenagamale.jpg",
+    "bosses": [
+      {
+        "id": 3379,
+        "name": "Nymrissa",
+        "icon": "achievement_boss_elitenagamale.jpg",
+        "full_name": "Nymrissa Wavecaller",
+        "full_name_slug": "nymrissa-wavecaller",
+        "phase_type": "static"
+      }
+    ]
+  },
+  {
+    "id": 53.1,
+    "name": "The Venomous Abyss",
+    "name_slug": "the-venomous-abyss",
+    "icon": "8039569.jpg",
+    "bosses": [
+      {
+        "id": 3470,
+        "name": "Nek'zali",
+        "icon": "inv_121_raid_achievement_priestess.jpg",
+        "full_name": "Nek'zali the Soulcoiler",
+        "full_name_slug": "nekzali-the-soulcoiler",
+        "phase_type": "static"
+      },
+      {
+        "id": 3445,
+        "name": "Sentinels",
+        "icon": "inv_121_raid_achievement_golems.jpg",
+        "full_name": "Entombed Sentinels",
+        "full_name_slug": "entombed-sentinels",
+        "phase_type": "static"
+      },
+      {
+        "id": 3455,
+        "name": "Vashnik",
+        "icon": "inv_121_raid_achievement_alchemist.jpg",
+        "full_name": "Vashnik the Malignant",
+        "full_name_slug": "vashnik-the-malignant",
+        "phase_type": "static"
+      },
+      {
+        "id": 3497,
+        "name": "The Lost Turtles",
+        "icon": "inv_121_raid_achievement_tortollans.jpg",
+        "full_name": "The Lost Explorers",
+        "full_name_slug": "the-lost-explorers",
+        "phase_type": "static"
+      },
+      {
+        "id": 3420,
+        "name": "Sszorak",
+        "icon": "inv_121_raid_achievement_brute.jpg",
+        "full_name": "Sszorak",
+        "full_name_slug": "sszorak",
+        "phase_type": "static"
+      },
+      {
+        "id": 3421,
+        "name": "Twin Fangs",
+        "icon": "inv_121_raid_achievement_twins.jpg",
+        "full_name": "The Twin Fangs",
+        "full_name_slug": "the-twin-fangs",
+        "phase_type": "static"
+      },
+      {
+        "id": 3429,
+        "name": "Coiled Altar",
+        "icon": "inv_121_raid_achievement_zuljinmalacrass.jpg",
+        "full_name": "The Coiled Altar",
+        "full_name_slug": "the-coiled-altar",
+        "phase_type": "static"
+      },
+      {
+        "id": 3492,
+        "name": "Ula'tek",
+        "icon": "inv_121_raid_achievement_ulatek.jpg",
+        "full_name": "Ula'tek",
+        "full_name_slug": "ulatek",
+        "phase_type": "static"
+      }
+    ]
   }
 ]

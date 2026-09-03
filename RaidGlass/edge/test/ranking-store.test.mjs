@@ -141,7 +141,7 @@ test("D1 全局状态固定写入单例行", async (t) => {
         schema_version: 2,
         status: "fresh",
         checked_at: CHECKED_AT,
-        expected_count: 1870,
+        expected_count: 1683,
     };
     await writeGlobalStatus(db, status);
 

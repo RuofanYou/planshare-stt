@@ -28,10 +28,21 @@ async function exists(path) {
 async function fixture({ includeBossImage = true } = {}) {
     const root = await mkdtemp(join(homedir(), ".Trash", "raidglass-deployment-assets-test-"));
     const sourceRoot = join(root, "source");
-    for (const file of ["bosses", "classes", "roles", "specs", "zones"]) {
+    for (const file of ["bosses", "classes", "zones"]) {
         await writeJson(sourceRoot, `api/${file}.json`, { [file]: [] });
     }
-    await writeJson(sourceRoot, "api/season_current.json", { raids: [46.1] });
+    await writeJson(sourceRoot, "api/roles.json", {
+        roles: [
+            { code: "mdps", metrics: ["dps", "bossdps"] },
+            { code: "rdps", metrics: ["dps", "bossdps"] },
+            { code: "heal", metrics: ["dps", "hps", "bossdps"] },
+            { code: "tank", metrics: ["dps", "hps", "bossdps"] },
+        ],
+    });
+    await writeJson(sourceRoot, "api/specs.json", {
+        specs: [{ full_name_slug: "mage-fire", role: "mdps" }],
+    });
+    await writeJson(sourceRoot, "api/season_current.json", { slug: "fixture-season", raids: [46.1] });
     await writeJson(sourceRoot, "api/current_season/zones/46.1.json", {
         id: 46.1,
         bosses: [{ full_name_slug: "imperator-averzian", icon: "imperator.jpg" }],
@@ -65,6 +76,10 @@ test("部署资产只复制静态元数据并生成 manifest v2", async () => {
 
     assert.equal(manifest.schema_version, 2);
     assert.equal(manifest.deployment_mode, "worker-assets-d1");
+    assert.equal(manifest.matrix_id, "fixture-season-5-v1");
+    assert.equal(manifest.expected_count, 5);
+    assert.equal(manifest.spec_expected, 4);
+    assert.equal(manifest.comp_expected, 1);
     assert.match(manifest.source_tree_hash, /^[a-f0-9]{64}$/);
     assert.equal(await exists(join(outputRoot, "api/rankings")), false);
     assert.equal(await exists(join(outputRoot, "api/current_season/zones.json")), true);

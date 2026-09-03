@@ -220,6 +220,34 @@ test("阵容目标每轮公开 GET limit=20 并在 D1 只写 Top10", async (t) =
     assert.equal(stored.edge_top_n, 10);
 });
 
+test("上游合法空 reports 作为可用无样本结果发布", async (t) => {
+    const target = specTarget();
+    const message = queueMessage(target);
+    const fixture = await fakeEnvironment(t, target);
+
+    await consumeQueueBatch({ messages: [message] }, fixture.env, {
+        fetchImpl: async (url) => jsonResponse({
+            boss_slug: target.bossSlug,
+            spec_slug: target.specSlug,
+            difficulty: target.difficulty,
+            metric: target.metric,
+            updated: UPSTREAM_UPDATED,
+            reports: [],
+        }),
+        now: () => new Date(CHECKED_AT),
+        log: () => {},
+    });
+
+    const row = await loadTargetRecord(fixture.db, target.targetKey);
+    assert.equal(message.acked, true);
+    assert.equal(row.refresh_status, "fresh");
+    assert.equal(row.published_at, CHECKED_AT);
+    assert.equal(row.last_error_code, null);
+    assert.deepEqual(JSON.parse(row.ranking_json).reports, []);
+    assert.equal(fixture.recorded[0].result.status, "published");
+    assert.equal(fixture.recorded[0].result.available, true);
+});
+
 test("D1 写入失败时 Queue 重试且 Durable Object 不记录终态", async () => {
     const target = specTarget();
     const message = queueMessage(target);

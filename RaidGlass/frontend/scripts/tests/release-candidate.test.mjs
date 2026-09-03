@@ -120,14 +120,15 @@ test("验证器按 artifact 与 live 阶段调用固定门禁", async () => {
         fetchImpl: async (value) => {
             const url = new URL(value);
             if (url.pathname === "/log/snapshot-manifest.json") {
-                return Response.json({ release_id: "release-test" });
+                return Response.json({ release_id: "release-test", matrix_id: "midnight-s2-1683-v1", expected_count: 1683 });
             }
             if (url.pathname === "/log/api/health") {
                 return Response.json({
                     ok: true,
                     release_id: "release-test",
-                    expected_count: 1870,
-                    available_count: 1870,
+                    matrix_id: "midnight-s2-1683-v1",
+                    expected_count: 1683,
+                    available_count: 1683,
                 });
             }
             if (url.pathname.startsWith("/log/api/spec_ranking/")) {
@@ -178,14 +179,15 @@ test("Preview 复验等待同一 release 的页面与 API 连续就绪", async (
         const url = new URL(value);
         if (fetchCount <= 4) return new Response("not ready", { status: 404 });
         if (url.pathname === "/log/snapshot-manifest.json") {
-            return Response.json({ release_id: releaseId });
+            return Response.json({ release_id: releaseId, matrix_id: "midnight-s2-1683-v1", expected_count: 1683 });
         }
         if (url.pathname === "/log/api/health") {
             return Response.json({
                 ok: true,
                 release_id: releaseId,
-                expected_count: 1870,
-                available_count: 1870,
+                matrix_id: "midnight-s2-1683-v1",
+                expected_count: 1683,
+                available_count: 1683,
             });
         }
         if (url.pathname.startsWith("/log/api/spec_ranking/")) {
@@ -236,14 +238,15 @@ test("生产复验要求首页、健康和排行连续多轮同时切换", async
             });
         }
         if (url.pathname === "/log/snapshot-manifest.json") {
-            return Response.json({ release_id: releaseId });
+            return Response.json({ release_id: releaseId, matrix_id: "midnight-s2-1683-v1", expected_count: 1683 });
         }
         if (url.pathname === "/log/api/health") {
             return Response.json({
                 ok: true,
                 release_id: releaseId,
-                expected_count: 1870,
-                available_count: 1870,
+                matrix_id: "midnight-s2-1683-v1",
+                expected_count: 1683,
+                available_count: 1683,
             });
         }
         if (url.pathname.startsWith("/log/api/spec_ranking/")) {

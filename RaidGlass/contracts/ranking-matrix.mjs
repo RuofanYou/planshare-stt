@@ -1,12 +1,10 @@
 export const DIFFICULTIES = Object.freeze(["heroic", "mythic"]);
-export const MATRIX_ID = "midnight-s1-1870-v3";
-export const SPEC_EXPECTED_COUNT = 1860;
-export const COMP_EXPECTED_COUNT = 10;
+export const MATRIX_ID = "midnight-s2-1683-v1";
+export const SPEC_EXPECTED_COUNT = 1674;
+export const COMP_EXPECTED_COUNT = 9;
 export const GLOBAL_EXPECTED_COUNT = SPEC_EXPECTED_COUNT + COMP_EXPECTED_COUNT;
 export const MAX_TARGETS_PER_MESSAGE = 20;
 
-const EXPECTED_BOSS_COUNT = 10;
-const EXPECTED_SPEC_COUNT = 40;
 const ALLOWED_METRICS = new Set(["dps", "hps", "bossdps"]);
 const SAFE_SLUG = /^[a-z0-9][a-z0-9&=-]{0,95}$/;
 
@@ -57,13 +55,11 @@ function currentBosses(seasonPayload, zonesPayload) {
         .map((boss) => requireSlug(boss?.full_name_slug ?? boss?.boss_slug, "boss slug"))
         .sort();
     unique(bosses, "boss slug");
-    if (bosses.length !== EXPECTED_BOSS_COUNT) {
-        throw new Error(`boss count mismatch: ${bosses.length}`);
-    }
+    if (bosses.length === 0) throw new Error("current season has no bosses");
     return bosses;
 }
 
-export function buildRankingMatrix({ product, roles, specs, season, zones }) {
+function buildTargets({ product, roles, specs, season, zones }) {
     const combatRoles = product?.combatRoles;
     if (!Array.isArray(combatRoles) || combatRoles.length === 0) {
         throw new Error("invalid combat roles config");
@@ -79,9 +75,7 @@ export function buildRankingMatrix({ product, roles, specs, season, zones }) {
         }))
         .sort((left, right) => left.specSlug.localeCompare(right.specSlug));
     unique(combatSpecs.map((spec) => spec.specSlug), "combat spec slug");
-    if (combatSpecs.length !== EXPECTED_SPEC_COUNT) {
-        throw new Error(`combat spec count mismatch: ${combatSpecs.length}`);
-    }
+    if (combatSpecs.length === 0) throw new Error("current season has no combat specs");
 
     const bosses = currentBosses(season, zones);
     const targets = [];
@@ -102,9 +96,6 @@ export function buildRankingMatrix({ product, roles, specs, season, zones }) {
             }
         }
     }
-    if (targets.length !== SPEC_EXPECTED_COUNT) {
-        throw new Error(`spec target count mismatch: ${targets.length}`);
-    }
     for (const bossSlug of bosses) {
         targets.push({
             kind: "comp",
@@ -112,8 +103,49 @@ export function buildRankingMatrix({ product, roles, specs, season, zones }) {
             bossSlug,
         });
     }
-    if (targets.length !== GLOBAL_EXPECTED_COUNT) {
-        throw new Error(`global target count mismatch: ${targets.length}`);
+    return targets;
+}
+
+export function matrixStats(input) {
+    const bosses = currentBosses(input.season, input.zones);
+    const combatRoles = Array.isArray(input.product?.combatRoles) ? input.product.combatRoles : [];
+    const roles = payloadArray(input.roles, "roles");
+    const roleMetrics = new Map(roles.map((role) => [role?.code, Array.isArray(role?.metrics) ? role.metrics : []]));
+    const combatSpecCount = payloadArray(input.specs, "specs")
+        .filter((spec) => combatRoles.includes(spec?.role) && (roleMetrics.get(spec?.role)?.length ?? 0) > 0)
+        .length;
+    const metricsPerBoss = payloadArray(input.specs, "specs")
+        .filter((spec) => combatRoles.includes(spec?.role))
+        .reduce((total, spec) => total + (roleMetrics.get(spec?.role)?.length ?? 0), 0);
+    const specExpected = bosses.length * 2 * metricsPerBoss;
+    const compExpected = bosses.length;
+    const expectedCount = specExpected + compExpected;
+    const seasonSlug = input.season?.slug;
+    if (typeof seasonSlug !== "string" || seasonSlug.length === 0) {
+        throw new Error("current season slug is required");
+    }
+    return {
+        matrix_id: `${seasonSlug.replaceAll("_", "-")}-${expectedCount}-v1`,
+        expected_count: expectedCount,
+        spec_expected: specExpected,
+        comp_expected: compExpected,
+        boss_count: bosses.length,
+        combat_spec_count: combatSpecCount,
+    };
+}
+
+export function buildRankingMatrix(input) {
+    const targets = buildTargets(input);
+    const stats = matrixStats(input);
+    if (
+        stats.matrix_id !== MATRIX_ID
+        || stats.spec_expected !== SPEC_EXPECTED_COUNT
+        || stats.comp_expected !== COMP_EXPECTED_COUNT
+    ) {
+        throw new Error(
+            `ranking matrix mismatch: expected=${MATRIX_ID}/${GLOBAL_EXPECTED_COUNT}`
+            + ` actual=${stats.matrix_id}/${stats.expected_count}`,
+        );
     }
     return targets;
 }

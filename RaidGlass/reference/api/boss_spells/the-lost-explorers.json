@@ -1,0 +1,54 @@
+{
+  "1295854": {
+    "spell_id": 1295854,
+    "duration": 3.5,
+    "cooldown": 0,
+    "spell_type": "the-lost-explorers",
+    "name": "Shredding Shards",
+    "icon": "spell_frost_iceshard.jpg",
+    "color": "rgb(184, 171, 201)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1295854",
+    "tags": []
+  },
+  "1296021": {
+    "spell_id": 1296021,
+    "duration": 9,
+    "cooldown": 0,
+    "spell_type": "the-lost-explorers",
+    "name": "Blink Nova",
+    "icon": "spell_arcane_blink.jpg",
+    "color": "rgb(101, 67, 181)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1296021",
+    "tags": []
+  },
+  "1296062": {
+    "spell_id": 1296062,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "the-lost-explorers",
+    "name": "Shell Spin",
+    "icon": "inv_cape_special_turtleshell_c_02.jpg",
+    "color": "rgb(179, 194, 112)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1296062",
+    "tags": []
+  },
+  "1297075": {
+    "spell_id": 1297075,
+    "duration": 0,
+    "cooldown": 60,
+    "spell_type": "the-lost-explorers",
+    "name": "Final Ascension",
+    "icon": "spell_animarevendreth_nova.jpg",
+    "color": "rgb(245, 163, 64)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1297075",
+    "tags": []
+  }
+}

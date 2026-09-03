@@ -37,6 +37,10 @@ async function fakeEnv(t, options = {}) {
             top_n: 10,
             release_id: "release-v2",
             build_id: "build-v2",
+            matrix_id: "midnight-s2-1683-v1",
+            expected_count: 1683,
+            spec_expected: 1674,
+            comp_expected: 9,
             source_tree_hash: "a".repeat(64),
             published_at: "2026-08-09T12:00:00.000Z",
         },
@@ -153,20 +157,20 @@ function completeGlobalStatus(overrides = {}) {
         active_run_id: null,
         last_completed_run_id: "run-current",
         status: "fresh",
-        matrix_id: "midnight-s1-1870-v3",
-        expected_count: 1870,
-        available_count: 1870,
-        fresh_count: 1870,
+        matrix_id: "midnight-s2-1683-v1",
+        expected_count: 1683,
+        available_count: 1683,
+        fresh_count: 1683,
         stale_count: 0,
         unchecked_count: 0,
-        spec_expected: 1860,
-        spec_available: 1860,
-        spec_fresh: 1860,
+        spec_expected: 1674,
+        spec_available: 1674,
+        spec_fresh: 1674,
         spec_stale: 0,
         spec_unchecked: 0,
-        comp_expected: 10,
-        comp_available: 10,
-        comp_fresh: 10,
+        comp_expected: 9,
+        comp_available: 9,
+        comp_fresh: 9,
         comp_stale: 0,
         comp_unchecked: 0,
         checked_at: isoHoursAgo(1),
@@ -194,6 +198,26 @@ test("Pages 从 D1 单行读取专精排行与 refresh", async (t) => {
     assert.equal(body.reports.length, 1);
     assert.deepEqual(body.refresh, refresh);
     assert.equal(response.headers.get("cache-control"), "public, max-age=60");
+});
+
+test("Pages 返回合法空排行并保留可用 refresh 状态", async (t) => {
+    const fixture = await fakeEnv(t);
+    await seedTarget(
+        fixture.db,
+        specTarget(),
+        specRanking({ reports: [], source_report_count: 0 }),
+        targetRefresh(),
+    );
+    const response = await pagesWorker.fetch(
+        request("/api/spec_ranking/mage-fire/imperator-averzian?difficulty=heroic&metric=bossdps"),
+        fixture.env,
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(body.reports, []);
+    assert.equal(body.source_report_count, 0);
+    assert.equal(body.refresh.status, "fresh");
 });
 
 test("Pages 只开放单一专精排行 URL", async (t) => {
@@ -315,7 +339,7 @@ test("Pages 从 D1 返回阵容 Top10 与相同 refresh 合同", async (t) => {
     assert.equal(body.refresh.last_error_code, "upstream_comp_http_503");
 });
 
-test("Pages 运维接口以 D1 的 1870 全局状态为唯一动态真源", async (t) => {
+test("Pages 运维接口以 D1 的 S2 全局状态为唯一动态真源", async (t) => {
     const fixture = await fakeEnv(t);
     await writeGlobalStatus(fixture.db, completeGlobalStatus());
     const health = await pagesWorker.fetch(request("/api/health"), fixture.env);
@@ -323,14 +347,14 @@ test("Pages 运维接口以 D1 的 1870 全局状态为唯一动态真源", asyn
     assert.equal(health.status, 200);
     assert.equal(healthBody.ok, true);
     assert.equal(healthBody.mode, "worker-assets-d1");
-    assert.equal(healthBody.expected_count, 1870);
-    assert.equal(healthBody.available_count, 1870);
+    assert.equal(healthBody.expected_count, 1683);
+    assert.equal(healthBody.available_count, 1683);
 
     const admin = await pagesWorker.fetch(request("/api/admin/refresh-state"), fixture.env);
     const adminBody = await admin.json();
     assert.equal(admin.status, 200);
-    assert.equal(adminBody.spec_expected, 1860);
-    assert.equal(adminBody.comp_expected, 10);
+    assert.equal(adminBody.spec_expected, 1674);
+    assert.equal(adminBody.comp_expected, 9);
     assert.equal(adminBody.latest_run_id, "run-current");
     assert.equal(adminBody.release_id, "release-v2");
     assert.equal(adminBody.build_id, "build-v2");

@@ -1,0 +1,16 @@
+{
+  "id": 51.2,
+  "name": "The Tidebound Grotto",
+  "name_slug": "the-tidebound-grotto",
+  "icon": "achievement_boss_elitenagamale.jpg",
+  "bosses": [
+    {
+      "id": 3379,
+      "name": "Nymrissa",
+      "icon": "achievement_boss_elitenagamale.jpg",
+      "full_name": "Nymrissa Wavecaller",
+      "full_name_slug": "nymrissa-wavecaller",
+      "phase_type": "static"
+    }
+  ]
+}

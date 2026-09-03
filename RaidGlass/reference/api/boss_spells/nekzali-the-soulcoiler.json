@@ -1,0 +1,67 @@
+{
+  "1284103": {
+    "spell_id": 1284103,
+    "duration": 6,
+    "cooldown": 0,
+    "spell_type": "nekzali-the-soulcoiler",
+    "name": "Possession Barrage",
+    "icon": "spell_shadow_possession.jpg",
+    "color": "rgb(127, 47, 173)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1284103",
+    "tags": []
+  },
+  "1285681": {
+    "spell_id": 1285681,
+    "duration": 4,
+    "cooldown": 0,
+    "spell_type": "nekzali-the-soulcoiler",
+    "name": "Soulcoil Ignition",
+    "icon": "spell_shadow_soulleech_2.jpg",
+    "color": "rgb(116, 213, 242)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1285681",
+    "tags": []
+  },
+  "1289683": {
+    "spell_id": 1289683,
+    "duration": 20,
+    "cooldown": 0,
+    "spell_type": "nekzali-the-soulcoiler",
+    "name": "Ritual of Awakening",
+    "icon": "inv_helm_mail_raidshamanmythic_s_01.jpg",
+    "color": "rgb(161, 91, 66)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1289683",
+    "tags": []
+  },
+  "1292248": {
+    "spell_id": 1292248,
+    "duration": 15,
+    "cooldown": 0,
+    "spell_type": "nekzali-the-soulcoiler",
+    "name": "Soul Transfer",
+    "icon": "ability_necrolord_fleshcraft.jpg",
+    "color": "rgb(49, 97, 72)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1292248",
+    "tags": []
+  },
+  "1299673": {
+    "spell_id": 1299673,
+    "duration": 5,
+    "cooldown": 0,
+    "spell_type": "nekzali-the-soulcoiler",
+    "name": "Invoke",
+    "icon": "warrior_disruptingshout.jpg",
+    "color": "rgb(204, 179, 155)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1299673",
+    "tags": []
+  }
+}

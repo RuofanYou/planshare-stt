@@ -11,7 +11,7 @@ export default function PlayerNamesList({
         <div className={styles.player_names_list}>
             {visibility.fights.map((visibleFight) => (
                 <PlayerNamesFight
-                    key={`${visibleFight.fight.report_id}-${visibleFight.fight.fight_id}`}
+                    key={`${visibleFight.fight.report_id}/${visibleFight.fight.fight_id}/${visibleFight.fight.players[0]?.source_id || 0}`}
                     visibleFight={visibleFight}
                 />
             ))}

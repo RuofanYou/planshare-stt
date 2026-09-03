@@ -73,10 +73,12 @@ export async function runE2E({
         await mkdir(screenshotRoot, { recursive: true });
         await mkdir(playwrightOutputRoot, { recursive: true });
 
-        let publicRoot = env.RAIDGLASS_PUBLIC_DIR;
-        let buildRoot = env.RAIDGLASS_BUILD_DIR;
+        const useGeneratedFixture = mode === "generated"
+            || env.RAIDGLASS_E2E_FIXTURE === "generated";
+        let publicRoot = useGeneratedFixture ? undefined : env.RAIDGLASS_PUBLIC_DIR;
+        let buildRoot = useGeneratedFixture ? undefined : env.RAIDGLASS_BUILD_DIR;
         let d1Path;
-        if (mode === "generated") {
+        if (useGeneratedFixture) {
             const generated = await prepareGeneratedTestSurfaceImpl(workRoot);
             publicRoot = generated.publicRoot;
             buildRoot = generated.buildRoot;
@@ -96,7 +98,7 @@ export async function runE2E({
             RAIDGLASS_PLAYWRIGHT_OUTPUT_ROOT: playwrightOutputRoot,
         };
 
-        if (mode === "generated") {
+        if (useGeneratedFixture) {
             exitCode = commandStatus(await runCommand({
                 command: "npm",
                 args: ["run", "build"],

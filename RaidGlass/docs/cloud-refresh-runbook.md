@@ -104,7 +104,7 @@ npx wrangler d1 execute RANKING_DB --remote --env preview \
 npx wrangler queues info raidglass-refresh-preview
 ```
 
-完整门槛：`expected_count=1870`、`available_count=1870`、`spec_available=1860`、`comp_available=10`、`unchecked_count=0`、无重叠 run。若上游缺口仍存在，允许对应目标为 `stale`，但必须同时满足：API 返回已验证历史排行、错误码与本轮真实上游结果一致、其余 1868 项为 `fresh`。随后抽查治疗、坦克、近战、远程和三个指标，并演练复用、局部失败、首次缺数据、手动 retry 和重复 run。
+完整门槛：`expected_count=1683`、`available_count=1683`、`spec_available=1674`、`comp_available=9`、`unchecked_count=0`、无重叠 run。合法 `reports=[]` 仍算可用，但必须在页面显示暂无数据；请求失败、404、错误 JSON 和身份不匹配不能转换为空结果。随后抽查治疗、坦克、近战、远程和三个指标，并演练复用、局部失败、首次缺数据、手动 retry 和重复 run。
 
 构建候选并部署 Preview Web Worker：
 
@@ -136,7 +136,7 @@ jq -nc --arg token "$PRODUCTION_RETRY_TOKEN" '{RETRY_TOKEN:$token}' \
 npm run deploy:production
 ```
 
-确认 Production Cron 为 `0 */6 * * *`。首轮 D1 达到 `1870/1870` 前，PlanShare `/log` 网关保持未启用。
+确认 Production Cron 为 `0 */6 * * *`。首轮 D1 达到 `1683/1683` 前，PlanShare `/log` 网关保持未启用。
 
 首轮完成后，使用 Preview 已验收的同一候选 build 部署 Production Web Worker，再部署 PlanShare Pages 网关。`frontend/wrangler.jsonc` 是 Web Worker、静态资源和 Production/Preview D1 绑定的配置权威。
 
@@ -155,12 +155,12 @@ npm run deploy:pages
 Production 切换后观察连续 3 个完整六小时周期，累计至少 18 小时。每轮记录：
 
 - run ID、开始和完成时间。
-- 1870/1870、1860/1860、10/10。
+- 1683/1683、1674/1674、9/9。
 - fresh/stale/unchecked。
 - Queue backlog、重试和身份错误。
 - `/log/api/health` 与一个专精、一个阵容样本。
 
-任一轮未达到 1870 可用、发生重叠、出现异常积压、身份错误或数据丢失，连续计数清零。已记录且可复现的公开上游缺口可保持 `stale`，其错误码和旧排行必须连续一致。三轮通过后，云链成为生产动态数据权威，才进入本地 automation、旧 cache 和临时 worktree 清理。
+任一轮未达到 1683 可用、发生重叠、出现异常积压、身份错误或数据丢失，连续计数清零。已记录且可复现的公开上游缺口可保持 `stale`，其错误码和旧排行必须连续一致。三轮通过后，云链成为生产动态数据权威，才进入本地 automation、旧 cache 和临时 worktree 清理。
 
 ## 7. 回滚
 

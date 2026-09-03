@@ -9,6 +9,10 @@ const manifest = {
     source_tree_hash: "a".repeat(64),
     build_id: "build-worker-test",
     release_id: "release-worker-test",
+    matrix_id: "midnight-s2-1683-v1",
+    expected_count: 1683,
+    spec_expected: 1674,
+    comp_expected: 9,
     published_at: "2026-08-09T12:00:00.000Z",
 };
 

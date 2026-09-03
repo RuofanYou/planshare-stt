@@ -458,11 +458,11 @@
     "spell_type": "other-trinkets",
     "tags": [],
     "event_type": "cast",
-    "wowhead_data": "item=193701&ilvl=289&bonus=6646:10356",
+    "wowhead_data": "item=193701&bonus=6646:10356",
     "until": null,
     "extra_filter": "",
     "tooltip": "",
-    "query": true
+    "query": false
   },
   "383941": {
     "spell_id": 383941,

@@ -25,17 +25,17 @@ Production 与 Preview 使用同一源码合同和完全隔离的 Cloudflare 资
 - Heroic、Mythic 两个难度。
 - `mdps/rdps`：`dps`、`bossdps`。
 - `heal/tank`：`dps`、`hps`、`bossdps`。
-- 专精目标 1860 个，阵容目标 10 个，总计 1870 个。
+- Midnight Season 2 当前矩阵包含 1674 个专精目标、9 个阵容目标，总计 1683 个。
 - Queue 每条业务消息最多 20 个目标。
 
-Node、Edge 与 Pages 合同测试共同锁定矩阵 ID、角色指标和 `1860 + 10` 计数。
+Node、Edge 与 Pages 合同测试共同锁定矩阵 ID、角色指标和 `1674 + 9` 计数。
 
 ## D1 数据
 
 `edge/migrations/0001_dynamic_rankings.sql` 是结构权威：
 
 - `ranking_targets`：每个目标一行，同时保存身份、Top10 JSON 和 `fresh/stale` 状态。
-- `global_status`：固定单例行，保存 1870 目标的全局计数和当前/最近 run。
+- `global_status`：固定单例行，保存当前矩阵 1683 个目标的全局计数和当前/最近 run。
 
 排行和目标状态在同一条 D1 UPSERT 中原子更新。成功刷新覆盖排行；上游失败只更新 `stale`、检查时间和错误码，旧排行字节保持不变；首次失败时排行为空，Pages API 返回结构化 JSON `503`。
 
@@ -69,7 +69,7 @@ D1 写入发生在 Durable Object 记录终态之前。D1 写入失败时 Queue 
 
 超过 8 小时没有成功检查时，Web Worker 将结果按 `stale` 提供。旧排行仍可展示，页面明确显示“数据已过期”。排行缺失、状态损坏、JSON 损坏或身份错误统一返回 JSON `503`。公开 API 位于 `/log/api/*`。
 
-- `/log/api/health`：Worker Assets、D1 模式、1870 可用数和全局新鲜度。
+- `/log/api/health`：Worker Assets、D1 模式、1683 可用数和全局新鲜度。
 - `/log/api/admin/refresh-state`：当前/最近 run、专精与阵容的 fresh/stale/unchecked 计数。
 - `/log/snapshot-manifest.json`：schema v2，只描述 UI、Web Worker、静态资源和构建身份。
 

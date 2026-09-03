@@ -1,0 +1,54 @@
+{
+  "1277027": {
+    "spell_id": 1277027,
+    "duration": 3,
+    "cooldown": 0,
+    "spell_type": "sszorak",
+    "name": "Mutilate",
+    "icon": "inv_ability_poison_missile.jpg",
+    "color": "rgb(112, 86, 240)",
+    "show": false,
+    "tooltip": "",
+    "tooltip_info": "spell=1277027",
+    "tags": []
+  },
+  "1285425": {
+    "spell_id": 1285425,
+    "duration": 8,
+    "cooldown": 0,
+    "spell_type": "sszorak",
+    "name": "Raging Crosswinds",
+    "icon": "ability_skyreach_wind.jpg",
+    "color": "rgb(163, 160, 122)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1285425",
+    "tags": []
+  },
+  "1286033": {
+    "spell_id": 1286033,
+    "duration": 25,
+    "cooldown": 0,
+    "spell_type": "sszorak",
+    "name": "Dig In",
+    "icon": "ability_ghoulfrenzy.jpg",
+    "color": "rgb(181, 60, 13)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1286033",
+    "tags": []
+  },
+  "1305959": {
+    "spell_id": 1305959,
+    "duration": 12,
+    "cooldown": 0,
+    "spell_type": "sszorak",
+    "name": "Venomous Surge",
+    "icon": "ability_creature_poison_06.jpg",
+    "color": "rgb(136, 227, 79)",
+    "show": true,
+    "tooltip": "",
+    "tooltip_info": "spell=1305959",
+    "tags": []
+  }
+}

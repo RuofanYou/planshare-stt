@@ -4,6 +4,7 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { releaseSourceHash } from "./release-source-hash.mjs";
+import { matrixStats } from "../../../contracts/ranking-matrix.mjs";
 
 const frontendRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const productConfig = JSON.parse(await readFile(join(frontendRoot, "config", "product.json"), "utf8"));
@@ -189,9 +190,13 @@ export async function prepareDeploymentAssets({
 
     await mkdir(join(output, "api"), { recursive: true });
     let season;
+    let roles;
+    let specs;
     for (const file of REQUIRED_API_FILES) {
         const payload = await copyJson(source, output, `api/${file}`);
         if (file === "season_current.json") season = payload;
+        if (file === "roles.json") roles = payload;
+        if (file === "specs.json") specs = payload;
     }
     for (const directory of STATIC_API_DIRECTORIES) {
         await copyJsonDirectory(source, output, `api/${directory}`);
@@ -199,6 +204,13 @@ export async function prepareDeploymentAssets({
     const currentZones = await writeCurrentSeasonZones(source, output, season);
     await copyImages(source, output);
     await assertCurrentBossImages(output, currentZones);
+    const ranking = matrixStats({
+        product: productConfig,
+        roles,
+        specs,
+        season,
+        zones: currentZones,
+    });
 
     const sourceTreeHash = await releaseSourceHash({
         frontendRoot,
@@ -210,6 +222,10 @@ export async function prepareDeploymentAssets({
         deployment_mode: "worker-assets-d1",
         worker_entry: "_worker.js",
         top_n: productConfig.rankingTopN,
+        matrix_id: ranking.matrix_id,
+        expected_count: ranking.expected_count,
+        spec_expected: ranking.spec_expected,
+        comp_expected: ranking.comp_expected,
         source_tree_hash: sourceTreeHash,
         build_id: buildId,
         release_id: releaseId,

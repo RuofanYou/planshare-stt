@@ -14,7 +14,7 @@ const player: Actor = {
     class_slug: "mage",
     source_id: 1,
     total: 100,
-    casts: [{ id: 123, ts: 30_000 }],
+    casts: [{ id: 123, ts: 30_000 }, { id: 456, ts: 40_000 }, { id: 123, ts: 65_000 }],
     deaths: [],
     resurrects: [],
 };
@@ -34,7 +34,7 @@ const fight: Fight = {
     report_url: "https://example.test/REPORT-1",
     duration: 90_000,
     difficulty: 5,
-    phases: [],
+    phases: [{ id: 2, name: "P2", ts: 60_000 }],
     boss,
     players: [player],
 };
@@ -50,17 +50,8 @@ vi.mock("../store/store_hooks", () => ({
     useAppDispatch: () => dispatch,
     useAppSelector: (selector: (state: unknown) => unknown) => selector(fakeState),
 }));
-vi.mock("../store/bosses", () => ({
-    get_boss: () => ({ id: 1, full_name: "测试首领" }),
-}));
-vi.mock("../store/specs", () => ({
-    get_spec: () => ({ id: 63, index: 1, class: { name: "Mage" } }),
-}));
 vi.mock("../store/spells", () => ({
-    get_spell_display: () => ({ 123: true }),
-}));
-vi.mock("../store/fights", () => ({
-    get_difficulty_name: () => "史诗",
+    get_spell_display: () => ({ 123: true, 456: false }),
 }));
 
 beforeEach(() => {
@@ -78,8 +69,9 @@ describe("CopyNoteWindow", () => {
         const dialog = screen.getByRole("dialog", { name: "复制单人作业" });
         expect(dialog).toHaveAttribute("open");
         expect(screen.getByRole("button", { name: "关闭复制作业" })).toHaveFocus();
-        expect(screen.getByRole("combobox", { name: "标签方式" })).toBeVisible();
-        expect(screen.getByRole("textbox", { name: "标签内容" })).toBeVisible();
+        expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+        expect(screen.getAllByRole("textbox")).toHaveLength(1);
+        expect(screen.queryByRole("button", { name: "结构化" })).not.toBeInTheDocument();
         expect(screen.getByRole("textbox", { name: "作业文本" })).toBeVisible();
         expect(document.documentElement.style.overflow).toBe("hidden");
     });
@@ -111,9 +103,9 @@ describe("CopyNoteWindow", () => {
         await user.click(screen.getByRole("textbox", { name: "作业文本" }));
         expect(clipboard).not.toHaveBeenCalled();
 
-        await user.click(screen.getByRole("button", { name: "复制文本" }));
+        await user.click(screen.getByRole("button", { name: "复制 STT 格式" }));
         expect(clipboard).toHaveBeenCalledOnce();
-        expect(clipboard.mock.calls[0][0]).toContain("EncounterID:1");
+        expect(clipboard.mock.calls[0][0]).toBe("{time:00:30.0} - {spell:123}\n{time:00:05.0,p2} - {spell:123}");
         expect(screen.getByRole("button", { name: "已复制" })).toBeVisible();
     });
 });

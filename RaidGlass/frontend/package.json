@@ -22,7 +22,7 @@
     "prepare:assets": "node scripts/prepare-cloudflare-assets.mjs",
     "verify:release": "node scripts/verify-release.mjs",
     "verify:live": "node scripts/verify-live.mjs",
-    "verify:artifact": "npm run typecheck && npm run test:unit && npm run test:node && npm run verify:release && npm run test:e2e",
+    "verify:artifact": "npm run typecheck && npm run test:unit && npm run test:node && npm run verify:release && RAIDGLASS_E2E_FIXTURE=generated npm run test:e2e",
     "verify": "npm run verify:artifact",
     "build": "vite build",
     "build:candidate": "node scripts/build-candidate.mjs",

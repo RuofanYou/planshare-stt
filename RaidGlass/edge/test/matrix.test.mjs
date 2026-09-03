@@ -14,7 +14,7 @@ async function readJson(relativePath) {
     return JSON.parse(await readFile(new URL(relativePath, import.meta.url), "utf8"));
 }
 
-test("真实元数据生成唯一 1860+10 排行矩阵并遵守职责指标合同", async () => {
+test("真实元数据生成唯一 1674+9 排行矩阵并遵守职责指标合同", async () => {
     const [product, roles, specs, season, zones] = await Promise.all([
         readJson("../../frontend/config/product.json"),
         readJson("../../reference/api/roles.json"),
@@ -27,12 +27,14 @@ test("真实元数据生成唯一 1860+10 排行矩阵并遵守职责指标合�
     const specTargets = matrix.filter((target) => target.kind === "spec");
     const compTargets = matrix.filter((target) => target.kind === "comp");
 
-    assert.equal(MATRIX_ID, "midnight-s1-1870-v3");
+    assert.equal(MATRIX_ID, "midnight-s2-1683-v1");
     assert.equal(specTargets.length, SPEC_EXPECTED_COUNT);
     assert.equal(compTargets.length, COMP_EXPECTED_COUNT);
     assert.equal(matrix.length, GLOBAL_EXPECTED_COUNT);
     assert.equal(new Set(matrix.map((target) => target.targetKey)).size, matrix.length);
-    assert.equal(new Set(matrix.map((target) => target.bossSlug)).size, 10);
+    assert.equal(new Set(matrix.map((target) => target.bossSlug)).size, 9);
+    assert.equal(new Set(matrix.map((target) => target.bossSlug)).has("imperator-averzian"), false);
+    assert.equal(new Set(matrix.map((target) => target.bossSlug)).has("entombed-sentinels"), true);
     assert.equal(new Set(specTargets.map((target) => target.specSlug)).size, 40);
 
     const metricsByRole = Object.fromEntries(

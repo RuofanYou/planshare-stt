@@ -4,7 +4,7 @@ import test from "node:test";
 
 import { Miniflare } from "miniflare";
 
-const EXPECTED = { spec_expected: 1860, comp_expected: 10 };
+const EXPECTED = { spec_expected: 1674, comp_expected: 9 };
 const NOW = "2026-08-09T12:00:00.000Z";
 const TARGET = {
     kind: "spec",
@@ -28,7 +28,7 @@ async function call(mf, action, ...args) {
     return response.json();
 }
 
-test("SQLite Durable Object 拒绝重叠 run 并汇总 1860+10 状态", async (context) => {
+test("SQLite Durable Object 拒绝重叠 run 并汇总 S2 状态", async (context) => {
     const raidGlassRoot = fileURLToPath(new URL("../../", import.meta.url));
     const mf = new Miniflare({
         rootPath: raidGlassRoot,
@@ -52,7 +52,7 @@ test("SQLite Durable Object 拒绝重叠 run 并汇总 1860+10 状态", async (c
         null,
         1,
         1,
-        "midnight-s1-1870-v3",
+        "midnight-s2-1683-v1",
         EXPECTED,
         NOW,
     );
@@ -68,7 +68,7 @@ test("SQLite Durable Object 拒绝重叠 run 并汇总 1860+10 状态", async (c
         null,
         1,
         1,
-        "midnight-s1-1870-v3",
+        "midnight-s2-1683-v1",
         EXPECTED,
         NOW,
     );
@@ -91,10 +91,10 @@ test("SQLite Durable Object 拒绝重叠 run 并汇总 1860+10 状态", async (c
 
     assert.equal(completed.run_status.status, "complete");
     assert.equal(completed.run_status.published_count, 1);
-    assert.equal(completed.global_status.expected_count, 1870);
+    assert.equal(completed.global_status.expected_count, 1683);
     assert.equal(completed.global_status.available_count, 1);
     assert.equal(completed.global_status.fresh_count, 1);
-    assert.equal(completed.global_status.unchecked_count, 1869);
+    assert.equal(completed.global_status.unchecked_count, 1682);
     assert.equal(completed.global_status.spec_available, 1);
     assert.equal(completed.global_status.comp_available, 0);
 
@@ -107,7 +107,7 @@ test("SQLite Durable Object 拒绝重叠 run 并汇总 1860+10 状态", async (c
         null,
         1,
         1,
-        "midnight-s1-1870-v3",
+        "midnight-s2-1683-v1",
         EXPECTED,
         later,
     );
@@ -149,7 +149,7 @@ test("SQLite Durable Object 在新 run 开始时清理超过 30 天的历史轮�
     });
     context.after(() => mf.dispose());
 
-    await call(mf, "beginRun", "scheduled-old", "scheduled", null, 1, 1, "midnight-s1-1870-v3", EXPECTED, NOW);
+    await call(mf, "beginRun", "scheduled-old", "scheduled", null, 1, 1, "midnight-s2-1683-v1", EXPECTED, NOW);
     await call(mf, "markBatchEnqueued", "scheduled-old", "batch-0001", [TARGET], NOW);
     await call(mf, "finalizeEnqueue", "scheduled-old", NOW);
     await call(mf, "claimBatch", "scheduled-old", "batch-0001", [TARGET], NOW);
@@ -174,7 +174,7 @@ test("SQLite Durable Object 在新 run 开始时清理超过 30 天的历史轮�
         null,
         1,
         1,
-        "midnight-s1-1870-v3",
+        "midnight-s2-1683-v1",
         EXPECTED,
         future,
     );
@@ -186,7 +186,7 @@ test("SQLite Durable Object 在新 run 开始时清理超过 30 天的历史轮�
             "manual-old",
             "scheduled-old",
             1,
-            "midnight-s1-1870-v3",
+            "midnight-s2-1683-v1",
             EXPECTED,
             future,
         ),
