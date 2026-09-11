@@ -5,12 +5,12 @@ const VOICE_PACK_PARTS = [
   '/downloads/stt-microsoft-tts-supplement.part-aac',
   '/downloads/stt-microsoft-tts-supplement.part-aad',
 ]
-const VOICE_PACK_SIZE = 64049580
+const VOICE_PACK_SIZE = 63984820
 const VOICE_PACK_HEADERS = {
   'Content-Type': 'application/octet-stream',
   'Content-Disposition': 'attachment; filename="STT-tts.exe"; filename*=UTF-8\'\'STT-%E5%BE%AE%E8%BD%AFtts%E8%A1%A5%E5%85%85%E8%AF%AD%E9%9F%B3%E5%8C%85.exe',
   'Content-Length': String(VOICE_PACK_SIZE),
-  'Cache-Control': 'public, max-age=86400',
+  'Cache-Control': 'public, max-age=0, must-revalidate',
 }
 
 async function serveVoicePack(request, env) {

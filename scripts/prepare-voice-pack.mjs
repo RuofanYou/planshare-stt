@@ -5,9 +5,9 @@ import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
 
 const planShareRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const source = resolve(planShareRoot, '..', 'ExtendProject', 'STT-VoicePack', 'final_dist', 'STT-微软tts补充语音包.exe')
+const source = resolve(planShareRoot, '..', 'ExtendProject', 'STT-VoicePack', 'final_dist', 'STT-微软tts补充语音包-增强版-0.8.0.exe')
 const outputRoot = resolve(planShareRoot, 'public', 'downloads')
-const expectedSize = 64_049_580
+const expectedSize = 63_984_820
 const partSize = 20_000_000
 
 console.info(JSON.stringify({ chain: 'voice-pack-build', stage: 'started', expectedSize, partSize }))
