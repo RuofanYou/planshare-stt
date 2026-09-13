@@ -16,6 +16,7 @@ const referencesRoot = join(outputRoot, 'references')
 
 const luaSources = [
   'STT/STT_TacticsEditor/data/class_spells.lua',
+  'STT/STT/core/boss_catalog.lua',
   'STT/STT_Tactics/data/season_catalog_121.lua',
   'STT/STT_TacticsEditor/data/season_plans_s2.lua',
 ]
