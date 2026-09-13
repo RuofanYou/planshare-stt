@@ -13,10 +13,12 @@
     "serve": "node --env-file=.env server/index.mjs",
     "sync:stt-translator": "node scripts/sync-stt-translator-assets.mjs",
     "check:stt-translator": "node scripts/sync-stt-translator-assets.mjs --check",
-    "test": "npm run check:stt-translator && node --test --test-concurrency=1 server/*.test.mjs",
+    "prepare:stt-skill": "node scripts/prepare-stt-skill.mjs",
+    "test:stt-skill": "NODE_PATH=./node_modules node ../Tools/stt-harness/run.js skill_writer_spec.lua",
+    "test": "npm run check:stt-translator && npm run test:stt-skill && node --test --test-concurrency=1 server/*.test.mjs",
     "test:e2e": "npm run sync:stt-translator && playwright test",
     "verify:loot-data": "node scripts/verify-loot-12-1-data.mjs",
-    "verify": "npm run sync:stt-translator && npm run verify:loot-data && tsc -b && vite build && node --test --test-concurrency=1 server/*.test.mjs && playwright test",
+    "verify": "npm run sync:stt-translator && npm run verify:loot-data && tsc -b && vite build && npm run prepare:stt-skill && npm run test:stt-skill && node --test --test-concurrency=1 server/*.test.mjs && playwright test",
     "test:security": "node --test server/security.test.mjs",
     "remote:export": "node scripts/remote-data.mjs export",
     "remote:import": "node scripts/remote-data.mjs import",
@@ -31,7 +33,7 @@
     "deploy:log:legacy-redirect": "wrangler pages deploy RaidGlass/legacy-wowlogs-redirect --project-name wowlogs --branch main --commit-dirty=true --skip-caching",
     "deploy:pages:preview": "npm run build && wrangler pages deploy --commit-dirty=true --skip-caching",
     "deploy:pages": "npm run build && wrangler pages deploy --branch main --commit-dirty=true --skip-caching",
-    "build": "npm run sync:stt-translator && npm run prepare:voice-pack && tsc -b && vite build",
+    "build": "npm run sync:stt-translator && npm run prepare:voice-pack && tsc -b && vite build && npm run prepare:stt-skill",
     "preview": "vite preview"
   },
   "dependencies": {

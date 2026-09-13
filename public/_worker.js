@@ -12,6 +12,67 @@ const VOICE_PACK_HEADERS = {
   'Content-Length': String(VOICE_PACK_SIZE),
   'Cache-Control': 'public, max-age=86400',
 }
+const SKILL_ENTRY_PATH = '/skill/SKILL.md'
+const SKILL_HEADERS = {
+  'Content-Type': 'text/markdown; charset=utf-8',
+  'Access-Control-Allow-Origin': '*',
+  'Cache-Control': 'no-store',
+  'X-Content-Type-Options': 'nosniff',
+}
+
+function isSkillEntryPath(pathname) {
+  return ['/skill', '/skill/', '/skill/12.1', '/skill/12.1/'].includes(pathname)
+    || pathname.startsWith('/skill%')
+    || pathname.startsWith('/skill,')
+}
+
+function isSkillRequestPath(pathname) {
+  return isSkillEntryPath(pathname) || pathname.startsWith('/skill/')
+}
+
+async function serveSkill(request, env, url) {
+  const traceId = request.headers.get('cf-ray') || crypto.randomUUID()
+  const targetPath = isSkillEntryPath(url.pathname)
+    ? SKILL_ENTRY_PATH
+    : url.pathname
+  const event = {
+    chain: 'stt-ai-writing-skill',
+    traceId,
+    method: request.method,
+    path: url.pathname,
+    targetPath,
+  }
+  console.info(JSON.stringify({ ...event, stage: 'started' }))
+
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    console.warn(JSON.stringify({ ...event, stage: 'rejected', reason: 'method_not_allowed', status: 405 }))
+    return new Response('Method Not Allowed', { status: 405, headers: { ...SKILL_HEADERS, Allow: 'GET, HEAD' } })
+  }
+
+  try {
+    const targetUrl = new URL(targetPath, url)
+    const response = await env.ASSETS.fetch(new Request(targetUrl, request))
+    const sourceType = response.headers.get('content-type') || ''
+    if (!response.ok || sourceType.includes('text/html')) {
+      console.warn(JSON.stringify({ ...event, stage: 'completed', result: 'not_found', status: 404 }))
+      return new Response(request.method === 'HEAD' ? null : 'Not Found', { status: 404, headers: SKILL_HEADERS })
+    }
+    const headers = new Headers(response.headers)
+    for (const [name, value] of Object.entries(SKILL_HEADERS)) headers.set(name, value)
+    console.info(JSON.stringify({ ...event, stage: 'completed', result: 'served', status: response.status }))
+    return new Response(request.method === 'HEAD' ? null : response.body, {
+      status: response.status,
+      headers,
+    })
+  } catch (error) {
+    console.error(JSON.stringify({
+      ...event,
+      stage: 'failed',
+      reason: error instanceof Error ? error.name : 'unknown',
+    }))
+    return new Response(request.method === 'HEAD' ? null : 'Skill unavailable', { status: 502, headers: SKILL_HEADERS })
+  }
+}
 
 async function serveVoicePack(request, env) {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -51,6 +112,9 @@ async function serveVoicePack(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url)
+    if (isSkillRequestPath(url.pathname)) {
+      return serveSkill(request, env, url)
+    }
     if (url.pathname === '/generator' || url.pathname.startsWith('/generator/')) {
       const traceId = request.headers.get('cf-ray') || crypto.randomUUID()
       const event = {
