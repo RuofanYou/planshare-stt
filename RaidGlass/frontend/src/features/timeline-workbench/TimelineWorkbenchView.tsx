@@ -25,6 +25,7 @@ export interface TimelineWorkbenchViewProps {
     onClearFilters: () => void;
     targetPicker: ReactNode;
     settings: ReactNode;
+    spellFilter?: ReactNode;
     timelineControls: ReactNode;
     timeline: ReactNode;
 }
@@ -126,6 +127,7 @@ export default function TimelineWorkbenchView({
     onClearFilters,
     targetPicker,
     settings,
+    spellFilter,
     timelineControls,
     timeline,
 }: TimelineWorkbenchViewProps) {
@@ -150,6 +152,8 @@ export default function TimelineWorkbenchView({
                 onCopy={onCopy}
             />
 
+            <div className={styles.timelineWorkspace}>
+                {spellFilter}
             <section
                 className={styles.timelinePanel}
                 aria-label={ZH_CN.workbench.title}
@@ -209,6 +213,7 @@ export default function TimelineWorkbenchView({
                     </div>
                 )}
             </section>
+            </div>
         </section>
     );
 }

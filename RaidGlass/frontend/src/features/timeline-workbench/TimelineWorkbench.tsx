@@ -32,6 +32,8 @@ import {
 } from "./homework";
 import TimelineTextAlternative from "./TimelineTextAlternative";
 import TimelineSettings from "./TimelineSettings";
+import TimelineSpellFilter from "./TimelineSpellFilter";
+import { useTimelineSession } from "./timelineSession";
 import TimelineWorkbenchView from "./TimelineWorkbenchView";
 import { timelineTargetFromKey } from "./targetRouting";
 import { timelineTargetKey, type TimelineTarget } from "./types";
@@ -113,6 +115,7 @@ export default function TimelineWorkbench({
     }, []);
 
     const selectedTargetKey = timelineTargetKey(target);
+    useTimelineSession(selectedTargetKey);
     const catalogs = useMemo(() => ({ bosses, specs }), [bosses, specs]);
     const acceptedTarget = useMemo(() => (
         acceptedTargetKeyFromState
@@ -360,7 +363,7 @@ export default function TimelineWorkbench({
                     onClick={() => applyZoom("reset")}
                     aria-label={ZH_CN.settings.zoomReset}
                 >
-                    <FaRotateLeft />
+                    <FaRotateLeft /> 重置视图
                 </button>
             </div>
         </div>
@@ -370,6 +373,8 @@ export default function TimelineWorkbench({
         <div className={`${styles.timelineBody} spec_ranking`}>
             <PlayerNamesList visibility={visibility} />
             <TimelineCanvas
+                key={acceptedTargetKey}
+                viewKey={acceptedTargetKey ?? undefined}
                 fights={fights}
                 visibility={visibility}
                 onStageReady={onStageReady}
@@ -402,7 +407,8 @@ export default function TimelineWorkbench({
                 onRetry={() => setRetryToken((value) => value + 1)}
                 onClearFilters={() => dispatch(uiStore.reset_filters())}
                 targetPicker={targetPicker}
-                settings={<TimelineSettings filters={filters} />}
+                settings={<TimelineSettings />}
+                spellFilter={<TimelineSpellFilter key={selectedTargetKey} target={selectedTargetKey} disabled={selectedTargetKey !== acceptedTargetKey} />}
                 timelineControls={timelineControls}
                 timeline={timeline}
             />

@@ -53,6 +53,7 @@
         "src/features/timeline-workbench/TargetPicker.test.tsx",
         "src/features/timeline-workbench/TargetSummary.tsx",
         "src/features/timeline-workbench/TimelineSettings.tsx",
+        "src/features/timeline-workbench/TimelineSpellFilter.test.tsx",
         "src/features/timeline-workbench/TimelineTextAlternative.tsx",
         "src/features/timeline-workbench/TimelineTextAlternative.test.tsx",
         "src/components/SettingsBar/SpellSettings/CollapsableSpellGroup.tsx",

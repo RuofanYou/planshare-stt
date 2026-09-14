@@ -4,6 +4,10 @@ import { recordDiagnostic, setDiagnosticSinkForTests } from "./diagnostics";
 import type { DiagnosticDetails, DiagnosticEvent } from "./diagnostics";
 
 const DIAGNOSTIC_EVENTS = [
+    "spell_filter_applied",
+    "timeline_session_restored",
+    "timeline_session_saved",
+    "timeline_session_failed",
     "bootstrap_started",
     "bootstrap_succeeded",
     "bootstrap_failed",
@@ -16,10 +20,7 @@ const DIAGNOSTIC_EVENTS = [
     "target_copy_succeeded",
     "target_copy_failed",
     "target_copy_blocked",
-    "target_picker_opened",
-    "target_picker_closed",
     "target_selection_submitted",
-    "target_difficulty_changed",
     "settings_opened",
     "settings_closed",
     "skip_link_activated",

@@ -83,7 +83,8 @@ export function resolveTimelineTargetRoute({
     if (pathname === "/") {
         if (!catalogs) return { kind: "pending" };
         const boss = Object.values(catalogs.bosses)[0];
-        const spec = Object.values(catalogs.specs)[0];
+        const spec = Object.values(catalogs.specs).find(spec => spec.role === "heal")
+            ?? Object.values(catalogs.specs)[0];
         if (!boss || !spec) return { kind: "not-found", address };
 
         const target = targetFromCatalogs(

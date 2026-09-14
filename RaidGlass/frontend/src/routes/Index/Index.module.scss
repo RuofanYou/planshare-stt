@@ -4,7 +4,7 @@
 
 .pageIntro {
     width: min(760px, 100%);
-    margin: 0 0 clamp(26px, 3vw, 44px);
+    margin: 0 0 var(--rg-space-3);
     animation: intro-arrive var(--rg-spring-surface) both;
 
     h1,
@@ -15,7 +15,7 @@
     h1 {
         color: var(--rg-ink);
         font-family: var(--rg-font-display);
-        font-size: clamp(2.2rem, 1.6rem + 2.4vw, 4.25rem);
+        font-size: 1.5rem;
         font-weight: 760;
         line-height: 0.98;
         letter-spacing: -0.052em;
@@ -24,15 +24,16 @@
 
     > p:last-child {
         max-width: 42rem;
-        margin-top: 14px;
+        margin-top: var(--rg-space-2);
         color: var(--rg-muted);
-        font-size: clamp(1rem, 0.94rem + 0.28vw, 1.18rem);
+        font-size: .9rem;
         line-height: 1.62;
         text-wrap: pretty;
     }
 }
 
 .eyebrow {
+    display: none;
     margin-bottom: 12px !important;
     color: var(--rg-accent-strong);
     font-size: 0.76rem;
@@ -137,11 +138,11 @@
 
 @media (max-width: 959px) {
     .pageIntro {
-        margin-bottom: 24px;
+        margin-bottom: var(--rg-space-3);
         padding-inline: 8px;
 
         h1 {
-            font-size: clamp(2.05rem, 11vw, 3.35rem);
+            font-size: 1.5rem;
         }
     }
 

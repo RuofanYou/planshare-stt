@@ -232,6 +232,7 @@ function deferredVoid() {
 }
 
 beforeEach(() => {
+    sessionStorage.clear();
     vi.clearAllMocks();
     timelineStageMock.reset_zoom.mockReturnValue(4);
     timelineStageMock.zoom_by.mockReturnValue(4.4);
@@ -503,8 +504,8 @@ describe("TimelineWorkbenchView", () => {
 describe("TimelineWorkbench 复制闸门", () => {
     it("筛选空态的清除动作恢复唯一默认过滤器", () => {
         const fixture = connectedFixture();
-        fixture.store.dispatch(set_filters({ class: { deathknight: false } }));
         render(fixture.element(acceptedTarget, fixture.acceptedBoss, fixture.acceptedSpec));
+        act(() => { fixture.store.dispatch(set_filters({ class: { deathknight: false } })); });
 
         expect(screen.getByText("当前筛选隐藏了全部玩家")).toBeVisible();
         fireEvent.click(screen.getByRole("button", { name: "清除筛选" }));
@@ -515,7 +516,7 @@ describe("TimelineWorkbench 复制闸门", () => {
 
     it("跨目标时防御性阻止复制并只记录标量原因", () => {
         const diagnostics: Array<{ event: DiagnosticEvent; details: DiagnosticDetails }> = [];
-        setDiagnosticSinkForTests((event, details) => diagnostics.push({ event, details }));
+        setDiagnosticSinkForTests((event, details) => { if (event.startsWith("target_copy")) diagnostics.push({ event, details }); });
 
         const blocked = blockUnavailableCopy(
             "vorasius/warlock-demonology/heroic/dps",
@@ -547,7 +548,7 @@ describe("TimelineWorkbench 复制闸门", () => {
             value: { writeText },
         });
         const diagnostics: DiagnosticEvent[] = [];
-        setDiagnosticSinkForTests((event) => diagnostics.push(event));
+        setDiagnosticSinkForTests((event) => { if (event.startsWith("target_copy")) diagnostics.push(event); });
         render(fixture.element(acceptedTarget, fixture.acceptedBoss, fixture.acceptedSpec));
 
         fireEvent.click(screen.getByRole("button", { name: "复制 Top10 作业" }));
@@ -573,7 +574,7 @@ describe("TimelineWorkbench 复制闸门", () => {
             value: { writeText: vi.fn(async () => Promise.reject(new Error("secret clipboard error"))) },
         });
         const diagnostics: Array<{ event: DiagnosticEvent; details: DiagnosticDetails }> = [];
-        setDiagnosticSinkForTests((event, details) => diagnostics.push({ event, details }));
+        setDiagnosticSinkForTests((event, details) => { if (event.startsWith("target_copy")) diagnostics.push({ event, details }); });
         render(fixture.element(acceptedTarget, fixture.acceptedBoss, fixture.acceptedSpec));
 
         fireEvent.click(screen.getByRole("button", { name: "复制 Top10 作业" }));
@@ -602,7 +603,7 @@ describe("TimelineWorkbench 复制闸门", () => {
             value: { writeText: vi.fn(() => pending.promise) },
         });
         const diagnostics: DiagnosticEvent[] = [];
-        setDiagnosticSinkForTests((event) => diagnostics.push(event));
+        setDiagnosticSinkForTests((event) => { if (event.startsWith("target_copy")) diagnostics.push(event); });
         const view = render(fixture.element(acceptedTarget, fixture.acceptedBoss, fixture.acceptedSpec));
 
         fireEvent.click(screen.getByRole("button", { name: "复制 Top10 作业" }));

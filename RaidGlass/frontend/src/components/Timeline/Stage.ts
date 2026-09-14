@@ -54,6 +54,7 @@ export default class Stage extends Konva.Stage {
 
     private rows: FightRow[] = []
     private zoom_listener?: (zoom: number) => void
+    private view_listener?: () => void
     private reduced_motion = false
     private interaction_state: "idle" | "pressed" | "dragging" | "inertia" = "idle"
     private motion_frame: number | null = null
@@ -261,6 +262,7 @@ export default class Stage extends Konva.Stage {
     private set_pan_x(x: number, redraw = true) {
         this.x(x)
         this.y(0)
+        this.view_listener?.()
         if (redraw) {
             this.update_interaction_diagnostics()
             this.batchDraw()
@@ -609,6 +611,22 @@ export default class Stage extends Konva.Stage {
             this.clamp_to_bounds()
         }
         this.update_interaction_diagnostics()
+    }
+
+    get_view() {
+        return { zoom: this.scale_x, time: Math.max(0, -this.x() / this.scale_x) }
+    }
+
+    restore_view(view: { zoom: number; time: number }) {
+        this.interrupt_all_motion("restore-view")
+        this.scale_x = view.zoom
+        this.set_pan_x(clampToBounds(-view.time * view.zoom, this.get_pan_bounds()), false)
+        this.handle_event(constants.EVENT_ZOOM_CHANGE, this.scale_x)
+        this.zoom_listener?.(this.scale_x)
+    }
+
+    set_view_listener(listener?: () => void) {
+        this.view_listener = listener
     }
 
     get_zoom() {

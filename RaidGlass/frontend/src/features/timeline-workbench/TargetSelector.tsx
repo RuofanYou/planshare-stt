@@ -2,7 +2,6 @@ import { useMemo } from "react";
 
 import { bossDisplayName } from "../../localization/bossNames";
 import { classDisplayName, specDisplayName, ZH_CN } from "../../localization/zhCN";
-import { ASSETS } from "../../constants";
 import type Boss from "../../types/boss";
 import type Spec from "../../types/spec";
 import type { TimelineTarget } from "./types";
@@ -39,11 +38,6 @@ export default function TargetSelector({
             .sort((left, right) => left.slug.localeCompare(right.slug));
     }, [specs]);
 
-    const selectedBoss = bosses.find((boss) => boss.full_name_slug === value.bossSlug);
-    const selectedSpec = specs.find((spec) => spec.full_name_slug === value.specSlug);
-    const selectedClassSlug = selectedSpec?.class.name_slug || classes[0]?.slug || "";
-    const selectedClass = classes.find((item) => item.slug === selectedClassSlug);
-
     function selectBoss(bossSlug: string) {
         const boss = bosses.find((item) => item.full_name_slug === bossSlug);
         if (!boss) return;
@@ -65,92 +59,51 @@ export default function TargetSelector({
         });
     }
 
-    function selectClass(classSlug: string) {
-        const nextSpec = classes.find((item) => item.slug === classSlug)?.specs[0];
-        if (!nextSpec) return;
-        onChange({
-            ...value,
-            specSlug: nextSpec.full_name_slug,
-            specName: specDisplayName(nextSpec),
-            metric: specMetric(nextSpec),
-        });
-    }
-
     return (
         <section
             className={styles.selector}
             aria-label="目标选择"
-            data-target-selector-mode="draft"
+            data-target-selector-mode="inline"
         >
-            <label className={styles.bossControl}>
-                <span>{ZH_CN.selector.boss}</span>
-                <span className={styles.selectWithIcon}>
-                    {selectedBoss && (
-                        <img
-                            className={styles.targetIcon}
-                            data-target-icon="boss"
-                            src={selectedBoss.icon_path}
-                            alt=""
-                        />
-                    )}
-                    <select
-                        aria-label={ZH_CN.selector.boss}
-                        value={value.bossSlug}
-                        onChange={(event) => selectBoss(event.currentTarget.value)}
-                    >
-                        {bosses.map((boss) => (
-                            <option key={boss.full_name_slug} value={boss.full_name_slug}>
-                                {bossDisplayName(boss)}
-                            </option>
-                        ))}
-                    </select>
-                </span>
-            </label>
-
-            <label className={styles.classControl}>
-                <span>{ZH_CN.selector.class}</span>
-                <span className={styles.selectWithIcon}>
-                    {selectedClass && (
-                        <img
-                            className={styles.targetIcon}
-                            data-target-icon="class"
-                            src={`${ASSETS}/images/classes/${selectedClass.slug}.webp`}
-                            alt=""
-                        />
-                    )}
-                    <select
-                        aria-label={ZH_CN.selector.class}
-                        value={selectedClassSlug}
-                        onChange={(event) => selectClass(event.currentTarget.value)}
-                    >
-                        {classes.map((item) => (
-                            <option key={item.slug} value={item.slug}>{item.name}</option>
-                        ))}
-                    </select>
-                </span>
-            </label>
-
-            <fieldset className={styles.specPicker}>
-                <legend>{ZH_CN.selector.spec}</legend>
-                <div className={styles.specChoices}>
-                    {selectedClass?.specs.map((spec) => (
-                        <button
-                            key={spec.full_name_slug}
-                            type="button"
-                            aria-pressed={value.specSlug === spec.full_name_slug}
-                            onClick={() => selectSpec(spec.full_name_slug)}
-                        >
-                            <img
-                                data-target-icon={value.specSlug === spec.full_name_slug ? "spec" : undefined}
-                                src={spec.icon_path}
-                                alt=""
-                            />
-                            <span>{specDisplayName(spec)}</span>
+            <fieldset className={styles.bossControl}>
+                <legend>{ZH_CN.selector.boss}</legend>
+                <div className={styles.bossChoices}>
+                    {bosses.map(boss => (
+                        <button key={boss.full_name_slug} data-boss-slug={boss.full_name_slug} type="button"
+                            aria-pressed={value.bossSlug === boss.full_name_slug}
+                            onClick={() => selectBoss(boss.full_name_slug)}>
+                            <img src={boss.icon_path} alt="" data-target-icon="boss" />
+                            <span>{bossDisplayName(boss)}</span>
                         </button>
                     ))}
                 </div>
             </fieldset>
 
+            <fieldset className={styles.healerControl}>
+                <legend>治疗专精</legend>
+                <div className={styles.specChoices}>
+                    {specs.filter(spec => spec.role === "heal").map(spec => (
+                        <button key={spec.full_name_slug} type="button"
+                            aria-pressed={value.specSlug === spec.full_name_slug}
+                            onClick={() => selectSpec(spec.full_name_slug)}>
+                            <img data-target-icon="spec" src={spec.icon_path} alt="" />
+                            <span>{specDisplayName(spec)}</span>
+                        </button>
+                    ))}
+                    <label className={styles.otherSpecs}>
+                        <span className={styles.visuallyHidden}>全部专精</span>
+                        <select aria-label="全部专精" value={specs.find(spec => spec.full_name_slug === value.specSlug)?.role === "heal" ? "" : value.specSlug}
+                            onChange={event => selectSpec(event.target.value)}>
+                            <option value="" disabled>全部专精…</option>
+                            {classes.map(group => (
+                                <optgroup key={group.slug} label={group.name}>
+                                    {group.specs.map(spec => <option key={spec.full_name_slug} value={spec.full_name_slug}>{specDisplayName(spec)}</option>)}
+                                </optgroup>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+            </fieldset>
         </section>
     );
 }

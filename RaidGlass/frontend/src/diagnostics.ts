@@ -1,6 +1,10 @@
 export type DiagnosticDetails = Record<string, string | number | boolean | null>;
 
 export type DiagnosticEvent =
+    | "spell_filter_applied"
+    | "timeline_session_restored"
+    | "timeline_session_saved"
+    | "timeline_session_failed"
     | "bootstrap_started"
     | "bootstrap_succeeded"
     | "bootstrap_failed"
@@ -13,10 +17,7 @@ export type DiagnosticEvent =
     | "target_copy_succeeded"
     | "target_copy_failed"
     | "target_copy_blocked"
-    | "target_picker_opened"
-    | "target_picker_closed"
     | "target_selection_submitted"
-    | "target_difficulty_changed"
     | "settings_opened"
     | "settings_closed"
     | "skip_link_activated"

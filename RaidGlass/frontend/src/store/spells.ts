@@ -214,6 +214,14 @@ function _add_spells_to_state(state: SpellSliceState, new_spells: SpellDict) {
 
 function _replace_used_spells(state: SpellSliceState, fights: Fight[]) {
     state.used_spell_ids = filter_used_spells(fights)
+    // 事件包含而目录缺失的技能仍须可筛选、可见，不推测冷却或持续时间。
+    state.used_spell_ids.forEach(id => {
+        if (state.all_spells[id]) return;
+        state.all_spells[id] = {
+            spell_id: id, name: `技能 ${id}`, spell_type: "unknown",
+            color: "", cooldown: 0, duration: 0, icon: "", icon_path: "", show: true,
+        };
+    });
     return state
 }
 
@@ -255,6 +263,11 @@ const SLICE = createSlice({
 
         update_used_spells: (state, action: PayloadAction<{ fights: Fight[] }>) => {
             return _replace_used_spells(state, action.payload.fights)
+        },
+
+        replace_spell_display: (state, action: PayloadAction<Record<number, boolean>>) => {
+            state.spell_display = action.payload;
+            state.selected_spells = [];
         },
 
         set_spell_visible: (state, action: PayloadAction<{ spell_id: number, visible: boolean }>) => {
@@ -328,6 +341,7 @@ const SLICE = createSlice({
 export const {
     set_spells,
     set_spell_visible,
+    replace_spell_display,
     set_spell_tag_visible,
     update_used_spells,
     spell_selected,

@@ -110,24 +110,19 @@ function renderIndex(initialEntry: string) {
 }
 
 describe("Index 的规范 URL 状态", () => {
-    it("目标草稿确认后只 push 一条记录，后退从 URL 恢复触发器", async () => {
+    it("点击首领只 push 一条记录，后退从 URL 恢复选中状态", async () => {
         const user = userEvent.setup();
         const initialAddress = "/spec_ranking/deathknight-blood/imperator-averzian?difficulty=mythic&metric=dps";
         renderIndex(initialAddress);
 
-        await user.click(screen.getByRole("button", {
-            name: "更换目标：阿维兹安大帝 · 鲜血死亡骑士",
-        }));
-        await user.selectOptions(screen.getByRole("combobox", { name: "首领" }), "lura");
-        expect(screen.getByLabelText("当前测试地址")).toHaveTextContent(initialAddress);
-        await user.click(screen.getByRole("button", { name: "查看该时间轴" }));
+        await user.click(screen.getByRole("button", { name: "鲁拉" }));
 
         expect(screen.getByLabelText("当前测试地址")).toHaveTextContent(
             "/spec_ranking/deathknight-blood/lura?difficulty=mythic&metric=dps",
         );
         expect(screen.getByLabelText("当前导航类型")).toHaveTextContent("PUSH");
-        expect(screen.getByRole("button", { name: "更换目标：鲁拉 · 鲜血死亡骑士" }))
-            .toHaveAttribute("aria-expanded", "false");
+        expect(screen.getByRole("button", { name: "鲁拉" }))
+            .toHaveAttribute("aria-pressed", "true");
 
         await user.click(screen.getByRole("button", { name: "后退" }));
 
@@ -135,8 +130,8 @@ describe("Index 的规范 URL 状态", () => {
             expect(screen.getByLabelText("当前测试地址")).toHaveTextContent(initialAddress);
         });
         expect(screen.getByRole("button", {
-            name: "更换目标：阿维兹安大帝 · 鲜血死亡骑士",
-        })).toHaveAttribute("aria-expanded", "false");
+            name: "阿维兹安大帝",
+        })).toHaveAttribute("aria-pressed", "true");
     }, 10_000);
 
     it("目录就绪后用 replace 把根路由规范化", async () => {

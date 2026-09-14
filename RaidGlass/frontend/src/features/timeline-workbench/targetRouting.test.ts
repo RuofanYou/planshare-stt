@@ -137,11 +137,11 @@ describe("resolveTimelineTargetRoute", () => {
             .toEqual({ kind: "pending" });
     });
 
-    it("目录加载后让根路由 replace 到第一个规范目标", () => {
+    it("首页优先治疗专精与 hps，显式直链不受影响", () => {
         expect(resolveTimelineTargetRoute({ pathname: "/", search: "", catalogs })).toEqual({
             kind: "redirect",
-            target: damageTarget,
-            to: "/spec_ranking/deathknight-blood/imperator-averzian?difficulty=mythic&metric=dps",
+            target: { ...damageTarget, specSlug: "priest-holy", specName: "神圣牧师", metric: "hps" },
+            to: "/spec_ranking/priest-holy/imperator-averzian?difficulty=mythic&metric=hps",
         });
     });
 });

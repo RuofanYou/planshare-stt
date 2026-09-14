@@ -6,6 +6,7 @@ import { useRef, useEffect } from "react";
 import { ZH_CN } from "../../localization/zhCN";
 import type { TimelineVisibility } from "../../filter_logic";
 import type Fight from "../../types/fight";
+import { readTimelineSession, saveTimelineSession } from "../../features/timeline-workbench/timelineSession";
 import styles from "./TimelineCanvas.module.scss";
 
 interface ActivePointerGesture {
@@ -21,10 +22,12 @@ export default function TimelineCanvas({
     fights,
     visibility,
     onStageReady,
+    viewKey,
 }: {
     fights: readonly Fight[];
     visibility: TimelineVisibility;
     onStageReady?: (stage: Stage | null) => void;
+    viewKey?: string;
 }) {
     //////////////////////////////////////
     // HOOKS
@@ -108,6 +111,28 @@ export default function TimelineCanvas({
     useEffect(() => {
         stage_ref.current!.handle_event(constants.EVENT_SPELL_SELECTED, selected_spells);
     }, [selected_spells]);
+
+    // 在战斗与可见性初始化之后恢复，避免被初始边界裁剪为零。
+    useEffect(() => {
+        if (!viewKey || !stage_ref.current) return;
+        const stage = stage_ref.current;
+        const saved = readTimelineSession(viewKey).view;
+        if (saved) stage.restore_view(saved);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const save = () => saveTimelineSession(viewKey, { view: stage.get_view() });
+        const schedule = () => {
+            clearTimeout(timer);
+            timer = setTimeout(save, 200);
+        };
+        stage.set_view_listener(schedule);
+        window.addEventListener("pagehide", save);
+        return () => {
+            clearTimeout(timer);
+            stage.set_view_listener(undefined);
+            window.removeEventListener("pagehide", save);
+            save();
+        };
+    }, [viewKey, onStageReady]);
 
     //////////////////////////////////////
     // Render

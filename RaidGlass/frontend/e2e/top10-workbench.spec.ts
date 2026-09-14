@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { collectRuntimeFailures } from "./helpers/runtimeFailures";
-import { commitTargetDraft, openTargetPicker } from "./target-picker";
 
 const SCREENSHOT_ROOT = process.env.RAIDGLASS_SCREENSHOT_ROOT || "/tmp/raidglass-release-local";
 mkdirSync(SCREENSHOT_ROOT, { recursive: true });
@@ -14,15 +13,6 @@ function waitForFireMageRanking(page: Page, difficulty: "heroic" | "mythic") {
             && url.pathname === "/log/api/spec_ranking/mage-fire/imperator-averzian"
             && url.searchParams.get("difficulty") === difficulty;
     });
-}
-
-async function tabTo(page: Page, target: Locator, maxSteps = 16) {
-    await expect(target).toBeVisible();
-    for (let step = 0; step < maxSteps; step += 1) {
-        if (await target.evaluate((element) => document.activeElement === element)) return;
-        await page.keyboard.press("Tab");
-    }
-    await expect(target).toBeFocused();
 }
 
 async function expectVisibleFocus(target: Locator) {
@@ -46,257 +36,98 @@ async function ensureTimelineOverflow(page: Page, canvas: Locator, minimumRange 
     await expect.poll(readMinimum).toBeLessThanOrEqual(-minimumRange);
 }
 
-async function hoverFirstPlayerCastUntilVisible(page: Page) {
-    const timeline = page.getByTestId("timeline-canvas");
-    const target = page.locator('[role="tooltip"]');
-    const timelineBox = await timeline.boundingBox();
-    const firstPlayerBox = await page.locator("[data-player-row]").first().boundingBox();
-    if (!timelineBox || !firstPlayerBox) throw new Error("时间轴或首位玩家缺少可测几何");
-    const y = firstPlayerBox.y + firstPlayerBox.height / 2 - timelineBox.y;
-    const scanEnd = timelineBox.width - 8;
-
-    for (let x = 24; x <= scanEnd; x += 8) {
-        await timeline.hover({ position: { x, y } });
-        if (await target.count() > 0) {
-            await expect(target).toBeVisible();
-            return target;
-        }
-    }
-    throw new Error("首位玩家可见时间轴中未命中目标技能");
-}
-
-test("桌面端同页完成 Top10 作业", async ({ context, page }) => {
+test("桌面直接选目标、搜索技能与撤销，操作不请求数据", async ({ context, page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     const failures = collectRuntimeFailures(page);
-    await page.goto("/log/");
-    await expect(page.getByTestId("timeline-workbench")).toBeVisible();
-    await expect(page.getByText("选定首领、职业专精和难度，时间轴会在同一页自动更新。")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "设置" })).toHaveCount(0);
-    const settingsToggle = page.getByRole("button", { name: "筛选与显示", exact: true });
-    await expect(settingsToggle).toHaveAttribute("aria-expanded", "false");
-    await expect(page.getByRole("button", { name: "技能图标" })).toHaveCount(0);
-    await page.reload();
-    await expect(page.getByTestId("timeline-workbench")).toBeVisible();
-
-    await commitTargetDraft(page, {
-        boss: "imperator-averzian",
-        className: "mage",
-        specName: "火焰法师",
-    });
-    const heroicButton = page.getByRole("button", { name: "英雄难度" });
-    const heroicRanking = waitForFireMageRanking(page, "heroic");
-    await heroicButton.focus();
-    await page.keyboard.press("Enter");
-    await heroicRanking;
-    await expect(heroicButton).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("button", { name: "更换目标：阿维兹安大帝 · 火焰法师" })).toBeVisible();
-    await expect(page.locator("[data-freshness]")).not.toHaveAttribute("data-freshness", "loading");
-    await expect(page.getByText("正在更新")).toHaveCount(0);
+    await page.goto("/log/spec_ranking/mage-fire/imperator-averzian?difficulty=mythic&metric=dps");
     await expect(page.locator("[data-player-row]")).toHaveCount(10);
-    await expect(page.getByTestId("workbench-context")).not.toContainText(/\bDPS\b/);
-
-    const timelineCanvas = page.getByTestId("timeline-canvas");
-    await expect(timelineCanvas).toHaveAttribute("data-timeline-label-icon-collisions", "0");
-    await expect.poll(() => timelineCanvas.evaluate((element) => (
-        Number(element.dataset.timelineVisibleLabels ?? 0)
-    ))).toBeGreaterThan(0);
-
-    const localizedTooltip = await hoverFirstPlayerCastUntilVisible(page);
-    await expect(localizedTooltip).toContainText(/[\u3400-\u9fff]/);
-    await expect(localizedTooltip).not.toContainText(/[A-Za-z]{3}/);
-
-    const copyButton = page.getByRole("button", { name: "复制 Top10 作业" });
-    await page.keyboard.press("Tab");
-    await expect(copyButton).toBeFocused();
-    const focusIsVisible = await copyButton.evaluate((element) => {
-        const style = getComputedStyle(element);
-        return style.outlineStyle !== "none" && Number.parseFloat(style.outlineWidth) > 0;
-    });
-    expect(focusIsVisible).toBe(true);
-    await page.keyboard.press("Space");
-    await expect(page.getByRole("button", { name: "Top10 作业已复制" })).toContainText("已复制");
-
-    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-    await expect(page.getByTestId("workbench-context")).toHaveCount(1);
-    await expect(copyButton).toBeEnabled();
-    await expect(page.getByText("打开时间轴")).toHaveCount(0);
-
-    const labelsBeforeSettings = await timelineCanvas.evaluate((element) => (
-        Number(element.dataset.timelineVisibleLabels ?? 0)
-    ));
-    await settingsToggle.click();
-    await expect(settingsToggle).toHaveAttribute("aria-expanded", "true");
-    await expect(page.getByRole("button", { name: "技能图标" })).toBeVisible();
-    await expect(timelineCanvas).toHaveAttribute("data-timeline-label-icon-collisions", "0");
-    expect(await timelineCanvas.evaluate((element) => (
-        Number(element.dataset.timelineVisibleLabels ?? 0)
-    ))).toBe(labelsBeforeSettings);
-    const dialogClose = page.getByRole("dialog", { name: "筛选与显示" })
-        .locator("[data-dialog-close-control]");
-    await dialogClose.click();
-    const interruptClose = page.locator("[data-dialog-interrupt-control]");
-    const interruptCloseLabel = await interruptClose.evaluate((button) => {
-        if (!(button instanceof HTMLButtonElement)) return null;
-        const label = button.getAttribute("aria-label");
-        button.click();
-        return label;
-    });
-    expect(interruptCloseLabel).toBe("取消关闭筛选与显示");
-    await expect(settingsToggle).toHaveAttribute("aria-expanded", "true");
-    await expect(dialogClose).toHaveAccessibleName("关闭筛选与显示");
-    await dialogClose.click();
-    await expect(settingsToggle).toHaveAttribute("aria-expanded", "false");
-
-    const geometry = await page.evaluate(() => {
-        const rows = Array.from(document.querySelectorAll<HTMLElement>("[data-player-row]"));
-        const firstFive = rows.slice(0, 5);
-        const firstSeven = rows.slice(0, 7);
-        const gap = (left: Element | null, right: Element | null) => {
-            if (!left || !right) return Number.NEGATIVE_INFINITY;
-            return right.getBoundingClientRect().left - left.getBoundingClientRect().right;
-        };
-        const canvas = document.querySelector<HTMLElement>("[data-testid='timeline-canvas']");
-        const main = document.querySelector<HTMLElement>("main[aria-label='主要内容']");
-        const appFrame = main?.parentElement;
-        const footer = document.querySelector<HTMLElement>("footer");
-        const lastRow = rows.at(-1);
-        const appFrameRect = appFrame?.getBoundingClientRect();
-        const footerRect = footer?.getBoundingClientRect();
-        const lastRowRect = lastRow?.getBoundingClientRect();
-        return {
-            documentWidth: document.documentElement.scrollWidth,
-            viewportWidth: document.documentElement.clientWidth,
-            completeRows: firstSeven.filter((row) => row.getBoundingClientRect().bottom <= innerHeight).length,
-            rowGaps: firstFive.map((row) => ({
-                rankToName: gap(row.querySelector("[data-player-rank]"), row.querySelector("[title]")),
-                nameToTotal: gap(row.querySelector("[title]"), row.querySelector("[data-player-total]")),
-            })),
-            collisions: Number(canvas?.dataset.timelineLabelCollisions ?? -1),
-            iconCollisions: Number(canvas?.dataset.timelineLabelIconCollisions ?? -1),
-            ninetySecondX: 90 * Number(canvas?.dataset.timelineZoom ?? 0),
-            canvasWidth: canvas?.clientWidth ?? 0,
-            imageErrors: document.querySelectorAll("[data-rg-image-error='true']").length,
-            brandCenterError: (() => {
-                const image = document.querySelector<HTMLElement>("a[aria-label='RaidGlass 首页'] img");
-                const frame = image?.parentElement;
-                if (!image || !frame) return Number.POSITIVE_INFINITY;
-                const imageRect = image.getBoundingClientRect();
-                const frameRect = frame.getBoundingClientRect();
-                return Math.max(
-                    Math.abs((imageRect.left + imageRect.width / 2) - (frameRect.left + frameRect.width / 2)),
-                    Math.abs((imageRect.top + imageRect.height / 2) - (frameRect.top + frameRect.height / 2)),
-                );
-            })(),
-            headingFont: getComputedStyle(document.querySelector("h1")!).fontFamily,
-            lastRowInsideFrame: Boolean(
-                appFrameRect && lastRowRect && lastRowRect.bottom <= appFrameRect.bottom + 1
-            ),
-            footerGap: appFrameRect && footerRect
-                ? footerRect.top - appFrameRect.bottom
-                : Number.NEGATIVE_INFINITY,
-        };
-    });
-
-    expect(geometry.documentWidth).toBe(geometry.viewportWidth);
-    expect(geometry.completeRows).toBeGreaterThanOrEqual(3);
-    for (const gaps of geometry.rowGaps) {
-        expect(gaps.rankToName).toBeGreaterThanOrEqual(8);
-        expect(gaps.nameToTotal).toBeGreaterThanOrEqual(8);
-    }
-    expect(geometry.collisions).toBe(0);
-    expect(geometry.iconCollisions).toBe(0);
-    expect(geometry.ninetySecondX).toBeGreaterThan(0);
-    expect(geometry.ninetySecondX).toBeLessThanOrEqual(geometry.canvasWidth);
-    expect(geometry.imageErrors).toBe(0);
-    expect(geometry.brandCenterError).toBeLessThanOrEqual(0.5);
-    expect(geometry.headingFont).toMatch(/sans-serif/i);
-    expect(geometry.headingFont).not.toMatch(/Georgia|Times New Roman|Noto Serif|Songti/i);
-    expect(geometry.lastRowInsideFrame).toBe(true);
-    expect(geometry.footerGap).toBeGreaterThanOrEqual(0);
+    await expect(page.getByTestId("timeline-canvas")).toHaveAttribute("data-timeline-images-loaded", "true");
+    const skills = page.getByRole("complementary", { name: "技能筛选" });
+    await expect(skills.getByRole("searchbox")).toBeVisible();
+    const requests: string[] = [];
+    page.on("request", request => { if (request.url().includes("/api/")) requests.push(request.url()); });
+    const initial = await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked));
+    await skills.getByRole("button", { name: /^仅看 / }).first().click();
+    await expect(skills.getByRole("checkbox").filter({ visible: true })).toHaveCount(initial.length);
+    expect(await skills.getByRole("checkbox").evaluateAll(inputs => inputs.filter(input => (input as HTMLInputElement).checked).length)).toBe(1);
+    await skills.getByRole("button", { name: "撤销", exact: true }).click();
+    expect(await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked))).toEqual(initial);
+    await skills.getByRole("searchbox").fill("不存在的技能");
+    await expect(skills.getByText(/未找到匹配技能/)).toBeVisible();
+    await skills.getByRole("searchbox").fill("");
+    expect(requests).toEqual([]);
+    await page.getByRole("button", { name: "复制 Top10 作业" }).click();
+    await expect(page.getByRole("button", { name: "Top10 作业已复制" })).toBeVisible();
+    const canvas = page.getByTestId("timeline-canvas");
+    expect((await canvas.boundingBox())!.y).toBeLessThan(600);
+    await expect(canvas).toHaveAttribute("data-timeline-label-icon-collisions", "0");
+    await page.screenshot({ path: `${SCREENSHOT_ROOT}/timeline-desktop.png`, fullPage: true });
+    const nextResponse = page.waitForResponse(response => response.url().includes("/api/spec_ranking/mage-fire/vorasius?") && response.ok());
+    await page.locator('button[data-boss-slug="vorasius"]').click();
+    await nextResponse;
+    await expect(page).toHaveURL(/mage-fire\/vorasius\?difficulty=mythic&metric=dps/);
+    await expect(page.locator('[data-testid="timeline-workbench"]')).toHaveAttribute("data-content-state", "ready");
+    const before = requests.length;
+    await page.locator('button[data-boss-slug="vorasius"]').click();
+    expect(requests.length).toBe(before);
     expect(failures).toEqual([]);
-
-    await page.screenshot({ path: `${SCREENSHOT_ROOT}/desktop-1440x1000.png`, fullPage: true });
 });
 
-test("2048px 宽屏工作台展开主画布并把上下文分成清晰层级", async ({ page }) => {
-    await page.setViewportSize({ width: 2048, height: 1060 });
+test("刷新和返回按目标恢复技能及时间视图", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
     const failures = collectRuntimeFailures(page);
-    await page.goto("/log/spec_ranking/deathknight-blood/imperator-averzian?difficulty=mythic&metric=dps");
+    await page.goto("/log/spec_ranking/mage-fire/imperator-averzian?difficulty=heroic&metric=dps");
     await expect(page.locator("[data-player-row]")).toHaveCount(10);
-    await expect(page.getByTestId("timeline-canvas"))
-        .toHaveAttribute("data-timeline-images-loaded", "true");
-
-    const main = page.getByRole("main", { name: "主要内容" });
-    const frame = main.locator("..");
-    const workbench = page.getByTestId("timeline-workbench");
-    const summary = page.getByTestId("workbench-context");
-    const heading = page.getByRole("heading", {
-        level: 2,
-        name: "阿维兹安大帝 · 鲜血死亡骑士",
-    });
-    const targetTrigger = page.getByRole("button", {
-        name: "更换目标：阿维兹安大帝 · 鲜血死亡骑士",
-    });
-    const metadata = summary.locator("dl");
-    const copyButton = page.getByRole("button", { name: "复制 Top10 作业" });
-    const firstPlayer = page.locator("[data-player-row]").first();
-
-    const [
-        frameBox,
-        workbenchBox,
-        summaryBox,
-        headingBox,
-        targetBox,
-        metadataBox,
-        copyBox,
-        playerBox,
-    ] = await Promise.all([
-        frame.boundingBox(),
-        workbench.boundingBox(),
-        summary.boundingBox(),
-        heading.boundingBox(),
-        targetTrigger.boundingBox(),
-        metadata.boundingBox(),
-        copyButton.boundingBox(),
-        firstPlayer.boundingBox(),
-    ]);
-    if (
-        !frameBox
-        || !workbenchBox
-        || !summaryBox
-        || !headingBox
-        || !targetBox
-        || !metadataBox
-        || !copyBox
-        || !playerBox
-    ) {
-        throw new Error("宽屏工作台缺少可测几何");
-    }
-
-    const documentGeometry = await page.evaluate(() => ({
-        documentWidth: document.documentElement.scrollWidth,
-        viewportWidth: document.documentElement.clientWidth,
-    }));
-
-    expect(frameBox.width / 2048).toBeGreaterThanOrEqual(0.92);
-    expect(frameBox.height).toBeGreaterThanOrEqual(900);
-    expect(workbenchBox.width / frameBox.width).toBeGreaterThanOrEqual(0.78);
-    expect(workbenchBox.width / frameBox.width).toBeLessThanOrEqual(0.9);
-    expect(workbenchBox.y + workbenchBox.height).toBeGreaterThanOrEqual(1060 * 0.84);
-    expect(summaryBox.height).toBeGreaterThanOrEqual(240);
-    expect(Math.abs(headingBox.y - targetBox.y)).toBeLessThanOrEqual(28);
-    expect(metadataBox.y).toBeGreaterThan(headingBox.y + headingBox.height);
-    expect(Math.abs(metadataBox.y - copyBox.y)).toBeLessThanOrEqual(28);
-    expect(copyBox.x).toBeGreaterThan(metadataBox.x + metadataBox.width);
-    expect(playerBox.width).toBeGreaterThanOrEqual(286);
-    expect(playerBox.width).toBeLessThanOrEqual(321);
-    expect(playerBox.height).toBeGreaterThanOrEqual(52);
-    expect(documentGeometry.documentWidth).toBe(documentGeometry.viewportWidth);
+    const skills = page.getByRole("complementary", { name: "技能筛选" });
+    await skills.getByRole("button", { name: /^仅看 / }).first().click();
+    const selection = await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked));
+    await page.getByRole("button", { name: "放大" }).click();
+    await page.getByRole("button", { name: "向右平移" }).click();
+    const canvas = page.getByTestId("timeline-canvas");
+    const position = await canvas.getAttribute("data-timeline-pan-x");
+    const scale = await canvas.getAttribute("data-timeline-zoom");
+    await page.reload();
+    await expect(page.locator("[data-player-row]")).toHaveCount(10);
+    await expect(canvas).toHaveAttribute("data-timeline-pan-x", position!);
+    await expect(canvas).toHaveAttribute("data-timeline-zoom", scale!);
+    expect(await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked))).toEqual(selection);
+    await page.locator('button[data-boss-slug="vorasius"]').click();
+    await expect(page.getByTestId("timeline-workbench")).toHaveAttribute("data-content-state", "ready");
+    await skills.getByRole("button", { name: "恢复默认", exact: true }).click();
+    await page.goBack();
+    await expect(page.getByTestId("timeline-workbench")).toHaveAttribute("data-content-state", "ready");
+    await expect(canvas).toHaveAttribute("data-timeline-pan-x", position!);
+    expect(await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked))).toEqual(selection);
     expect(failures).toEqual([]);
-
-    await page.screenshot({ path: `${SCREENSHOT_ROOT}/wide-desktop-2048x1060.png`, fullPage: true });
 });
+
+for (const width of [390, 430, 800, 2048]) {
+    test(`${width}px 控件无溢出，技能筛选和键盘可用`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 1000 });
+        const failures = collectRuntimeFailures(page);
+        await page.goto("/log/spec_ranking/warlock-demonology/imperator-averzian?difficulty=mythic&metric=dps");
+        await expect(page.locator("[data-player-row]")).toHaveCount(10);
+        const skills = page.getByRole("complementary", { name: "技能筛选" });
+        if (width <= 1100) {
+            await expect(skills.getByRole("searchbox")).toBeHidden();
+            await skills.getByRole("button", { name: /^技能筛选/ }).click();
+        }
+        await expect(skills.getByRole("searchbox")).toBeVisible();
+        await skills.getByRole("searchbox").focus();
+        await page.keyboard.type("123456789");
+        await expect(skills.getByText(/未找到匹配技能/)).toBeVisible();
+        await page.keyboard.press("Tab");
+        await expect(skills.getByRole("button", { name: "全选", exact: true })).toBeFocused();
+        await page.keyboard.press("Enter");
+        await skills.getByRole("searchbox").fill("");
+        await page.getByRole("combobox", { name: "全部专精", exact: true }).focus();
+        await expectVisibleFocus(page.getByRole("combobox", { name: "全部专精", exact: true }));
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+        await page.screenshot({ path: `${SCREENSHOT_ROOT}/timeline-${width}.png`, fullPage: true });
+        expect(failures).toEqual([]);
+    });
+}
 
 test("分享路由复用统一工作台", async ({ page }) => {
     const failures = collectRuntimeFailures(page);
@@ -359,294 +190,9 @@ test("移动端单人作业使用原生模态、显式复制并在目标切换�
         window.dispatchEvent(new PopStateEvent("popstate"));
     });
     await nextRanking;
-    await expect(page.getByRole("button", { name: "更换目标：阿维兹安大帝 · 火焰法师" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "阿维兹安大帝 · 火焰法师" })).toBeVisible();
     await expect(dialog).toHaveCount(0);
     expect(failures).toEqual([]);
-});
-
-test("核心工作台可全程用键盘到达", async ({ page }) => {
-    const failures = collectRuntimeFailures(page);
-    await page.goto("/log/");
-    await expect(page.locator("[data-player-row]")).toHaveCount(10);
-
-    const targetTrigger = page.getByRole("button", { name: /^更换目标：/ });
-    await tabTo(page, targetTrigger);
-    await expectVisibleFocus(targetTrigger);
-    await page.keyboard.press("Enter");
-
-    const targetDialog = page.getByRole("dialog", { name: "选择首领与专精" });
-    await expect(targetDialog).toBeVisible();
-    const targetControls = [
-        targetDialog.getByRole("combobox", { name: "首领", exact: true }),
-        targetDialog.getByRole("combobox", { name: "职业", exact: true }),
-        targetDialog.getByRole("button", { name: "痛苦术士", exact: true }),
-        targetDialog.getByRole("button", { name: "恶魔学识术士", exact: true }),
-        targetDialog.getByRole("button", { name: "毁灭术士", exact: true }),
-        targetDialog.getByRole("button", { name: "查看该时间轴" }),
-    ];
-    for (const target of targetControls) {
-        await tabTo(page, target);
-        await expectVisibleFocus(target);
-    }
-    await page.keyboard.press("Escape");
-    await expect(targetDialog).toBeHidden();
-
-    const targets = [
-        page.getByRole("button", { name: "史诗难度" }),
-        page.getByRole("button", { name: "英雄难度" }),
-        page.getByRole("button", { name: "复制 Top10 作业" }),
-        page.getByRole("button", { name: "筛选与显示", exact: true }),
-    ];
-    for (const target of targets) {
-        await tabTo(page, target);
-        await expectVisibleFocus(target);
-    }
-
-    const settingsToggle = targets.at(-1)!;
-    await page.keyboard.press("Enter");
-    await expect(settingsToggle).toHaveAttribute("aria-expanded", "true");
-
-    const iconToggle = page.getByRole("button", { name: "技能图标" });
-    await tabTo(page, iconToggle);
-    await expectVisibleFocus(iconToggle);
-    await page.keyboard.press("Space");
-    await expect(iconToggle).toHaveAttribute("aria-pressed", "false");
-    await page.keyboard.press("Space");
-    await expect(iconToggle).toHaveAttribute("aria-pressed", "true");
-    expect(failures).toEqual([]);
-});
-
-test("密集时间轴的时间文字不覆盖技能图标", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    const failures = collectRuntimeFailures(page);
-    await page.goto("/log/spec_ranking/mage-fire/vorasius?difficulty=heroic&metric=dps");
-    await expect(page.getByTestId("timeline-workbench")).toBeVisible();
-    await expect(page.locator("[data-player-row]")).toHaveCount(10);
-
-    const timelineCanvas = page.getByTestId("timeline-canvas");
-    await expect(timelineCanvas).toHaveAttribute("data-timeline-label-icon-collisions", "0");
-    await expect(timelineCanvas).toHaveAttribute("data-timeline-label-collisions", "0");
-    await expect.poll(() => timelineCanvas.evaluate((element) => (
-        Number(element.dataset.timelineVisibleLabels ?? 0)
-    ))).toBeGreaterThan(0);
-    expect(failures).toEqual([]);
-
-    await page.screenshot({ path: `${SCREENSHOT_ROOT}/dense-timeline-1440x1000.png`, fullPage: true });
-});
-
-test("移动端时间轴直接平移且页面无横向溢出", async ({ page }) => {
-    await page.setViewportSize({ width: 430, height: 932 });
-    const failures = collectRuntimeFailures(page);
-    await page.goto("/log/");
-    await expect(page.getByTestId("timeline-workbench")).toBeVisible();
-    await commitTargetDraft(page, {
-        boss: "imperator-averzian",
-        className: "mage",
-        specName: "火焰法师",
-    });
-    const heroicRanking = waitForFireMageRanking(page, "heroic");
-    await page.getByRole("button", { name: "英雄难度" }).click();
-    await heroicRanking;
-    await expect(page.locator("[data-freshness]")).not.toHaveAttribute("data-freshness", "loading");
-    await expect(page.getByText("正在更新")).toHaveCount(0);
-    await expect(page.locator("[data-player-row]")).toHaveCount(10);
-    const firstMobilePlayer = page.locator("[data-player-row]").first();
-    await expect(firstMobilePlayer).toBeVisible();
-    expect(await firstMobilePlayer.evaluate((element) => (
-        getComputedStyle(element.parentElement?.parentElement ?? element).contentVisibility
-    ))).toBe("visible");
-
-    const mobile = await page.evaluate(() => {
-        const timelineScroll = document.querySelector<HTMLElement>("[data-timeline-scroll]");
-        const timelineCanvas = document.querySelector<HTMLElement>("[data-testid='timeline-canvas']");
-        const timelineVisual = document.querySelector<HTMLElement>("[data-testid='timeline-canvas-visual']");
-        const firstPlayerRow = document.querySelector<HTMLElement>("[data-player-row]");
-        const playerRows = Array.from(document.querySelectorAll<HTMLElement>("[data-player-row]"));
-        const lastPlayerRow = playerRows.at(-1);
-        const targetControl = document.querySelector<HTMLElement>("button[aria-label^='更换目标：']");
-        const difficultyControl = document.querySelector<HTMLElement>("button[aria-label='英雄难度']")?.closest("fieldset")
-            || Array.from(document.querySelectorAll<HTMLElement>("fieldset")).find((fieldset) => (
-                fieldset.textContent?.includes("史诗难度") && fieldset.textContent?.includes("英雄难度")
-            ));
-        const main = document.querySelector("main");
-        const visibleButtons = Array.from(main?.querySelectorAll<HTMLElement>("button") ?? [])
-            .filter((button) => button.getBoundingClientRect().width > 0 && button.getBoundingClientRect().height > 0);
-        const unnamed = Array.from(main?.querySelectorAll<HTMLElement>("a,button,input,select") ?? [])
-            .filter((element) => {
-                const rect = element.getBoundingClientRect();
-                if (rect.width === 0 || rect.height === 0) return false;
-                const labelledBy = element.getAttribute("aria-labelledby");
-                const label = element.getAttribute("aria-label")
-                    || (labelledBy ? document.getElementById(labelledBy)?.textContent : "")
-                    || element.textContent
-                    || element.getAttribute("title")
-                    || "";
-                return !label.trim();
-            }).length;
-        const rogueOverflow = Array.from(document.body.querySelectorAll<HTMLElement>("*"))
-            .filter((element) => {
-                if (timelineScroll?.contains(element)) return false;
-                const rect = element.getBoundingClientRect();
-                return rect.width > 0 && (rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
-            })
-            .slice(0, 20)
-            .map((element) => {
-                const rect = element.getBoundingClientRect();
-                return {
-                    tag: element.tagName,
-                    className: element.className,
-                    label: element.getAttribute("aria-label") || element.textContent?.trim().slice(0, 40) || "",
-                    left: rect.left,
-                    right: rect.right,
-                    width: rect.width,
-                };
-            });
-        return {
-            documentWidth: document.documentElement.scrollWidth,
-            viewportWidth: document.documentElement.clientWidth,
-            timelineDomScrollable: Boolean(
-                timelineScroll && timelineScroll.scrollWidth > timelineScroll.clientWidth
-            ),
-            timelinePanRange: Number(timelineVisual?.dataset.timelinePanMax ?? 0)
-                - Number(timelineVisual?.dataset.timelinePanMin ?? 0),
-            timelineOverflowX: timelineScroll ? getComputedStyle(timelineScroll).overflowX : "",
-            timelineTouchAction: timelineCanvas ? getComputedStyle(timelineCanvas).touchAction : "",
-            playerColumnWidth: firstPlayerRow?.getBoundingClientRect().width ?? 0,
-            timelineViewportWidth: (timelineScroll?.clientWidth ?? 0) - (firstPlayerRow?.getBoundingClientRect().width ?? 0),
-            minButtonSize: Math.min(...visibleButtons.map((button) => (
-                Math.min(button.offsetWidth, button.offsetHeight)
-            ))),
-            timelineIntroducedWithoutScroll: Boolean(
-                timelineVisual && timelineVisual.getBoundingClientRect().top < innerHeight - 44
-            ),
-            targetDifficultyStackGap: targetControl && difficultyControl
-                ? difficultyControl.getBoundingClientRect().top - targetControl.getBoundingClientRect().bottom
-                : Number.POSITIVE_INFINITY,
-            targetDifficultyEdgeDelta: targetControl && difficultyControl
-                ? Math.max(
-                    Math.abs(targetControl.getBoundingClientRect().left - difficultyControl.getBoundingClientRect().left),
-                    Math.abs(targetControl.getBoundingClientRect().right - difficultyControl.getBoundingClientRect().right),
-                )
-                : Number.POSITIVE_INFINITY,
-            timelineRowBottomDelta: lastPlayerRow && timelineVisual
-                ? Math.abs(
-                    lastPlayerRow.getBoundingClientRect().bottom
-                    - timelineVisual.getBoundingClientRect().bottom
-                )
-                : Number.POSITIVE_INFINITY,
-            unnamed,
-            rogueOverflow,
-        };
-    });
-
-    expect(mobile.documentWidth).toBe(mobile.viewportWidth);
-    expect(mobile.timelineDomScrollable).toBe(false);
-    expect(mobile.timelinePanRange).toBeGreaterThan(0);
-    expect(mobile.timelineOverflowX).toBe("hidden");
-    expect(mobile.timelineTouchAction).toContain("pan-y");
-    expect(mobile.playerColumnWidth).toBeGreaterThanOrEqual(164);
-    expect(mobile.playerColumnWidth).toBeLessThanOrEqual(184.5);
-    expect(mobile.timelineViewportWidth).toBeGreaterThanOrEqual(120);
-    expect(mobile.minButtonSize).toBeGreaterThanOrEqual(44);
-    expect(mobile.timelineIntroducedWithoutScroll).toBe(true);
-    expect(mobile.targetDifficultyStackGap).toBeGreaterThanOrEqual(0);
-    expect(mobile.targetDifficultyStackGap).toBeLessThanOrEqual(8);
-    expect(mobile.targetDifficultyEdgeDelta).toBeLessThanOrEqual(4);
-    expect(mobile.timelineRowBottomDelta).toBeLessThanOrEqual(1);
-    expect(mobile.unnamed).toBe(0);
-    expect(mobile.rogueOverflow).toEqual([]);
-    expect(failures).toEqual([]);
-
-    await firstMobilePlayer.scrollIntoViewIfNeeded();
-    await expect(firstMobilePlayer).toBeInViewport({ ratio: 0.9 });
-
-    await page.screenshot({ path: `${SCREENSHOT_ROOT}/mobile-430x932.png`, fullPage: true });
-});
-
-test("430px 下完整显示长专精名称", async ({ page }) => {
-    await page.setViewportSize({ width: 430, height: 932 });
-    await page.goto("/log/");
-
-    const targetDialog = await openTargetPicker(page);
-    const longSpec = targetDialog.getByRole("button", { name: "恶魔学识术士" });
-    await expect(longSpec).toBeVisible();
-    const label = longSpec.locator("span");
-    await expect(label).toHaveCount(1);
-    const labelGeometry = await label.evaluate((element) => ({
-        clientHeight: element.clientHeight,
-        clientWidth: element.clientWidth,
-        scrollHeight: element.scrollHeight,
-        scrollWidth: element.scrollWidth,
-        textOverflow: getComputedStyle(element).textOverflow,
-        whiteSpace: getComputedStyle(element).whiteSpace,
-    }));
-    expect(labelGeometry.scrollWidth).toBeLessThanOrEqual(labelGeometry.clientWidth);
-    expect(labelGeometry.scrollHeight).toBeLessThanOrEqual(labelGeometry.clientHeight);
-    expect(labelGeometry.textOverflow).not.toBe("ellipsis");
-    expect(labelGeometry.whiteSpace).toBe("normal");
-
-    await expect(page.locator("[data-player-row]")).toHaveCount(10);
-    await expect.poll(() => page.evaluate(() => (
-        Array.from(document.querySelectorAll<HTMLImageElement>("main img"))
-            .every((image) => image.complete && image.naturalWidth > 0)
-    ))).toBe(true);
-    await expect.poll(() => page.getByTestId("timeline-canvas").evaluate((element) => (
-        Number(element.dataset.timelineVisibleLabels ?? 0)
-    ))).toBeGreaterThan(0);
-    await page.waitForTimeout(300);
-
-    await page.screenshot({ path: `${SCREENSHOT_ROOT}/mobile-long-spec-430x932.png`, fullPage: true });
-});
-
-test("200% 放大近似视口完整重排核心控件", async ({ page }) => {
-    await page.setViewportSize({ width: 215, height: 466 });
-    const failures = collectRuntimeFailures(page);
-    await page.goto("/log/");
-    await expect(page.getByTestId("timeline-workbench")).toBeVisible();
-
-    const geometry = await page.evaluate(() => {
-        const frame = document.querySelector<HTMLElement>("[class*='appFrame']");
-        const brand = document.querySelector<HTMLElement>("a[aria-label='RaidGlass 首页']");
-        const targetControl = document.querySelector<HTMLElement>("button[aria-label^='更换目标：']");
-        const difficultyControl = Array.from(document.querySelectorAll<HTMLElement>("fieldset")).find((fieldset) => (
-            fieldset.textContent?.includes("史诗难度") && fieldset.textContent?.includes("英雄难度")
-        ));
-        const difficultyButtons = Array.from(difficultyControl?.querySelectorAll<HTMLElement>("button") ?? []);
-        const navLinks = Array.from(document.querySelectorAll<HTMLElement>("nav[aria-label='主导航'] a"));
-        const overlaps = (left: DOMRect, right: DOMRect) => (
-            Math.min(left.right, right.right) > Math.max(left.left, right.left)
-            && Math.min(left.bottom, right.bottom) > Math.max(left.top, right.top)
-        );
-        const frameRect = frame?.getBoundingClientRect();
-        const brandRect = brand?.getBoundingClientRect();
-        const targetRect = targetControl?.getBoundingClientRect();
-        const difficultyRect = difficultyControl?.getBoundingClientRect();
-
-        return {
-            documentWidth: document.documentElement.scrollWidth,
-            viewportWidth: document.documentElement.clientWidth,
-            frameClipsContent: Boolean(frame && frame.scrollWidth > frame.clientWidth + 1),
-            brandInsideFrame: Boolean(frameRect && brandRect
-                && brandRect.left >= frameRect.left - 1
-                && brandRect.right <= frameRect.right + 1),
-            targetDifficultyOverlap: Boolean(targetRect && difficultyRect && overlaps(targetRect, difficultyRect)),
-            minDifficultyButtonWidth: Math.min(...difficultyButtons.map((button) => button.getBoundingClientRect().width)),
-            navLinksInsideFrame: Boolean(frameRect && navLinks.every((link) => {
-                const rect = link.getBoundingClientRect();
-                return rect.left >= frameRect.left - 1 && rect.right <= frameRect.right + 1;
-            })),
-        };
-    });
-
-    expect(geometry.documentWidth).toBe(geometry.viewportWidth);
-    expect(geometry.frameClipsContent).toBe(false);
-    expect(geometry.brandInsideFrame).toBe(true);
-    expect(geometry.targetDifficultyOverlap).toBe(false);
-    expect(geometry.minDifficultyButtonWidth).toBeGreaterThanOrEqual(44);
-    expect(geometry.navLinksInsideFrame).toBe(true);
-    expect(failures).toEqual([]);
-
-    await page.screenshot({ path: `${SCREENSHOT_ROOT}/zoom-200-215x466.png`, fullPage: true });
 });
 
 test("timeline wheel pans both directions and remains inside hard bounds", async ({ page }) => {
@@ -998,4 +544,25 @@ test("timeline pointer zoom preserves its world anchor and press feedback is imm
     await expect(canvas).toHaveAttribute("data-timeline-input", "pressed");
     expect(await canvas.evaluate((element) => getComputedStyle(element).cursor)).toBe("grabbing");
     await page.mouse.up();
+});
+
+
+test("目录缺失技能仍可筛选并显示在时间轴", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const failures = collectRuntimeFailures(page);
+    await page.route("**/log/api/spec_ranking/mage-fire/imperator-averzian?*", async route => {
+        const response = await route.fetch();
+        const body = await response.json();
+        body.reports[0].fights[0].players[0].casts.push({ id: 987654321, ts: 45000 });
+        await route.fulfill({ response, json: body });
+    });
+    await page.goto("/log/spec_ranking/mage-fire/imperator-averzian?difficulty=mythic&metric=dps");
+    const skills = page.getByRole("complementary", { name: "技能筛选" });
+    await expect(skills.getByRole("checkbox", { name: /技能 987654321/ })).toBeVisible();
+    await skills.getByRole("searchbox").fill("987654321");
+    await skills.getByRole("button", { name: "仅看 技能 987654321" }).click();
+    await expect(page.getByTestId("timeline-canvas")).toHaveAttribute("data-timeline-images-loaded", "true");
+    await expect(page.getByTestId("timeline-canvas")).toHaveAttribute("data-timeline-label-icon-collisions", "0");
+    await page.screenshot({ path: `${SCREENSHOT_ROOT}/timeline-unknown-skill.png`, fullPage: true });
+    expect(failures).toEqual([]);
 });

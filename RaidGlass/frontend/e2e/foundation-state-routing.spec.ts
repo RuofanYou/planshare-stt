@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { commitTargetDraft } from "./target-picker";
+import { selectTarget } from "./target-picker";
 
 const BOSS_NAMES: Record<string, string> = {
     "imperator-averzian": "阿维兹安大帝",
@@ -22,8 +22,8 @@ async function expectTarget(
         const current = new URL(page.url());
         return `${current.pathname}${current.search}`;
     }).toBe(address);
-    await expect(page.getByRole("button", {
-        name: `更换目标：${BOSS_NAMES[target.boss]} · ${SPEC_NAMES[target.spec]}`,
+    await expect(page.getByRole("heading", {
+        name: `${BOSS_NAMES[target.boss]} · ${SPEC_NAMES[target.spec]}`,
     })).toBeVisible();
     await expect(page.getByRole("button", {
         name: target.difficulty === "mythic" ? "史诗难度" : "英雄难度",
@@ -44,10 +44,10 @@ test("首页使用唯一规范 URL", async ({ page }) => {
     await page.goto("/log/");
     await expectTarget(page, initial);
 
-    await commitTargetDraft(page, { boss: changedBoss.boss });
+    await selectTarget(page, { boss: changedBoss.boss });
     await expectTarget(page, changedBoss);
 
-    await commitTargetDraft(page, { specName: "恶魔学识术士" });
+    await selectTarget(page, { specName: "恶魔学识术士" });
     await expectTarget(page, changedSpec);
 
     await page.getByRole("button", { name: "英雄难度" }).click();
@@ -123,14 +123,14 @@ test("快速切换时旧响应被丢弃且复制受控", async ({ page }) => {
 
     try {
         await page.goto("/log/");
-        await expect(page.getByRole("button", { name: "更换目标：阿维兹安大帝 · 痛苦术士" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "阿维兹安大帝 · 痛苦术士" })).toBeVisible();
         await expect(page.getByRole("button", { name: "复制 Top10 作业" })).toBeEnabled();
 
         const delayedTargetRequest = page.waitForRequest((request) => (
             new URL(request.url()).pathname
                 === "/log/api/spec_ranking/warlock-demonology/imperator-averzian"
         ));
-        await commitTargetDraft(page, { specName: "恶魔学识术士" });
+        await selectTarget(page, { specName: "恶魔学识术士" });
         await delayedTargetRequest;
         await expectTarget(page, {
             boss: "imperator-averzian",
@@ -141,14 +141,14 @@ test("快速切换时旧响应被丢弃且复制受控", async ({ page }) => {
         await expect(page.getByText(/当前继续显示 阿维兹安大帝 · 痛苦术士/)).toBeVisible();
         await expect(page.getByRole("button", { name: "复制 Top10 作业" })).toBeDisabled();
 
-        await commitTargetDraft(page, { boss: "vorasius" });
+        await selectTarget(page, { boss: "vorasius" });
         await expectTarget(page, {
             boss: "vorasius",
             spec: "warlock-demonology",
             difficulty: "mythic",
             metric: "dps",
         });
-        await expect(page.getByRole("button", { name: "更换目标：沃拉修斯 · 恶魔学识术士" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "沃拉修斯 · 恶魔学识术士" })).toBeVisible();
         await expect(page.getByRole("button", { name: "复制 Top10 作业" })).toBeEnabled();
 
         const delayedResponse = page.waitForResponse((response) => (
@@ -158,7 +158,7 @@ test("快速切换时旧响应被丢弃且复制受控", async ({ page }) => {
         releaseDelayedTarget();
         await delayedResponse;
 
-        await expect(page.getByRole("button", { name: "更换目标：沃拉修斯 · 恶魔学识术士" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "沃拉修斯 · 恶魔学识术士" })).toBeVisible();
         await page.getByRole("button", { name: "复制 Top10 作业" }).click();
         await expect.poll(() => page.evaluate(() => (
             (window as typeof window & { __raidglassCopied?: string }).__raidglassCopied || ""

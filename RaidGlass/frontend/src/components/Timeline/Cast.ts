@@ -127,7 +127,7 @@ export default class Cast extends Konva.Group {
 
     cast_cooldown?: Konva.Rect
     cast_duration?: Konva.Rect
-    cast_icon?: Konva.Image
+    cast_icon?: Konva.Image | Konva.Text
     cast_text?: Konva.Text
     mouse_event_bbox?: Konva.Rect
 
@@ -171,10 +171,16 @@ export default class Cast extends Konva.Group {
         this.cast_duration = create_cast_duration(this.spell, this._duration)
         this.cast_duration && this.add(this.cast_duration)
 
-        this.cast_icon = create_cast_icon(this.spell)
+        this.cast_icon = this.spell.icon_path ? create_cast_icon(this.spell) : new Konva.Text({
+            name: "cast_icon", text: String(this.spell_id), x: 3.5, y: 16,
+            fontSize: 11, fill: "#14233a", listening: false,
+        })
         this.cast_icon && this.add(this.cast_icon)
 
         this.cast_text = create_cast_text(this)
+        if (!this.spell.icon_path && this.cast_text) {
+            this.cast_text.x(this.cast_icon.width() + 8);
+        }
         this.cast_text && this.add(this.cast_text)
 
         // Dim procs
@@ -188,7 +194,7 @@ export default class Cast extends Konva.Group {
         // invisible box for mouse events
         // (some casts might not have a duration-bar to use)
         this.mouse_event_bbox = new Konva.Rect({
-            width: this.cast_text.width() + 3,
+            width: this.cast_text.x() + this.cast_text.width() + 3,
             height: constants.LINE_HEIGHT-1,
             listening: true,
         });
