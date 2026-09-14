@@ -153,7 +153,6 @@ export default function TimelineWorkbenchView({
             />
 
             <div className={styles.timelineWorkspace}>
-                {spellFilter}
             <section
                 className={styles.timelinePanel}
                 aria-label={ZH_CN.workbench.title}
@@ -195,6 +194,7 @@ export default function TimelineWorkbenchView({
                         </AdaptiveDialogPanel>
                     </div>
                 </header>
+                {spellFilter}
 
                 <StateFeedback
                     selectedTarget={selectedTarget}

@@ -44,7 +44,15 @@ test("桌面直接选目标、搜索技能与撤销，操作不请求数据", as
     await expect(page.locator("[data-player-row]")).toHaveCount(10);
     await expect(page.getByTestId("timeline-canvas")).toHaveAttribute("data-timeline-images-loaded", "true");
     const skills = page.getByRole("complementary", { name: "技能筛选" });
-    await expect(skills.getByRole("searchbox")).toBeVisible();
+    await expect(skills.getByRole("searchbox")).toBeHidden();
+    const icon = skills.locator('button:has(img[data-spell_id])').first();
+    const pressed = await icon.getAttribute("aria-pressed");
+    await icon.click();
+    await expect(icon).toHaveAttribute("aria-pressed", pressed === "true" ? "false" : "true");
+    await icon.click();
+    await skills.getByRole("button", { name: "全部技能", exact: true }).click();
+    await skills.getByRole("button", { name: "恢复默认", exact: true }).click();
+    await skills.getByText("搜索技能（名称 / ID）", { exact: true }).click();
     const requests: string[] = [];
     page.on("request", request => { if (request.url().includes("/api/")) requests.push(request.url()); });
     const initial = await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked));
@@ -60,7 +68,8 @@ test("桌面直接选目标、搜索技能与撤销，操作不请求数据", as
     await page.getByRole("button", { name: "复制 Top10 作业" }).click();
     await expect(page.getByRole("button", { name: "Top10 作业已复制" })).toBeVisible();
     const canvas = page.getByTestId("timeline-canvas");
-    expect((await canvas.boundingBox())!.y).toBeLessThan(600);
+    await skills.getByText("搜索技能（名称 / ID）", { exact: true }).click();
+    expect((await canvas.boundingBox())!.y).toBeGreaterThan((await skills.boundingBox())!.y);
     await expect(canvas).toHaveAttribute("data-timeline-label-icon-collisions", "0");
     await page.screenshot({ path: `${SCREENSHOT_ROOT}/timeline-desktop.png`, fullPage: true });
     const nextResponse = page.waitForResponse(response => response.url().includes("/api/spec_ranking/mage-fire/vorasius?") && response.ok());
@@ -80,6 +89,7 @@ test("刷新和返回按目标恢复技能及时间视图", async ({ page }) => 
     await page.goto("/log/spec_ranking/mage-fire/imperator-averzian?difficulty=heroic&metric=dps");
     await expect(page.locator("[data-player-row]")).toHaveCount(10);
     const skills = page.getByRole("complementary", { name: "技能筛选" });
+    await skills.getByText("搜索技能（名称 / ID）", { exact: true }).click();
     await skills.getByRole("button", { name: /^仅看 / }).first().click();
     const selection = await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked));
     await page.getByRole("button", { name: "放大" }).click();
@@ -91,6 +101,7 @@ test("刷新和返回按目标恢复技能及时间视图", async ({ page }) => 
     await expect(page.locator("[data-player-row]")).toHaveCount(10);
     await expect(canvas).toHaveAttribute("data-timeline-pan-x", position!);
     await expect(canvas).toHaveAttribute("data-timeline-zoom", scale!);
+    await skills.getByText("搜索技能（名称 / ID）", { exact: true }).click();
     expect(await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked))).toEqual(selection);
     await page.locator('button[data-boss-slug="vorasius"]').click();
     await expect(page.getByTestId("timeline-workbench")).toHaveAttribute("data-content-state", "ready");
@@ -98,6 +109,7 @@ test("刷新和返回按目标恢复技能及时间视图", async ({ page }) => 
     await page.goBack();
     await expect(page.getByTestId("timeline-workbench")).toHaveAttribute("data-content-state", "ready");
     await expect(canvas).toHaveAttribute("data-timeline-pan-x", position!);
+    await skills.getByText("搜索技能（名称 / ID）", { exact: true }).click();
     expect(await skills.getByRole("checkbox").evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).checked))).toEqual(selection);
     expect(failures).toEqual([]);
 });
@@ -109,16 +121,15 @@ for (const width of [390, 430, 800, 2048]) {
         await page.goto("/log/spec_ranking/warlock-demonology/imperator-averzian?difficulty=mythic&metric=dps");
         await expect(page.locator("[data-player-row]")).toHaveCount(10);
         const skills = page.getByRole("complementary", { name: "技能筛选" });
-        if (width <= 1100) {
-            await expect(skills.getByRole("searchbox")).toBeHidden();
-            await skills.getByRole("button", { name: /^技能筛选/ }).click();
-        }
+        await expect(skills.getByRole("button", { name: "治疗技能", exact: true })).toBeVisible();
+        await expect(skills.getByRole("searchbox")).toBeHidden();
+        await skills.getByText("搜索技能（名称 / ID）", { exact: true }).click();
         await expect(skills.getByRole("searchbox")).toBeVisible();
         await skills.getByRole("searchbox").focus();
         await page.keyboard.type("123456789");
         await expect(skills.getByText(/未找到匹配技能/)).toBeVisible();
-        await page.keyboard.press("Tab");
-        await expect(skills.getByRole("button", { name: "全选", exact: true })).toBeFocused();
+        await skills.getByRole("button", { name: "全选", exact: true }).focus();
+        await expectVisibleFocus(skills.getByRole("button", { name: "全选", exact: true }));
         await page.keyboard.press("Enter");
         await skills.getByRole("searchbox").fill("");
         await page.getByRole("combobox", { name: "全部专精", exact: true }).focus();
@@ -558,6 +569,7 @@ test("目录缺失技能仍可筛选并显示在时间轴", async ({ page }) => 
     });
     await page.goto("/log/spec_ranking/mage-fire/imperator-averzian?difficulty=mythic&metric=dps");
     const skills = page.getByRole("complementary", { name: "技能筛选" });
+    await skills.getByText("搜索技能（名称 / ID）", { exact: true }).click();
     await expect(skills.getByRole("checkbox", { name: /技能 987654321/ })).toBeVisible();
     await skills.getByRole("searchbox").fill("987654321");
     await skills.getByRole("button", { name: "仅看 技能 987654321" }).click();

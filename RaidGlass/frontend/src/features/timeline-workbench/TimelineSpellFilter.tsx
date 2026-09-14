@@ -2,13 +2,15 @@ import { useState } from "react";
 import { recordDiagnostic } from "../../diagnostics";
 import { useAppDispatch, useAppSelector } from "../../store/store_hooks";
 import { replace_spell_display, set_spell_visible } from "../../store/spells";
+import SpellSettings from "../../components/SettingsBar/SpellSettings/SpellSettings";
+import SettingsBar from "../../components/SettingsBar/SettingsBar";
 import styles from "./TimelineWorkbench.module.scss";
 
 export default function TimelineSpellFilter({ target, disabled = false }: { target: string; disabled?: boolean }) {
     const dispatch = useAppDispatch();
     const { all_spells: spells, used_spell_ids: ids, spell_display: display } = useAppSelector(state => state.spells);
     const [query, setQuery] = useState("");
-    const [expanded, setExpanded] = useState(false);
+    const filters = useAppSelector(state => state.ui.filters);
     const [undo, setUndo] = useState<Record<number, boolean> | null>(null);
     const selected = ids.filter(id => display[id] !== false).length;
     const search = query.trim().toLocaleLowerCase();
@@ -30,43 +32,57 @@ export default function TimelineSpellFilter({ target, disabled = false }: { targ
     }
     return (
         <aside className={styles.spellFilter} aria-label="技能筛选">
-            <button type="button" className={styles.spellFilterToggle} aria-expanded={expanded}
-                aria-controls="timeline-spell-options" onClick={() => setExpanded(!expanded)}>
-                技能筛选 · 已选 {selected}/{ids.length}
-            </button>
-            <div className={styles.spellFilterBody} id="timeline-spell-options" data-expanded={expanded}>
-                <h3>技能筛选</h3>
-                <p>当前数据包含的技能</p>
+            <div className={styles.spellFilterBody}>
                 <fieldset disabled={disabled}>
-                    <label>搜索技能
-                        <input type="search" value={query} placeholder="名称或技能 ID"
-                            onChange={event => setQuery(event.target.value)} />
-                    </label>
+                    <div className={styles.spellFilterHeading}>
+                        <h3>技能筛选</h3>
+                        <span role="status">已选 {selected}/{ids.length}</span>
+                        <span>点击分类批量开关，点击图标选择技能</span>
+                    </div>
+                    <div onClickCapture={event => {
+                        if (!(event.target instanceof Element)) return;
+                        const button = event.target.closest("button");
+                        if (!button || button.hasAttribute("aria-expanded")) return;
+                        setUndo(button.querySelector("img[data-spell_id]") ? null
+                            : Object.fromEntries(ids.map(id => [id, display[id] !== false])));
+                        recordDiagnostic("spell_filter_applied", {
+                            target, action: "icon-control", control: button.getAttribute("aria-label") || button.textContent || "",
+                        });
+                    }}>
+                        <SettingsBar><SpellSettings filters={filters} /></SettingsBar>
+                    </div>
                     <div className={styles.spellFilterActions}>
                         <button type="button" onClick={() => batch("all")}>全选</button>
                         <button type="button" onClick={() => batch("default")}>恢复默认</button>
                         <button type="button" disabled={!undo} onClick={undoBatch}>撤销</button>
                     </div>
-                    <p role="status">已选 {selected}/{ids.length} · 搜索结果 {matches.length}</p>
                     {ids.length > 0 && selected === 0 && <p role="status">当前筛选隐藏了全部技能，可全选或恢复默认。</p>}
-                    <div className={styles.spellList}>
-                        {matches.map(id => (
-                            <div key={id} className={styles.spellOption}>
-                                <label>
-                                    <input type="checkbox" checked={display[id] !== false} onChange={event => {
-                                        setUndo(null);
-                                        dispatch(set_spell_visible({ spell_id: id, visible: event.target.checked }));
-                                        recordDiagnostic("spell_filter_applied", { target, action: "toggle", spell: id, visible: event.target.checked });
-                                    }} />
-                                    {spells[id]?.icon_path && <img src={spells[id].icon_path} alt="" />}
-                                    <span>{spells[id]?.name || `技能 ${id}`}<small>{id}</small></span>
-                                </label>
-                                <button type="button" aria-label={`仅看 ${spells[id]?.name || `技能 ${id}`}`}
-                                    onClick={() => batch("only", id)}>仅看</button>
-                            </div>
-                        ))}
-                        {matches.length === 0 && <p>{ids.length === 0 ? "当前数据暂无技能" : "未找到匹配技能，试试技能 ID 或其他名称"}</p>}
-                    </div>
+                    <details className={styles.spellSearch}>
+                        <summary>搜索技能（名称 / ID）</summary>
+                        <label>搜索技能
+                            <input type="search" value={query} placeholder="名称或技能 ID"
+                                onChange={event => setQuery(event.target.value)} />
+                        </label>
+                        <p role="status">当前数据包含的技能 · 搜索结果 {matches.length}</p>
+                        <div className={styles.spellList}>
+                            {matches.map(id => (
+                                <div key={id} className={styles.spellOption}>
+                                    <label>
+                                        <input type="checkbox" checked={display[id] !== false} onChange={event => {
+                                            setUndo(null);
+                                            dispatch(set_spell_visible({ spell_id: id, visible: event.target.checked }));
+                                            recordDiagnostic("spell_filter_applied", { target, action: "toggle", spell: id, visible: event.target.checked });
+                                        }} />
+                                        {spells[id]?.icon_path && <img src={spells[id].icon_path} alt="" />}
+                                        <span>{spells[id]?.name || `技能 ${id}`}<small>{id}</small></span>
+                                    </label>
+                                    <button type="button" aria-label={`仅看 ${spells[id]?.name || `技能 ${id}`}`}
+                                        onClick={() => batch("only", id)}>仅看</button>
+                                </div>
+                            ))}
+                            {matches.length === 0 && <p>{ids.length === 0 ? "当前数据暂无技能" : "未找到匹配技能，试试技能 ID 或其他名称"}</p>}
+                        </div>
+                    </details>
                 </fieldset>
             </div>
         </aside>

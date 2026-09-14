@@ -26,6 +26,9 @@ describe("当前事件技能筛选与目标恢复", () => {
     it("未知技能可搜索，搜索不改变选择，批量操作可撤销", () => {
         const store = fixture();
         render(<Provider store={store}><Panel target="a" /></Provider>);
+        expect(screen.getByRole("button", { name: "治疗技能" })).toBeVisible();
+        expect(screen.getByText("搜索技能（名称 / ID）").parentElement).not.toHaveAttribute("open");
+        fireEvent.click(screen.getByText("搜索技能（名称 / ID）"));
         const before = store.getState().spells.spell_display;
         fireEvent.change(screen.getByRole("searchbox"), { target: { value: "99" } });
         expect(screen.getByRole("checkbox", { name: /技能 99/ })).toBeChecked();
@@ -45,6 +48,7 @@ describe("当前事件技能筛选与目标恢复", () => {
         const store = fixture();
         const ui = (target: string) => <Provider store={store}><Panel target={target} /></Provider>;
         const view = render(ui("a"));
+        fireEvent.click(screen.getByText("搜索技能（名称 / ID）"));
         fireEvent.click(screen.getByRole("button", { name: "全选" }));
         fireEvent.click(screen.getByRole("checkbox", { name: /技能 99/ }));
         expect(screen.getByRole("button", { name: "撤销" })).toBeDisabled();
@@ -57,7 +61,17 @@ describe("当前事件技能筛选与目标恢复", () => {
         expect(store.getState().ui.filters.region).toEqual({ US: false });
         view.unmount();
         render(<Provider store={fixture()}><Panel target="a" /></Provider>);
+        fireEvent.click(screen.getByText("搜索技能（名称 / ID）"));
         expect(screen.getByRole("checkbox", { name: /爆发/ })).toBeChecked();
+    });
+    it("原分类按钮批量开关后可以撤销", () => {
+        const store = fixture();
+        render(<Provider store={store}><Panel target="a" /></Provider>);
+        const before = store.getState().spells.spell_display[1];
+        fireEvent.click(screen.getByRole("button", { name: "全部技能" }));
+        expect(store.getState().spells.spell_display[1]).toBe(true);
+        fireEvent.click(screen.getByRole("button", { name: "撤销" }));
+        expect(store.getState().spells.spell_display[1]).toBe(before);
     });
     it("视图保存不会覆盖筛选，损坏的本地值安全忽略", () => {
         saveTimelineSession("a", { spells: { 1: false } });

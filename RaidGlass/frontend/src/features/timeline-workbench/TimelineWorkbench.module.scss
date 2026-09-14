@@ -718,16 +718,14 @@
 .summaryEyebrow { display: none; }
 .workbenchHeading { font-size: 1.35rem; }
 .summaryAction button { height: var(--rg-control-min-touch); }
-.timelineWorkspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--rg-space-3); align-items: start; }
+.timelineWorkspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--rg-space-3); align-items: start; }
 .timelineTools button[data-timeline-control="reset"] { display: inline-flex; align-items: center; width: auto; padding-inline: var(--rg-space-2); gap: var(--rg-space-1); white-space: nowrap; }
 .spellFilter {
     min-width: 0;
-    border: 1px solid var(--rg-stroke);
-    border-radius: var(--rg-space-4);
-    background: var(--rg-parchment-soft);
-    box-shadow: var(--rg-shadow-soft);
+    border-bottom: 1px solid var(--rg-stroke);
+    background: var(--rg-glass-soft);
     font-size: .8rem;
-    button { min-height: var(--rg-control-min-touch); color: var(--rg-text); background: var(--rg-accent-soft); border: 1px solid var(--rg-stroke); border-radius: var(--rg-space-2); cursor: pointer; }
+    .spellFilterActions button, .spellOption button { min-height: var(--rg-control-min-touch); color: var(--rg-text); background: var(--rg-accent-soft); border: 1px solid var(--rg-stroke); border-radius: var(--rg-space-2); cursor: pointer; }
     button:disabled { opacity: .5; cursor: default; }
     fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
     p { margin-block: var(--rg-space-2); color: var(--rg-muted); }
@@ -735,8 +733,7 @@
     input[type="search"] { width: 100%; min-height: var(--rg-control-min-touch); margin-top: var(--rg-space-1); border: 1px solid var(--rg-stroke); border-radius: var(--rg-space-2); background: var(--rg-parchment-soft); color: var(--rg-text); padding-inline: var(--rg-space-2); }
 }
 .spellFilterBody { padding: var(--rg-space-3); }
-.spellFilterToggle { display: none; }
-.spellFilterActions { display: flex; flex-wrap: wrap; gap: var(--rg-space-1); margin-top: var(--rg-space-2); }
+.spellFilterActions { display: inline-flex; flex-wrap: wrap; gap: var(--rg-space-1); margin-top: var(--rg-space-2); }
 .spellList { max-height: 60vh; overflow-y: auto; padding: var(--rg-space-1); }
 .spellOption {
     display: flex; gap: var(--rg-space-1); align-items: center; border-top: 1px solid var(--rg-stroke);
@@ -750,8 +747,6 @@
 @media (max-width: 1100px) {
     .summary { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title action" "controls controls" "meta meta"; }
     .timelineWorkspace { grid-template-columns: minmax(0, 1fr); }
-    .spellFilterToggle { display: block; width: 100%; text-align: left; padding-inline: var(--rg-space-3); }
-    .spellFilterBody[data-expanded="false"] { display: none; }
 }
 @media (max-width: 680px) {
     .selector { grid-template-columns: minmax(0, 1fr); }
@@ -773,4 +768,13 @@
 .otherSpecs { margin: 0; min-width: 150px; }
 @media (max-width: 1100px) {
     .bossChoices { grid-auto-columns: 128px; }
+}
+
+.spellFilterHeading { display: flex; flex-wrap: wrap; align-items: center; gap: var(--rg-space-3); color: var(--rg-muted); }
+.spellSearch {
+    display: inline-block; vertical-align: top; margin: var(--rg-space-2) 0 0 var(--rg-space-3);
+    &[open] { display: block; margin-left: 0; }
+    summary { cursor: pointer; min-height: var(--rg-control-min-touch); align-content: center; color: var(--rg-accent-strong); }
+    label { display: block; max-width: 360px; }
+    .spellList { max-height: 260px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--rg-space-2); }
 }
