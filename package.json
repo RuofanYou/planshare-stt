@@ -25,6 +25,7 @@
     "cloudrun:persistent:preflight": "node scripts/cloudrun-persistent.mjs preflight",
     "d1:seed": "node scripts/generate-d1-import.mjs",
     "prepare:voice-pack": "node scripts/prepare-voice-pack.mjs",
+    "prepare:raidplan-extension": "zip -X -j -q public/raidplan2stt.zip ../ExtendProject/RaidPlan转STT浏览器插件/manifest.json ../ExtendProject/RaidPlan转STT浏览器插件/converter.js ../ExtendProject/RaidPlan转STT浏览器插件/content-script.js ../ExtendProject/RaidPlan转STT浏览器插件/README.md",
     "worker:dev": "wrangler dev --config wrangler.api.jsonc --local --port 8787",
     "worker:deploy": "wrangler deploy --config wrangler.api.jsonc",
     "verify:log": "npm --prefix RaidGlass/frontend run verify",
@@ -33,7 +34,7 @@
     "deploy:log:legacy-redirect": "wrangler pages deploy RaidGlass/legacy-wowlogs-redirect --project-name wowlogs --branch main --commit-dirty=true --skip-caching",
     "deploy:pages:preview": "npm run build && wrangler pages deploy --commit-dirty=true --skip-caching",
     "deploy:pages": "npm run build && wrangler pages deploy --branch main --commit-dirty=true --skip-caching",
-    "build": "npm run sync:stt-translator && npm run prepare:voice-pack && tsc -b && vite build && npm run prepare:stt-skill",
+    "build": "npm run sync:stt-translator && npm run prepare:voice-pack && npm run prepare:raidplan-extension && tsc -b && vite build && npm run prepare:stt-skill",
     "preview": "vite preview"
   },
   "dependencies": {
