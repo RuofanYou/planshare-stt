@@ -353,6 +353,26 @@
     "tooltip": "",
     "query": false
   },
+  "212431": {
+    "spell_id": 212431,
+    "cooldown": 30,
+    "duration": 3,
+    "icon": "ability_hunter_explosiveshot.jpg",
+    "name": "Explosive Shot",
+    "color": "#AAD372",
+    "show": true,
+    "variations": [],
+    "spell_type": "hunter-marksmanship",
+    "tags": [
+      "dps"
+    ],
+    "event_type": "cast",
+    "wowhead_data": "spell=212431",
+    "until": null,
+    "extra_filter": "",
+    "tooltip": "",
+    "query": true
+  },
   "260243": {
     "spell_id": 260243,
     "cooldown": 45,
