@@ -37,7 +37,7 @@ const VENOMOUS_ABYSS_STT_PHASES: Record<string, readonly (readonly [number, stri
 };
 
 function get_stt_phase_map(fight: Fight): Map<number, string> | null | undefined {
-    const expected = VENOMOUS_ABYSS_STT_PHASES[fight.boss?.boss_slug ?? ""];
+    const expected = VENOMOUS_ABYSS_STT_PHASES[fight.boss_slug ?? fight.boss?.boss_slug ?? ""];
     if (expected === undefined) return undefined;
     if (expected === null || fight.phases.some((phase, index) => phase.phase_id !== expected[index]?.[0])) return null;
     return new Map(expected);

@@ -18,6 +18,7 @@ export default interface Fight {
     duration: number
 
     boss?: Actor
+    boss_slug?: string
     players: Actor[]
     phases: Phase[]
     composition?: FightComposition

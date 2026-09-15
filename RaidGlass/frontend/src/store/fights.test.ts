@@ -463,6 +463,7 @@ describe("通用战斗请求 thunk", () => {
         const state = store.getState();
         expect(state.fights.accepted_target).toBe("boss-b/spec-b/mythic/dps");
         expect(Object.values(state.fights.fights_by_id)[0].players[0].name).toBe("玩家 B");
+        expect(Object.values(state.fights.fights_by_id)[0].boss_slug).toBe("boss-b");
         expect(state.spells.used_spell_ids).toEqual([22_222]);
         expect(diagnostics.filter(({ event }) => event === "target_request_accepted")).toHaveLength(1);
         expect(diagnostics.find(({ event }) => event === "target_request_accepted")?.details.target)

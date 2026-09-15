@@ -78,7 +78,8 @@ describe("CopyNoteWindow", () => {
         const casts = phaseKeys.map((_, index) => ({ id: 123, ts: (index + 1) * 60_000 + 5_000 }));
         const phaseFight = {
             ...fight,
-            boss: { ...boss, boss_slug: bossSlug },
+            boss: undefined,
+            boss_slug: bossSlug,
             phases,
             players: [{ ...player, casts }],
         };
@@ -94,7 +95,8 @@ describe("CopyNoteWindow", () => {
     ])("%s 的不可靠阶段保留绝对时间", (bossSlug, phaseIds) => {
         const phaseFight = {
             ...fight,
-            boss: { ...boss, boss_slug: bossSlug },
+            boss: undefined,
+            boss_slug: bossSlug,
             phases: phaseIds.map((phase_id, index) => ({
                 id: index + 2,
                 phase_id,
