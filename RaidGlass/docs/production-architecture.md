@@ -5,6 +5,7 @@
 ```mermaid
 flowchart LR
   UPSTREAM["公开 GET 上游"] --> CRON["Cron · 每 6 小时"]
+  WCL["WCL 公共 API · 仅奶萨 HPS 迅捷事件"] --> WORKER
   CRON --> QUEUE["Queue · 每条最多 20 个目标"]
   QUEUE --> WORKER["Refresh Worker · 并发 4"]
   WORKER <--> DO["SQLite Durable Object · 单轮协调"]
@@ -47,6 +48,8 @@ Durable Object 只负责 run、batch、失败目标与去重。每次新 run 开
 
 专精目标先请求公开 `/info`。`updated` 与 D1 行一致且已存排行通过身份校验时，只更新检查状态；发生变化时读取完整排行、校验目标身份并裁剪 Top10。
 
+奶萨 HPS 目标每轮都读取完整排行，再用 WCL 当前公开排行按 `report code + fight ID` 精确匹配 Top10，仅补充自然迅捷 `378081` 与先祖迅捷 `443454` 的 `applybuff` 时间点。无法匹配、WCL 失败或达到每小时 10% 预算时保留原排行；日志记录匹配报告数、补入事件数、额度和失败原因。
+
 阵容目标每轮请求一次公开 GET，固定 `limit=20`，校验身份后裁剪 Top10。
 
 D1 写入发生在 Durable Object 记录终态之前。D1 写入失败时 Queue 重试，Durable Object 不会误记完成；D1 已写入而协调记录失败时，重试会复用已存排行完成闭环。局部刷新失败时，协调器根据 D1 中是否仍有已验证排行计算 `available_count`，因此历史排行可用性与当前新鲜度分别计数。
@@ -76,6 +79,8 @@ D1 写入发生在 Durable Object 记录终态之前。D1 写入失败时 Queue 
 ## 免费额度设计
 
 每天四轮刷新约产生 376 条 Queue 消息，即约 1128 次标准操作；D1 刷新约读写 7480 行。当前 Workers Free 额度分别为 Queue 10000 次操作/日、D1 500 万行读取/日和 10 万行写入/日。Top10 样本总数据预计约百 MB，低于 D1 免费总存储 5 GB。免费额度触顶时 Cloudflare 返回错误，Queue 重试或下一轮继续处理，旧排行保持可用。
+
+WCL 补采只覆盖奶萨 HPS，并在 `pointsSpentThisHour >= limitPerHour * 10%` 时停止本轮补采；其余专精和指标不调用 WCL。
 
 ## 发布与恢复
 

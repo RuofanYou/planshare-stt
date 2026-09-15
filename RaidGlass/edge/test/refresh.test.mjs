@@ -22,6 +22,18 @@ function specTarget() {
     };
 }
 
+function shamanTarget() {
+    return {
+        kind: "spec",
+        targetKey: "spec/nymrissa-wavecaller/shaman-restoration/mythic/hps",
+        bossSlug: "nymrissa-wavecaller",
+        specSlug: "shaman-restoration",
+        role: "heal",
+        difficulty: "mythic",
+        metric: "hps",
+    };
+}
+
 function queueMessage(target) {
     return {
         body: {
@@ -146,6 +158,36 @@ test("专精 info 未变化时零完整排行 GET、零排行覆盖并刷新检�
     assert.equal(fixture.recorded[0].result.status, "reused");
     assert.equal(fixture.recorded[0].result.available, true);
     assert.equal(fixture.recorded[0].result.publishedAt, PUBLISHED_AT);
+});
+
+test("奶萨 HPS 即使上游时间未变也重新读取排行以补采 WCL", async (t) => {
+    const target = shamanTarget();
+    const message = queueMessage(target);
+    const fixture = await fakeEnvironment(t, target);
+    await seedRanking(fixture.db, target);
+    const fetched = [];
+
+    await consumeQueueBatch({ messages: [message] }, fixture.env, {
+        fetchImpl: async (url) => {
+            fetched.push(String(url));
+            return jsonResponse(String(url).includes("/info")
+                ? {
+                    boss_slug: target.bossSlug,
+                    spec_slug: target.specSlug,
+                    difficulty: target.difficulty,
+                    metric: target.metric,
+                    updated: UPSTREAM_UPDATED,
+                }
+                : ranking(target, []));
+        },
+        now: () => new Date(CHECKED_AT),
+        log: () => {},
+    });
+
+    assert.equal(message.acked, true);
+    assert.equal(fetched.length, 2);
+    assert.match(fetched[1], /\/api\/spec_ranking\/shaman-restoration\/nymrissa-wavecaller\?/);
+    assert.equal(fixture.recorded[0].result.status, "published");
 });
 
 test("专精完整排行失败时保留旧排行并原子写入 stale 状态", async (t) => {

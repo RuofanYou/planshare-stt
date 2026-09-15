@@ -11,6 +11,7 @@ import { consumeQueueBatch } from "./refresh.js";
 
 const TARGET_MATRIX = buildRankingMatrix({ product, roles, specs, season, zones });
 const TARGET_INDEX = new Map(TARGET_MATRIX.map((target) => [target.targetKey, target]));
+const BOSS_IDS = new Map(zones.flatMap((zone) => zone.bosses.map((boss) => [boss.full_name_slug, boss.id])));
 
 export { RefreshCoordinator };
 
@@ -20,7 +21,7 @@ export default {
     },
 
     async queue(batch, env) {
-        await consumeQueueBatch(batch, env, { targetIndex: TARGET_INDEX });
+        await consumeQueueBatch(batch, env, { targetIndex: TARGET_INDEX, bossIds: BOSS_IDS });
     },
 
     async fetch(request, env) {

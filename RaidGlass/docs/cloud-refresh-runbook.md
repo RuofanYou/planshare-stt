@@ -8,6 +8,8 @@
 
 按每天四轮估算：Queue 约 1128 ops/日，D1 刷新约 7480 行读写/日；均明显低于免费额度。
 
+奶萨 HPS 的自然迅捷与先祖迅捷由 Refresh Worker 使用 WCL 公共 API 补采；每小时最多使用 WCL 额度的 10%。Production 需要 `WCL_CLIENT_ID` 与 `WCL_CLIENT_SECRET` 两个 Secret，缺失或补采失败时继续发布原排行。
+
 ## 2. 本地门禁
 
 ```bash
@@ -83,6 +85,8 @@ jq -nc --arg token "$PREVIEW_RETRY_TOKEN" '{RETRY_TOKEN:$token}' \
 npm run deploy:preview
 ```
 
+需要在 Preview 验证真实 WCL 补采时，另行用 `wrangler secret put --env preview` 写入 `WCL_CLIENT_ID` 与 `WCL_CLIENT_SECRET`，不要把值写入仓库或命令历史。
+
 确认部署后的 Preview Worker `/health` 返回 `ok=true`。永久 Cron 必须为空。真实刷新验收时临时启用一分钟 Cron：
 
 ```bash
@@ -135,6 +139,8 @@ jq -nc --arg token "$PRODUCTION_RETRY_TOKEN" '{RETRY_TOKEN:$token}' \
   | npx wrangler secret bulk --env="" --config wrangler.jsonc
 npm run deploy:production
 ```
+
+部署前确认 Production 已存在 `RETRY_TOKEN`、`WCL_CLIENT_ID`、`WCL_CLIENT_SECRET`；只检查名称，不读取或打印值。
 
 确认 Production Cron 为 `0 */6 * * *`。首轮 D1 达到 `1683/1683` 前，PlanShare `/log` 网关保持未启用。
 

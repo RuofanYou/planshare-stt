@@ -4,6 +4,7 @@ import {
     writeGlobalStatus,
     writeTargetResult,
 } from "./ranking-store.js";
+import { enrichWclSwiftness, shouldEnrichWclSwiftness } from "./wcl-swiftness.js";
 
 const TOP_N = 10;
 const MAX_JSON_BYTES = 2_000_000;
@@ -257,7 +258,9 @@ async function refreshSpecTarget(target, env, options, checkedAt, stored) {
         target,
         "info",
     );
-    const existing = reusableRanking(stored, target, info.updated, options.log);
+    const existing = shouldEnrichWclSwiftness(target)
+        ? null
+        : reusableRanking(stored, target, info.updated, options.log);
     if (existing) {
         options.log("reused", {
             run_id: options.runId,
@@ -281,6 +284,7 @@ async function refreshSpecTarget(target, env, options, checkedAt, stored) {
         target,
         "ranking",
     ), "ranking");
+    await enrichWclSwiftness(ranking, target, env, options);
     return {
         target,
         status: "published",
@@ -422,6 +426,7 @@ export async function consumeQueueBatch(batch, env, dependencies = {}) {
                 fetchImpl,
                 now,
                 log,
+                bossIds: dependencies.bossIds || null,
                 runId: parsed.runId,
                 batchId: parsed.batchId,
             });
