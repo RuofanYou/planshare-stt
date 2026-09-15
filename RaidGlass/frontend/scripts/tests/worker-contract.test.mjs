@@ -130,7 +130,7 @@ test("浏览器条件请求命中 304 时原样返回静态资源", async () => 
     }]);
 });
 
-test("公开静态元数据保留条件请求和一小时缓存", async () => {
+test("公开静态元数据保留条件请求且每次重新验证", async () => {
     const env = fakeEnv();
     env.ASSETS.fetch = async (assetRequest) => {
         assert.equal(new URL(assetRequest.url).pathname, "/api/specs.json");
@@ -146,5 +146,5 @@ test("公开静态元数据保留条件请求和一小时缓存", async () => {
 
     assert.equal(response.status, 304);
     assert.equal(response.headers.get("etag"), 'W/"cached-api"');
-    assert.equal(response.headers.get("cache-control"), "public, max-age=3600");
+    assert.equal(response.headers.get("cache-control"), "no-cache");
 });

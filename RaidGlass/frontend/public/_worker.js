@@ -10,7 +10,7 @@ const STALE_JSON_HEADERS = {
 
 const STATIC_JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
-  "Cache-Control": "public, max-age=3600",
+  "Cache-Control": "no-cache",
 };
 
 const STALE_AFTER_MS = 8 * 60 * 60 * 1000;
