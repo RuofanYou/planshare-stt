@@ -25,6 +25,24 @@ import type Phase from "../types/phase";
 
 type SpellDisplayMap = Record<number, boolean | undefined>;
 
+const VENOMOUS_ABYSS_STT_PHASES: Record<string, readonly (readonly [number, string])[] | null> = {
+    "nekzali-the-soulcoiler": [[1.5, "i1"], [1.75, "i2"], [2, "p2"]],
+    "entombed-sentinels": [[2, "p2"], [3, "p3"], [4, "p4"], [5, "p5"], [6, "p6"]],
+    "the-lost-explorers": null,
+    "vashnik-the-malignant": null,
+    sszorak: null,
+    "the-twin-fangs": null,
+    "the-coiled-altar": [[2, "p2"], [2.5, "i2"], [3, "p3"]],
+    ulatek: [[2, "p2"], [2.5, "i2"], [3, "p3"]],
+};
+
+function get_stt_phase_map(fight: Fight): Map<number, string> | null | undefined {
+    const expected = VENOMOUS_ABYSS_STT_PHASES[fight.boss?.boss_slug ?? ""];
+    if (expected === undefined) return undefined;
+    if (expected === null || fight.phases.some((phase, index) => phase.phase_id !== expected[index]?.[0])) return null;
+    return new Map(expected);
+}
+
 
 /**
  * Finds the most recent phase in a fight that started before or at the given timestamp.
@@ -50,13 +68,14 @@ function get_phase_at_time(fight: Fight, timestamp: number): Phase | null {
     return result;
 }
 
-function get_note_mrt(
+export function get_note_mrt(
     player: Actor,
     fight: Fight,
     spell_display: SpellDisplayMap,
 ): string {
 
     const rows: string[] = [];
+    const phaseMap = get_stt_phase_map(fight);
 
     player.casts.forEach((cast) => {
 
@@ -68,9 +87,9 @@ function get_note_mrt(
         let trigger = "";
 
         const phase = get_phase_at_time(fight, cast.ts);
-        if (phase) {
+        if (phase && phaseMap !== null) {
             ts -= phase.ts;
-            trigger = `,p${phase.id}`;
+            trigger = `,${phaseMap?.get(phase.phase_id ?? NaN) ?? `p${phase.id}`}`;
         }
 
         const ts_string = toMMSS(ts / 1000, 1);
@@ -121,6 +140,7 @@ export default function CopyNoteWindow() {
             target: `${fight?.report_id}/${fight?.fight_id}/${player?.source_id}`,
             format: "STT",
             length: note.length,
+            phaseMode: fight && get_stt_phase_map(fight) === null ? "absolute_fallback" : "relative",
         };
         recordDiagnostic("target_copy_started", details);
         try {

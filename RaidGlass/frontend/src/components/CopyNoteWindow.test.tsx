@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type Actor from "../types/actor";
 import type Fight from "../types/fight";
 import { clear_copynote } from "../store/ui";
-import CopyNoteWindow from "./CopyNoteWindow";
+import CopyNoteWindow, { get_note_mrt } from "./CopyNoteWindow";
 
 const dispatch = vi.fn();
 const player: Actor = {
@@ -63,6 +63,50 @@ beforeEach(() => {
 });
 
 describe("CopyNoteWindow", () => {
+    it.each([
+        ["nekzali-the-soulcoiler", [1.5, 1.75, 2], ["i1", "i2", "p2"]],
+        ["entombed-sentinels", [2, 3, 4], ["p2", "p3", "p4"]],
+        ["the-coiled-altar", [2, 2.5, 3], ["p2", "i2", "p3"]],
+        ["ulatek", [2, 2.5, 3], ["p2", "i2", "p3"]],
+    ])("%s 使用 STT 阶段名", (bossSlug, phaseIds, phaseKeys) => {
+        const phases = phaseIds.map((phase_id, index) => ({
+            id: index + 2,
+            phase_id,
+            name: `P${index + 2}`,
+            ts: (index + 1) * 60_000,
+        }));
+        const casts = phaseKeys.map((_, index) => ({ id: 123, ts: (index + 1) * 60_000 + 5_000 }));
+        const phaseFight = {
+            ...fight,
+            boss: { ...boss, boss_slug: bossSlug },
+            phases,
+            players: [{ ...player, casts }],
+        };
+
+        expect(get_note_mrt(phaseFight.players[0], phaseFight, { 123: true })).toBe(
+            phaseKeys.map(phaseKey => `{time:00:05.0,${phaseKey}} - {spell:123}`).join("\n"),
+        );
+    });
+
+    it.each([
+        ["nekzali-the-soulcoiler", [2, 3]],
+        ["the-lost-explorers", [2, 3, 4]],
+    ])("%s 的不可靠阶段保留绝对时间", (bossSlug, phaseIds) => {
+        const phaseFight = {
+            ...fight,
+            boss: { ...boss, boss_slug: bossSlug },
+            phases: phaseIds.map((phase_id, index) => ({
+                id: index + 2,
+                phase_id,
+                name: `P${index + 2}`,
+                ts: (index + 1) * 60_000,
+            })),
+            players: [{ ...player, casts: [{ id: 123, ts: 65_000 }] }],
+        };
+
+        expect(get_note_mrt(phaseFight.players[0], phaseFight, { 123: true })).toBe("{time:01:05.0} - {spell:123}");
+    });
+
     it("使用受控原生 dialog、初始关闭焦点与明确表单名称", () => {
         render(<CopyNoteWindow />);
 

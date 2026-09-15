@@ -8,6 +8,9 @@ export default interface Phase extends Event {
     /** Phase ID */
     id: number
 
+    /** Warcraft Logs phase ID before display renumbering */
+    phase_id?: number
+
     /** timestamp */
     ts: number
 
