@@ -505,6 +505,26 @@
     "tooltip": "",
     "query": true
   },
+  "378081": {
+    "spell_id": 378081,
+    "cooldown": 60,
+    "duration": 0,
+    "icon": "spell_nature_ravenform.jpg",
+    "name": "Nature's Swiftness",
+    "color": "#0070DD",
+    "show": true,
+    "variations": [],
+    "spell_type": "shaman-restoration",
+    "tags": [
+      "raid_cd"
+    ],
+    "event_type": "applybuff",
+    "wowhead_data": "spell=378081",
+    "until": null,
+    "extra_filter": "",
+    "tooltip": "",
+    "query": true
+  },
   "378270": {
     "spell_id": 378270,
     "cooldown": 0,
@@ -808,6 +828,26 @@
     "tags": [],
     "event_type": "cast",
     "wowhead_data": "item=212265",
+    "until": null,
+    "extra_filter": "",
+    "tooltip": "",
+    "query": true
+  },
+  "443454": {
+    "spell_id": 443454,
+    "cooldown": 30,
+    "duration": 0,
+    "icon": "inv_ability_farseershaman_ancestralswiftness.jpg",
+    "name": "Ancestral Swiftness",
+    "color": "#0070DD",
+    "show": true,
+    "variations": [],
+    "spell_type": "shaman-restoration",
+    "tags": [
+      "raid_cd"
+    ],
+    "event_type": "applybuff",
+    "wowhead_data": "spell=443454",
     "until": null,
     "extra_filter": "",
     "tooltip": "",
