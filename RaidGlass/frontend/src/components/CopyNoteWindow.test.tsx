@@ -109,6 +109,18 @@ describe("CopyNoteWindow", () => {
         expect(get_note_mrt(phaseFight.players[0], phaseFight, { 123: true })).toBe("{time:01:05.0} - {spell:123}");
     });
 
+    it("乌拉特克缺少阶段数据时保留绝对时间", () => {
+        const phaseFight = {
+            ...fight,
+            boss: undefined,
+            boss_slug: "ulatek",
+            phases: undefined,
+            players: [{ ...player, casts: [{ id: 123, ts: 65_000 }] }],
+        } as unknown as Fight;
+
+        expect(get_note_mrt(phaseFight.players[0], phaseFight, { 123: true })).toBe("{time:01:05.0} - {spell:123}");
+    });
+
     it("使用受控原生 dialog、初始关闭焦点与明确表单名称", () => {
         render(<CopyNoteWindow />);
 
