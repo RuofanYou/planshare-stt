@@ -126,6 +126,8 @@ export const ZH_CN = Object.freeze({
     copyNote: {
         title: "复制单人作业",
         close: "关闭复制作业",
+        playerName: "玩家姓名",
+        playerNamePlaceholder: "姓名或昵称（可选）",
         text: "作业文本",
         copy: "复制 STT 格式",
         copied: "已复制",

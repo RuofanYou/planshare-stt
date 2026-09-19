@@ -64,10 +64,10 @@ beforeEach(() => {
 
 describe("CopyNoteWindow", () => {
     it.each([
-        ["nekzali-the-soulcoiler", [1.5, 1.75, 2], ["i1", "i2", "p2"]],
+        ["nekzali-the-soulcoiler", [1.5, 1.75, 2], ["p1.5", "p1.75", "p2"]],
         ["entombed-sentinels", [2, 3, 4], ["p2", "p3", "p4"]],
-        ["the-coiled-altar", [2, 2.5, 3], ["p2", "i2", "p3"]],
-        ["ulatek", [2, 2.5, 3], ["p2", "i2", "p3"]],
+        ["the-coiled-altar", [2, 2.5, 3], ["p2", "p2.5", "p3"]],
+        ["ulatek", [2, 2.5, 3], ["p2", "p2.5", "p3"]],
     ])("%s 使用 STT 阶段名", (bossSlug, phaseIds, phaseKeys) => {
         const phases = phaseIds.map((phase_id, index) => ({
             id: index + 2,
@@ -89,15 +89,12 @@ describe("CopyNoteWindow", () => {
         );
     });
 
-    it.each([
-        ["nekzali-the-soulcoiler", [2, 3]],
-        ["the-lost-explorers", [2, 3, 4]],
-    ])("%s 的不可靠阶段保留绝对时间", (bossSlug, phaseIds) => {
+    it("阶段语义不足时保留绝对时间", () => {
         const phaseFight = {
             ...fight,
             boss: undefined,
-            boss_slug: bossSlug,
-            phases: phaseIds.map((phase_id, index) => ({
+            boss_slug: "vashnik-the-malignant",
+            phases: [2, 3].map((phase_id, index) => ({
                 id: index + 2,
                 phase_id,
                 name: `P${index + 2}`,
@@ -107,6 +104,31 @@ describe("CopyNoteWindow", () => {
         };
 
         expect(get_note_mrt(phaseFight.players[0], phaseFight, { 123: true })).toBe("{time:01:05.0} - {spell:123}");
+    });
+
+    it("失落探险者按强化次数使用 p2/p3/p4", () => {
+        const phaseFight = {
+            ...fight,
+            boss: undefined,
+            boss_slug: "the-lost-explorers",
+            phases: [2, 3, 4].map((phase_id, index) => ({
+                id: index + 2,
+                phase_id,
+                name: `P${index + 2}`,
+                ts: (index + 1) * 60_000,
+            })),
+            players: [{ ...player, casts: [
+                { id: 123, ts: 65_000 },
+                { id: 123, ts: 125_000 },
+                { id: 123, ts: 185_000 },
+            ] }],
+        };
+
+        expect(get_note_mrt(phaseFight.players[0], phaseFight, { 123: true })).toBe([
+            "{time:00:05.0,p2} - {spell:123}",
+            "{time:00:05.0,p3} - {spell:123}",
+            "{time:00:05.0,p4} - {spell:123}",
+        ].join("\n"));
     });
 
     it("乌拉特克缺少阶段数据时保留绝对时间", () => {
@@ -128,7 +150,8 @@ describe("CopyNoteWindow", () => {
         expect(dialog).toHaveAttribute("open");
         expect(screen.getByRole("button", { name: "关闭复制作业" })).toHaveFocus();
         expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-        expect(screen.getAllByRole("textbox")).toHaveLength(1);
+        expect(screen.getAllByRole("textbox")).toHaveLength(2);
+        expect(screen.getByRole("textbox", { name: "玩家姓名" })).toBeVisible();
         expect(screen.queryByRole("button", { name: "结构化" })).not.toBeInTheDocument();
         expect(screen.getByRole("textbox", { name: "作业文本" })).toBeVisible();
         expect(document.documentElement.style.overflow).toBe("hidden");
@@ -165,5 +188,16 @@ describe("CopyNoteWindow", () => {
         expect(clipboard).toHaveBeenCalledOnce();
         expect(clipboard.mock.calls[0][0]).toBe("{time:00:30.0} - {spell:123}\n{time:00:05.0,p2} - {spell:123}");
         expect(screen.getByRole("button", { name: "已复制" })).toBeVisible();
+    });
+
+    it("填写玩家姓名后把姓名作为每行的受众", async () => {
+        const user = userEvent.setup();
+        render(<CopyNoteWindow />);
+
+        await user.type(screen.getByRole("textbox", { name: "玩家姓名" }), "自定义玩家");
+
+        expect(screen.getByRole("textbox", { name: "作业文本" })).toHaveValue(
+            "{time:00:30.0} - {自定义玩家} {spell:123}\n{time:00:05.0,p2} - {自定义玩家} {spell:123}",
+        );
     });
 });

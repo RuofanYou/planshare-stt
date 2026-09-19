@@ -162,6 +162,8 @@ test("移动端单人作业使用原生模态、显式复制并在目标切换�
     const dialog = page.getByRole("dialog", { name: "复制单人作业" });
     await expect(dialog).toBeVisible();
     await expect(page.getByRole("button", { name: "关闭复制作业" })).toBeFocused();
+    await page.getByRole("textbox", { name: "玩家姓名" }).fill("自定义玩家");
+    await expect(page.getByRole("textbox", { name: "作业文本" })).toHaveValue(/\{自定义玩家\}/);
     await expect.poll(() => dialog.evaluate((element) => (
         element.getAnimations().every((animation) => animation.playState === "finished")
     ))).toBe(true);

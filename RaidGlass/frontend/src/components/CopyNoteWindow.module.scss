@@ -78,6 +78,29 @@
     cursor: pointer;
 }
 
+.playerNameRow {
+    display: grid;
+    gap: var(--rg-space-2);
+
+    label {
+        color: var(--rg-ink);
+        font-size: 0.9rem;
+        font-weight: 720;
+    }
+
+    input {
+        width: 100%;
+        min-height: var(--rg-control-min-touch);
+        box-sizing: border-box;
+        padding: 0 var(--rg-space-3);
+        border: 1px solid var(--rg-stroke);
+        border-radius: var(--rg-radius-sm);
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--rg-text);
+        font: inherit;
+    }
+}
+
 .textarea {
     min-width: 0;
 

@@ -26,14 +26,14 @@ import type Phase from "../types/phase";
 type SpellDisplayMap = Record<number, boolean | undefined>;
 
 const VENOMOUS_ABYSS_STT_PHASES: Record<string, readonly (readonly [number, string])[] | null> = {
-    "nekzali-the-soulcoiler": [[1.5, "i1"], [1.75, "i2"], [2, "p2"]],
+    "nekzali-the-soulcoiler": [[1.5, "p1.5"], [1.75, "p1.75"], [2, "p2"]],
     "entombed-sentinels": [[2, "p2"], [3, "p3"], [4, "p4"], [5, "p5"], [6, "p6"]],
-    "the-lost-explorers": null,
+    "the-lost-explorers": [[2, "p2"], [3, "p3"], [4, "p4"]],
     "vashnik-the-malignant": null,
     sszorak: null,
     "the-twin-fangs": null,
-    "the-coiled-altar": [[2, "p2"], [2.5, "i2"], [3, "p3"]],
-    ulatek: [[2, "p2"], [2.5, "i2"], [3, "p3"]],
+    "the-coiled-altar": [[2, "p2"], [2.5, "p2.5"], [3, "p3"]],
+    ulatek: [[2, "p2"], [2.5, "p2.5"], [3, "p3"]],
 };
 
 function get_stt_phase_map(fight: Fight): Map<number, string> | null | undefined {
@@ -68,14 +68,21 @@ function get_phase_at_time(fight: Fight, timestamp: number): Phase | null {
     return result;
 }
 
+function normalize_player_name(value: string): string {
+    return value.trim().replace(/[{}\r\n]/g, "").replace(/\s+/g, " ");
+}
+
 export function get_note_mrt(
     player: Actor,
     fight: Fight,
     spell_display: SpellDisplayMap,
+    player_name = "",
 ): string {
 
     const rows: string[] = [];
     const phaseMap = get_stt_phase_map(fight);
+    const target = normalize_player_name(player_name);
+    const targetToken = target ? `{${target}} ` : "";
 
     player.casts.forEach((cast) => {
 
@@ -93,7 +100,7 @@ export function get_note_mrt(
         }
 
         const ts_string = toMMSS(ts / 1000, 1);
-        rows.push(`{time:${ts_string}${trigger}} - {spell:${cast.id}}`);
+        rows.push(`{time:${ts_string}${trigger}} - ${targetToken}{spell:${cast.id}}`);
     });
     return rows.join("\n");
 }
@@ -105,6 +112,8 @@ export default function CopyNoteWindow() {
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     const copyFeedbackTimerRef = useRef<number | null>(null);
     const titleId = useId();
+    const playerNameId = useId();
+    const [playerName, setPlayerName] = useState("");
 
     // Redux
     const show_window = useAppSelector(ui_store.get_show_copynote)
@@ -118,7 +127,7 @@ export default function CopyNoteWindow() {
     });
 
     const spellDisplay = useAppSelector(get_spell_display) as SpellDisplayMap;
-    const note = player && fight ? get_note_mrt(player, fight, spellDisplay) : "";
+    const note = player && fight ? get_note_mrt(player, fight, spellDisplay, playerName) : "";
 
     useEffect(() => () => {
         if (copyFeedbackTimerRef.current !== null) {
@@ -141,6 +150,7 @@ export default function CopyNoteWindow() {
             format: "STT",
             length: note.length,
             phaseMode: fight && get_stt_phase_map(fight) === null ? "absolute_fallback" : "relative",
+            playerNameProvided: normalize_player_name(playerName) !== "",
         };
         recordDiagnostic("target_copy_started", details);
         try {
@@ -193,6 +203,19 @@ export default function CopyNoteWindow() {
                         <FaXmark aria-hidden="true" />
                     </button>
                 </header>
+
+                <div className={style.playerNameRow}>
+                    <label htmlFor={playerNameId}>{ZH_CN.copyNote.playerName}</label>
+                    <input
+                        id={playerNameId}
+                        type="text"
+                        value={playerName}
+                        maxLength={48}
+                        autoComplete="nickname"
+                        placeholder={ZH_CN.copyNote.playerNamePlaceholder}
+                        onChange={(event) => setPlayerName(event.currentTarget.value)}
+                    />
+                </div>
 
                 {/* Note */}
                 <div className={style.textarea} data-blur="false">
