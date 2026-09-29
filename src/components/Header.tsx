@@ -67,6 +67,14 @@ export default function Header() {
             翻译器
           </NavLink>
           <NavLink
+            to="/rp2s"
+            className={({ isActive }) =>
+              isActive ? 'ps-header__link is-active' : 'ps-header__link'
+            }
+          >
+            视觉画板
+          </NavLink>
+          <NavLink
             to="/creator"
             className={({ isActive }) =>
               isActive ? 'ps-header__link is-active' : 'ps-header__link'

@@ -12,6 +12,7 @@ import Submit from './pages/Submit'
 import Creator from './pages/Creator'
 import Translator from './pages/Translator'
 import Loot from './pages/Loot'
+import Rp2s from './pages/Rp2s'
 import { pageTransition } from './lib/motion'
 
 /**
@@ -22,6 +23,7 @@ import { pageTransition } from './lib/motion'
  *       /board/:boardId -> BoardDetail；/author/:authorId -> Author；
  *       /submit -> Submit；/creator -> Creator；/translator -> Translator；
  *       /loot -> Loot；
+ *       /rp2s -> Rp2s；
  *       /admin -> Admin（后台人工上稿入口）。
  */
 export default function App() {
@@ -52,6 +54,7 @@ export default function App() {
               <Route path="/creator" element={<Creator />} />
               <Route path="/translator" element={<Translator />} />
               <Route path="/loot" element={<Loot />} />
+              <Route path="/rp2s" element={<Rp2s />} />
               <Route path="/admin" element={<Admin />} />
             </Routes>
           </motion.div>

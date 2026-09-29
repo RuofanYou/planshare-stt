@@ -22,6 +22,7 @@ import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
 import { raids, bosses, authors, boards } from './seed/seed-data.mjs'
 import { ensureDatabasePath } from './db-path.mjs'
+import { readRaidPlan } from '../shared/raidplan-source.mjs'
 import {
   assertSafeAdminPassword,
   createViewDeduper,
@@ -1732,6 +1733,12 @@ app.delete('/api/creator/boards/:id', { preHandler: requireCreatorAuth }, (req, 
     entityId: row.id,
   })
   return { ok: true }
+})
+
+// GET /api/raidplan/:code -> 已保存的 RaidPlan 原始方案。
+app.get('/api/raidplan/:code', async (req, reply) => {
+  const result = await readRaidPlan(req.params.code)
+  return reply.code(result.status).header('Cache-Control', 'no-store').send(result.body)
 })
 
 // GET /api/raids -> Raid[]（boardCount = 该团本未隐藏板数）

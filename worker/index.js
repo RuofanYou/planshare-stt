@@ -1,3 +1,5 @@
+import { readRaidPlan } from '../shared/raidplan-source.mjs'
+
 const BOARD_ORDER = 'ORDER BY like_count DESC, view_count DESC, updated_at DESC'
 const CREATOR_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const PBKDF2_ITERATIONS = 100000
@@ -811,6 +813,10 @@ async function handle(request, env) {
 
   if (!path.startsWith('/api/')) return json({ error: '未找到' }, 404)
   if (method === 'OPTIONS') return text('', 204, corsHeaders(request, env))
+  if (method === 'GET' && path.startsWith('/api/raidplan/')) {
+    const result = await readRaidPlan(path.slice('/api/raidplan/'.length))
+    return json(result.body, result.status, { 'Cache-Control': 'no-store' })
+  }
   if (!env.DB) return json({ error: 'D1 未绑定' }, 500)
 
   if (method === 'POST' && path === '/api/admin/login') {

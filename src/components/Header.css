@@ -56,6 +56,8 @@
 /* 链接：default = ink-soft；hover/当前页 = ink/gold + 金辉下划线 */
 .ps-header__link {
   position: relative;
+  flex: 0 0 auto;
+  white-space: nowrap;
   color: var(--color-ink-soft);
   font-size: var(--text-meta);
   font-weight: var(--weight-medium);
