@@ -1,4 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
+import { graphql } from "./wcl-client.js";
+import { enrichActiveCasts } from "./wcl-casts.js";
 
 import { COMP_EXPECTED_COUNT, SPEC_EXPECTED_COUNT } from "./matrix.js";
 import { validateTarget } from "./refresh.js";
@@ -76,6 +78,72 @@ export class RefreshCoordinator extends DurableObject {
     constructor(ctx, env) {
         super(ctx, env);
         ctx.blockConcurrencyWhile(async () => this.#migrate());
+    }
+
+    // ponytail: serialize this account's WCL work; split by credential only if multiple accounts are added.
+    #wclQueue = Promise.resolve();
+    #castsQueue = Promise.resolve();
+
+    async wclPauseReason() {
+        const now = Date.now();
+        if (Number(this.#state("wcl_retry_after")) > now) return "wcl_temporarily_unavailable";
+        const quota = JSON.parse(this.#state("wcl_quota") || "null");
+        return quota && quota.resetAt > now && quota.spent >= quota.limit * 0.1
+            ? "wcl_hourly_budget" : null;
+    }
+
+    async wclQuery(query, variables, target) {
+        const work = this.#wclQueue.then(async () => {
+            const now = Date.now();
+            if (Number(this.#state("wcl_retry_after")) > now) throw new Error("wcl_temporarily_unavailable");
+            const log = (event, fields) => console.log(JSON.stringify({ event, ...fields }));
+            const saved = JSON.parse(this.#state("wcl_quota") || "null");
+            if (saved && saved.resetAt > now && saved.spent >= saved.limit * 0.1) {
+                throw new Error("wcl_hourly_budget");
+            }
+            const saveQuota = (data) => {
+                const quota = data.rateLimitData;
+                if (!quota || !Number.isFinite(quota.limitPerHour) || quota.limitPerHour <= 0
+                    || !Number.isFinite(quota.pointsSpentThisHour) || quota.pointsSpentThisHour < 0
+                    || !Number.isFinite(quota.pointsResetIn) || quota.pointsResetIn < 0) {
+                    throw new Error("wcl_quota_invalid");
+                }
+                const value = { limit: quota.limitPerHour, spent: quota.pointsSpentThisHour,
+                    checkedAt: Date.now(), resetAt: Date.now() + quota.pointsResetIn * 1000 };
+                this.#setState("wcl_quota", JSON.stringify(value));
+                log("wcl_quota_updated", { target_key: target.targetKey, ...value });
+                return value;
+            };
+            const request = async (text, values = {}) => {
+                try {
+                    return await graphql(this.env, fetch, () => new Date(), log, target, text, values);
+                } catch (error) {
+                    // A report-level GraphQL error must not pause unrelated public reports.
+                    if (!String(error).includes("wcl_graphql_error:")) {
+                        this.#setState("wcl_retry_after", Date.now() + 5 * 60_000);
+                    }
+                    throw error;
+                }
+            };
+            // Refresh account-wide usage after idle periods, including use by other applications.
+            if (!saved || saved.resetAt <= now || now - saved.checkedAt >= 60_000) {
+                const quota = saveQuota(await request("query{rateLimitData{limitPerHour pointsSpentThisHour pointsResetIn}}"));
+                if (quota.spent >= quota.limit * 0.1) throw new Error("wcl_hourly_budget");
+            }
+            const data = await request(query, variables);
+            saveQuota(data);
+            return data;
+        });
+        this.#wclQueue = work.catch(() => {});
+        return work;
+    }
+
+    async enrichCasts(ranking, target) {
+        const work = this.#castsQueue.then(() => enrichActiveCasts(ranking, target, this.env.RANKING_DB,
+            (query, variables) => this.wclQuery(query, variables, target), new Date().toISOString(),
+            (event, fields) => console.log(JSON.stringify({ event, ...fields }))));
+        this.#castsQueue = work.catch(() => {});
+        return work;
     }
 
     #migrate() {
@@ -222,6 +290,30 @@ export class RefreshCoordinator extends DurableObject {
              WHERE status IN ('enqueuing', 'running')
              ORDER BY created_at DESC LIMIT 1`,
         ));
+    }
+
+    async runProgress() {
+        const active = this.#activeRun();
+        if (!active) return { active: false };
+        const run = oneOrNull(this.ctx.storage.sql.exec(
+            "SELECT matrix_id, expected_batches, expected_targets FROM runs WHERE run_id = ?", active.run_id,
+        ));
+        const batches = oneOrNull(this.ctx.storage.sql.exec(
+            `SELECT COUNT(*) AS registered,
+                    SUM(CASE WHEN status = 'complete' THEN 1 ELSE 0 END) AS complete,
+                    SUM(CASE WHEN status = 'claimed' THEN 1 ELSE 0 END) AS claimed
+             FROM batches WHERE run_id = ?`, active.run_id,
+        ));
+        const targets = oneOrNull(this.ctx.storage.sql.exec(
+            `SELECT COUNT(*) AS registered,
+                    SUM(CASE WHEN status IN ('published', 'reused', 'failed') THEN 1 ELSE 0 END) AS terminal
+             FROM run_targets WHERE run_id = ?`, active.run_id,
+        ));
+        return { active: true, run_id: active.run_id, status: active.status, matrix_id: run.matrix_id,
+            expected_batches: Number(run.expected_batches), registered_batches: Number(batches.registered),
+            complete_batches: Number(batches.complete || 0), claimed_batches: Number(batches.claimed || 0),
+            expected_targets: Number(run.expected_targets), registered_targets: Number(targets.registered),
+            terminal_targets: Number(targets.terminal || 0) };
     }
 
     #resetMatrixIfChanged(matrixId, expected) {

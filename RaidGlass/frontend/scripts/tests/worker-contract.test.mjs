@@ -148,3 +148,61 @@ test("公开静态元数据保留条件请求且每次重新验证", async () =>
     assert.equal(response.headers.get("etag"), 'W/"cached-api"');
     assert.equal(response.headers.get("cache-control"), "no-cache");
 });
+
+test("专精技能书走静态资源且不读取 D1", async () => {
+    const env = fakeEnv();
+    env.RANKING_DB.prepare = () => { throw new Error("unexpected D1 read"); };
+    env.ASSETS.fetch = async assetRequest => {
+        assert.equal(new URL(assetRequest.url).pathname, "/api/spellbook.json");
+        return Response.json({ schema_version: 1, specs: { "evoker-preservation": { 366155: { name: "逆转" } } } });
+    };
+    const response = await worker.fetch(request("/api/spellbook"), env);
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).specs["evoker-preservation"][366155].name, "逆转");
+});
+
+test("D1 当日读额度耗尽时仅对合法排行目标使用公开上游应急响应", async (t) => {
+    const env = fakeEnv();
+    env.ASSETS.fetch = async assetRequest => {
+        const path = new URL(assetRequest.url).pathname;
+        if (path === "/api/specs.json") return Response.json([{ full_name_slug: "mage-fire", role: "rdps" }]);
+        if (path === "/api/roles.json") return Response.json([{ code: "rdps", metrics: ["dps"] }]);
+        if (path === "/api/current_season/zones.json") return Response.json({ zones: [{ bosses: ["nekzali-the-soulcoiler"] }] });
+        return new Response("not found", { status: 404 });
+    };
+    env.RANKING_DB.prepare = () => { throw new Error("D1 free tier daily row read limit exceeded"); };
+    const originalFetch = globalThis.fetch;
+    const urls = [];
+    globalThis.fetch = async url => {
+        urls.push(String(url));
+        return Response.json({ boss_slug: "nekzali-the-soulcoiler", spec_slug: "mage-fire",
+            difficulty: "mythic", metric: "dps", updated: "2026-09-26T20:00:00Z",
+            reports: Array.from({ length: 12 }, (_, i) => ({ report_id: `report-${i}` })) });
+    };
+    t.after(() => { globalThis.fetch = originalFetch; });
+    const path = "/api/spec_ranking/mage-fire/nekzali-the-soulcoiler?difficulty=mythic&metric=dps";
+    const response = await worker.fetch(request(path), env);
+    const payload = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(payload.reports.length, 10);
+    assert.equal(payload.source_report_count, 12);
+    assert.equal(payload.refresh.status, "stale");
+    assert.equal(payload.refresh.last_error_code, "d1_daily_read_limit");
+    assert.match(urls[0], /^https:\/\/api2\.lorrgs\.io\/api\/spec_ranking\/mage-fire\/nekzali-the-soulcoiler\?/);
+    assert.equal(response.headers.get("cache-control"), "public, max-age=60");
+    const info = await worker.fetch(request(path.replace("?", "/info?")), env);
+    assert.equal((await info.json()).report_count, 10);
+    globalThis.fetch = async url => {
+        urls.push(String(url));
+        return Response.json({ boss_slug: "nekzali-the-soulcoiler",
+            updated: "2026-09-26T20:00:00Z", reports: [{ report_id: "comp-1" }] });
+    };
+    const comp = await worker.fetch(request("/api/comp_ranking/nekzali-the-soulcoiler"), env);
+    assert.equal(comp.status, 200);
+    assert.equal((await comp.json()).reports.length, 1);
+    assert.match(urls.at(-1), /\/api\/comp_ranking\/nekzali-the-soulcoiler\?limit=20$/);
+    env.RANKING_DB.prepare = () => { throw new Error("unrelated database fault"); };
+    const unrelated = await worker.fetch(request(path), env);
+    assert.equal(unrelated.status, 503);
+    assert.equal(urls.length, 3);
+});

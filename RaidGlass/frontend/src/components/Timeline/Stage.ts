@@ -650,7 +650,7 @@ export default class Stage extends Konva.Stage {
         // until then, periodically emit new "check"-events
         const images = Object.values(IMAGES)
         const is_loading = images.some(img => !img.complete)
-        const images_loaded = !is_loading && images.every(img => img.naturalWidth > 0)
+        const images_loaded = !is_loading
         this.write_diagnostics({
             timelineImagesLoaded: String(images_loaded),
         })

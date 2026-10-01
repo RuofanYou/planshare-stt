@@ -401,6 +401,8 @@ export async function writeGeneratedTestSource(
     await writeJson(sourceRoot, "api/classes.json", CLASSES);
     await writeJson(sourceRoot, "api/roles.json", { roles: ROLES });
     await writeJson(sourceRoot, "api/specs.json", { specs: SPECS });
+    await copyFile(join(frontendRoot, "..", "reference", "api", "spellbook.json"),
+        join(sourceRoot, "api", "spellbook.json"));
     await writeJson(sourceRoot, "api/zones.json", { zones: [zone] });
     await writeJson(sourceRoot, "api/current_season/zones/1.json", zone);
 

@@ -4,6 +4,7 @@ import {
     writeGlobalStatus,
     writeTargetResult,
 } from "./ranking-store.js";
+import { CASTS_VERSION } from "./wcl-casts.js";
 import { enrichWclSwiftness, shouldEnrichWclSwiftness } from "./wcl-swiftness.js";
 
 const TOP_N = 10;
@@ -258,10 +259,12 @@ async function refreshSpecTarget(target, env, options, checkedAt, stored) {
         target,
         "info",
     );
-    const existing = shouldEnrichWclSwiftness(target)
-        ? null
-        : reusableRanking(stored, target, info.updated, options.log);
-    if (existing) {
+    const existing = reusableRanking(stored, target, info.updated, options.log);
+    const savedRanking = existing ? JSON.parse(stored.ranking_json) : null;
+    const needsCasts = env.WCL_ALL_CASTS === "true" && (!savedRanking?.skill_completion
+        || savedRanking.skill_completion.version !== CASTS_VERSION
+        || savedRanking.skill_completion.complete < savedRanking.skill_completion.total);
+    if (existing && !needsCasts && !shouldEnrichWclSwiftness(target)) {
         options.log("reused", {
             run_id: options.runId,
             batch_id: options.batchId,
@@ -279,12 +282,26 @@ async function refreshSpecTarget(target, env, options, checkedAt, stored) {
         };
     }
 
-    const ranking = compactRanking(validatePayload(
+    let ranking = savedRanking || compactRanking(validatePayload(
         await fetchUpstreamJson(options.fetchImpl, env.UPSTREAM_ORIGIN, target, "ranking", options.log),
         target,
         "ranking",
     ), "ranking");
-    await enrichWclSwiftness(ranking, target, env, options);
+    const coordinator = env.REFRESH_COORDINATOR.getByName(COORDINATOR_NAME);
+    await enrichWclSwiftness(ranking, target, env, {
+        ...options,
+        graphql: (_env, _fetch, _now, _log, identity, query, variables) => coordinator.wclQuery(query, variables || {}, identity),
+    });
+    if (env.WCL_ALL_CASTS === "true") {
+        try {
+            ranking = await coordinator.enrichCasts(ranking, target);
+        } catch (error) {
+            options.log("wcl_casts_failed", { target_key: target.targetKey, reason: safeErrorMessage(error) });
+            const previous = ranking.skill_completion?.version === CASTS_VERSION ? ranking.skill_completion : null;
+            ranking.skill_completion = { version: CASTS_VERSION, complete: previous?.complete ?? 0,
+                total: previous?.total ?? ranking.reports.length, failed: 1 };
+        }
+    }
     return {
         target,
         status: "published",

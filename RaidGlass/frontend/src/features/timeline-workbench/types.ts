@@ -11,6 +11,7 @@ export interface TimelineTarget {
 }
 
 export interface RankingMeta {
+    skillCompletion?: import("../../types/spec_ranking").SkillCompletion;
     updated: string;
     edgeTopN: 10;
     sourceReportCount: number;

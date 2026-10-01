@@ -160,7 +160,7 @@ test("专精 info 未变化时零完整排行 GET、零排行覆盖并刷新检�
     assert.equal(fixture.recorded[0].result.publishedAt, PUBLISHED_AT);
 });
 
-test("奶萨 HPS 即使上游时间未变也重新读取排行以补采 WCL", async (t) => {
+test("奶萨 HPS 复用未变化排行并经过共享 WCL 入口补采", async (t) => {
     const target = shamanTarget();
     const message = queueMessage(target);
     const fixture = await fakeEnvironment(t, target);
@@ -185,8 +185,8 @@ test("奶萨 HPS 即使上游时间未变也重新读取排行以补采 WCL", as
     });
 
     assert.equal(message.acked, true);
-    assert.equal(fetched.length, 2);
-    assert.match(fetched[1], /\/api\/spec_ranking\/shaman-restoration\/nymrissa-wavecaller\?/);
+    assert.equal(fetched.length, 1);
+    assert.match(fetched[0], /\/info\?/);
     assert.equal(fixture.recorded[0].result.status, "published");
 });
 
@@ -313,4 +313,39 @@ test("D1 写入失败时 Queue 重试且 Durable Object 不记录终态", async 
     assert.equal(message.acked, false);
     assert.equal(message.retried, true);
     assert.equal(recorded.length, 0);
+});
+
+test("上游未变化仍续补；完整缓存下轮复用；补采异常保留旧排行", async t => {
+    const target = specTarget();
+    const fixture = await fakeEnvironment(t, target);
+    await seedRanking(fixture.db, target);
+    fixture.env.WCL_ALL_CASTS = "true";
+    const coordinator = fixture.env.REFRESH_COORDINATOR.getByName();
+    let calls = 0;
+    coordinator.enrichCasts = async value => {
+        calls++;
+        return { ...value, skill_completion: { version: 1, complete: 1, total: 1, failed: 0 },
+            extra_spells: { 7: { name: "sample", show: false } } };
+    };
+    const options = {
+        fetchImpl: async () => jsonResponse({ boss_slug: target.bossSlug, spec_slug: target.specSlug,
+            difficulty: target.difficulty, metric: target.metric, updated: UPSTREAM_UPDATED }),
+        now: () => new Date(CHECKED_AT), log: () => {},
+    };
+    await consumeQueueBatch({ messages: [queueMessage(target)] }, fixture.env, options);
+    assert.equal(calls, 1);
+    assert.equal(JSON.parse((await loadTargetRecord(fixture.db, target.targetKey)).ranking_json).skill_completion.complete, 1);
+    await consumeQueueBatch({ messages: [queueMessage(target)] }, fixture.env, options);
+    assert.equal(calls, 1);
+    const partiallyComplete = { ...ranking(target, Array.from({ length: 10 }, (_, index) => ({ report_id: `old-${index}` }))),
+        skill_completion: { version: 1, complete: 5, total: 10, failed: 0 } };
+    await writeTargetResult(fixture.db, { target, status: "published", ranking: partiallyComplete,
+        checkedAt: PUBLISHED_AT, publishedAt: PUBLISHED_AT, upstreamUpdated: UPSTREAM_UPDATED }, "seed-1");
+    coordinator.enrichCasts = async () => { throw new Error("storage unavailable"); };
+    await consumeQueueBatch({ messages: [queueMessage(target)] }, fixture.env, options);
+    const failed = JSON.parse((await loadTargetRecord(fixture.db, target.targetKey)).ranking_json);
+    assert.deepEqual(failed.reports, partiallyComplete.reports);
+    assert.equal(failed.skill_completion.complete, 5);
+    assert.equal(failed.skill_completion.total, 10);
+    assert.equal(failed.skill_completion.failed, 1);
 });

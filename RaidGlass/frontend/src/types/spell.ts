@@ -32,6 +32,8 @@ export default interface Spell {
     readonly wowhead_data?: string
 
     readonly tags?: string[]
+    readonly search_names?: string[]
+    readonly catalog_source?: "spellbook"
 
     specs?: string[]
 
@@ -42,4 +44,3 @@ export default interface Spell {
 export type SpellDict = {
     [key: number]: Spell
 }
-

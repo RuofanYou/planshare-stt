@@ -11,10 +11,13 @@ RaidGlass 是部署在 [zhaobanzi.pages.dev/log](https://zhaobanzi.pages.dev/log
 - D1 结构：`edge/migrations/`
 - Web Worker、API 与前端：`frontend/`
 - 静态元数据与图片：`reference/`（与当前 S1 D1 合同一致的固定发布输入）
+- 专精筛选技能书：`reference/api/spellbook.json`，一次性取自本仓职业技能资料的 40 个战斗专精技能 ID，名称核对 Wago DB2 `SpellName` 正式服 `12.1.0.69933` 的 `zhCN`；玩家勾选不访问 WCL。未被当前 Top10 记录的技能没有时间轴标记。
 - 动态排行与刷新状态：Production/Preview 各自独立的 D1 数据库
 - 生产源码：整合验收完成后的 `main`
 
 Web 构建不包含动态排行，也没有静态排行回退。回滚使用上一份已验证的 `raidglass-web` Worker 版本；PlanShare Pages 只维护 `/log` 网关绑定。
+
+D1 当日行读取额度耗尽时，Web Worker 暂从现有公开排行上游返回 Top10 并标记为过期；D1 恢复后自动继续读取 D1。
 
 旧域名只保留 `legacy-wowlogs-redirect/` 的 301 兼容跳转，不再承载应用与数据。
 
@@ -57,7 +60,7 @@ npm run verify:artifact
 ## 安全边界
 
 - 上游固定为 `https://api2.lorrgs.io`，只执行公开 GET。
-- 只访问专精排行、专精 `/info` 和阵容排行；禁止 `/load`、`/dirty`、WCL OAuth 和远端写请求。
+- 公开上游只访问专精排行、专精 `/info` 和阵容排行；禁止 `/load`、`/dirty`。WCL 公共报告补采仅由 RefreshCoordinator 使用服务端 OAuth 与只读 GraphQL，遵守共享额度阈值。
 - Production 与 Preview 使用独立 D1、Queue、Worker、Durable Object 和 `RETRY_TOKEN`。
 - Token、本机绝对路径和发布凭据不得写入源码、构建、日志或回执。
 - Production 发布必须经过本地完整门禁，并将同一候选 build 依次部署到 `raidglass-web-preview` 与 `raidglass-web`。

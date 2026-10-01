@@ -55,7 +55,7 @@ function create_cast_icon(spell: Spell) {
 
     // create the konva image
     const icon = new Konva.Image({
-        image,
+        image: image.complete && image.naturalWidth > 0 ? image : undefined,
         name: "cast_icon",
         listening: false,
         x: 3.5, // padding

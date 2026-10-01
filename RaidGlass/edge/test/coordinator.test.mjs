@@ -3,6 +3,13 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { Miniflare } from "miniflare";
+import { buildSync } from "esbuild";
+
+// Bundle the same dynamic JSON imports as Wrangler before running the coordinator.
+const coordinatorScript = buildSync({
+    entryPoints: [fileURLToPath(new URL("../coordinator-test-worker.mjs", import.meta.url))],
+    bundle: true, format: "esm", platform: "browser", external: ["cloudflare:workers"], write: false,
+}).outputFiles[0].text;
 
 const EXPECTED = { spec_expected: 1674, comp_expected: 9 };
 const NOW = "2026-08-09T12:00:00.000Z";
@@ -34,7 +41,7 @@ test("SQLite Durable Object 拒绝重叠 run 并汇总 S2 状态", async (contex
         rootPath: raidGlassRoot,
         modules: true,
         modulesRoot: raidGlassRoot,
-        scriptPath: "edge/coordinator-test-worker.mjs",
+        script: coordinatorScript,
         modulesRules: [{ type: "ESModule", include: ["**/*.js"], fallthrough: true }],
         compatibilityDate: "2026-07-15",
         durableObjects: {
@@ -59,6 +66,12 @@ test("SQLite Durable Object 拒绝重叠 run 并汇总 S2 状态", async (contex
     assert.equal(started.accepted, true);
     await call(mf, "markBatchEnqueued", "scheduled-1", "batch-0001", [TARGET], NOW);
     await call(mf, "finalizeEnqueue", "scheduled-1", NOW);
+    assert.deepEqual(await call(mf, "runProgress"), {
+        active: true, run_id: "scheduled-1", status: "running",
+        matrix_id: "midnight-s2-1683-v1", expected_batches: 1,
+        registered_batches: 1, complete_batches: 0, claimed_batches: 0,
+        expected_targets: 1, registered_targets: 1, terminal_targets: 0,
+    });
 
     const overlap = await call(
         mf,
@@ -139,7 +152,7 @@ test("SQLite Durable Object 在新 run 开始时清理超过 30 天的历史轮�
         rootPath: raidGlassRoot,
         modules: true,
         modulesRoot: raidGlassRoot,
-        scriptPath: "edge/coordinator-test-worker.mjs",
+        script: coordinatorScript,
         modulesRules: [{ type: "ESModule", include: ["**/*.js"], fallthrough: true }],
         compatibilityDate: "2026-07-15",
         durableObjects: {
@@ -192,4 +205,66 @@ test("SQLite Durable Object 在新 run 开始时清理超过 30 天的历史轮�
         ),
         /source run not found/,
     );
+});
+
+test("并发 WCL 请求共享持久额度；跨过阈值后不再发第二个事件查询", async context => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    let eventQueries = 0;
+    const mf = new Miniflare({
+        rootPath: root, modules: true, modulesRoot: root, script: coordinatorScript,
+        modulesRules: [{ type: "ESModule", include: ["**/*.js"], fallthrough: true }],
+        compatibilityDate: "2026-07-15",
+        bindings: { WCL_CLIENT_ID: "test", WCL_CLIENT_SECRET: "test" },
+        durableObjects: { REFRESH_COORDINATOR: { className: "RefreshCoordinator", useSQLite: true } },
+        outboundService: async request => {
+            if (request.url.endsWith("/oauth/token")) return Response.json({ access_token: "test", expires_in: 3600 });
+            const body = await request.json();
+            if (body.query.includes("reportData")) eventQueries++;
+            return Response.json({ data: { rateLimitData: {
+                limitPerHour: 100, pointsSpentThisHour: eventQueries ? 11 : 0, pointsResetIn: 3600,
+            } } });
+        },
+    });
+    context.after(() => mf.dispose());
+    assert.equal(await call(mf, "wclPauseReason"), null);
+    const queries = await Promise.allSettled([1, 2].map(() => call(mf, "wclQuery",
+        "query{rateLimitData{limitPerHour pointsSpentThisHour pointsResetIn}reportData{}}", {}, TARGET)));
+    assert.equal(queries.filter(item => item.status === "fulfilled").length, 1);
+    assert.equal(eventQueries, 1);
+    await assert.rejects(() => call(mf, "wclQuery", "reportData", {}, TARGET), /wcl_hourly_budget/);
+    assert.equal(await call(mf, "wclPauseReason"), "wcl_hourly_budget");
+    assert.equal(eventQueries, 1);
+});
+
+test("单份报告权限错误不暂停其它公开报告的 WCL 查询", async context => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    let eventQueries = 0;
+    const quota = { limitPerHour: 100, pointsSpentThisHour: 1, pointsResetIn: 3600 };
+    const mf = new Miniflare({
+        rootPath: root, modules: true, modulesRoot: root, script: coordinatorScript,
+        modulesRules: [{ type: "ESModule", include: ["**/*.js"], fallthrough: true }],
+        compatibilityDate: "2026-07-15",
+        bindings: { WCL_CLIENT_ID: "test", WCL_CLIENT_SECRET: "test" },
+        durableObjects: { REFRESH_COORDINATOR: { className: "RefreshCoordinator", useSQLite: true } },
+        outboundService: async request => {
+            if (request.url.endsWith("/oauth/token")) return Response.json({ access_token: "test", expires_in: 3600 });
+            const body = await request.json();
+            if (body.query.includes("reportData")) {
+                eventQueries++;
+                if (eventQueries === 1) {
+                    return Response.json({ errors: [{ message: "You do not have permission to view this report." }] });
+                }
+                if (eventQueries === 3) return new Response("unavailable", { status: 503 });
+            }
+            return Response.json({ data: { rateLimitData: quota, reportData: {} } });
+        },
+    });
+    context.after(() => mf.dispose());
+    const query = "query{rateLimitData{limitPerHour pointsSpentThisHour pointsResetIn}reportData{}}";
+    await assert.rejects(() => call(mf, "wclQuery", query, {}, TARGET), /permission to view this report/);
+    assert.equal(await call(mf, "wclPauseReason"), null);
+    await call(mf, "wclQuery", query, {}, { ...TARGET, targetKey: "other/public" });
+    assert.equal(eventQueries, 2);
+    await assert.rejects(() => call(mf, "wclQuery", query, {}, TARGET), /wcl_graphql_http_503/);
+    assert.equal(await call(mf, "wclPauseReason"), "wcl_temporarily_unavailable");
 });

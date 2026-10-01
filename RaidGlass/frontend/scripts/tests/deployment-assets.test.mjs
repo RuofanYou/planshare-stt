@@ -42,6 +42,9 @@ async function fixture({ includeBossImage = true } = {}) {
     await writeJson(sourceRoot, "api/specs.json", {
         specs: [{ full_name_slug: "mage-fire", role: "mdps" }],
     });
+    await writeJson(sourceRoot, "api/spellbook.json", {
+        schema_version: 1, specs: { "mage-fire": { 153561: { name: "流星" } } },
+    });
     await writeJson(sourceRoot, "api/season_current.json", { slug: "fixture-season", raids: [46.1] });
     await writeJson(sourceRoot, "api/current_season/zones/46.1.json", {
         id: 46.1,
@@ -83,6 +86,7 @@ test("部署资产只复制静态元数据并生成 manifest v2", async () => {
     assert.match(manifest.source_tree_hash, /^[a-f0-9]{64}$/);
     assert.equal(await exists(join(outputRoot, "api/rankings")), false);
     assert.equal(await exists(join(outputRoot, "api/current_season/zones.json")), true);
+    assert.equal(await exists(join(outputRoot, "api/spellbook.json")), true);
     assert.equal(await exists(join(outputRoot, "assets/images/specs/mage-fire.jpg")), true);
     assert.deepEqual(
         JSON.parse(await readFile(join(outputRoot, "api/current_season/zones.json"), "utf8")),

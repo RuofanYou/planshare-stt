@@ -278,6 +278,38 @@ function targetSummary(target) {
   };
 }
 
+async function fallbackRanking(request, target, infoOnly, servedAt) {
+  const path = target.kind === "spec"
+    ? `/api/spec_ranking/${encodeURIComponent(target.spec_slug)}/${encodeURIComponent(target.boss_slug)}`
+    : `/api/comp_ranking/${encodeURIComponent(target.boss_slug)}`;
+  const url = new URL(path, "https://api2.lorrgs.io");
+  if (target.kind === "spec") {
+    url.search = new URLSearchParams({ difficulty: target.difficulty, metric: target.metric }).toString();
+  } else {
+    url.searchParams.set("limit", "20");
+  }
+  const response = await fetch(url, { headers: { Accept: "application/json" }, redirect: "manual" });
+  if (!response.ok || Number(response.headers.get("content-length")) > 2_000_000) {
+    throw new Error(`upstream_http_${response.status}`);
+  }
+  const text = await response.text();
+  if (text.length > 2_000_000) throw new Error("upstream_too_large");
+  const upstream = JSON.parse(text);
+  const reports = upstream?.reports;
+  const ranking = { ...upstream, reports: Array.isArray(reports) ? reports.slice(0, 10) : reports,
+    edge_top_n: 10, source_report_count: upstream?.source_report_count ?? reports?.length };
+  if (!validRanking(ranking, target)) throw new Error("upstream_ranking_invalid");
+  const refresh = { schema_version: 2, target_key: target.target_key, status: "stale",
+    checked_at: servedAt.toISOString(), published_at: servedAt.toISOString(),
+    upstream_updated: ranking.updated, last_error_code: "d1_daily_read_limit" };
+  console.warn(JSON.stringify({ event: "published", source: "public_upstream",
+    target_key: target.target_key, reason: "d1_daily_read_limit", report_count: ranking.reports.length }));
+  const payload = infoOnly ? { ...ranking, reports: undefined,
+    report_count: ranking.reports.length, refresh } : { ...ranking, refresh };
+  if (request.method === "HEAD") return new Response(null, { status: 200, headers: STALE_JSON_HEADERS });
+  return json(payload, 200, STALE_JSON_HEADERS);
+}
+
 async function serveRanking(request, env, target, infoOnly = false) {
   const servedAt = new Date();
   const summary = targetSummary(target);
@@ -296,6 +328,14 @@ async function serveRanking(request, env, target, infoOnly = false) {
       target_key: target.target_key,
       error: error instanceof Error ? error.message : String(error),
     }));
+    if (/daily row read limit/i.test(String(error))) {
+      try { return await fallbackRanking(request, target, infoOnly, servedAt); }
+      catch (fallbackError) {
+        console.error(JSON.stringify({ event: "failed", reason: "ranking_fallback_failed",
+          target_key: target.target_key,
+          error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError) }));
+      }
+    }
     return json({ error: "ranking_data_invalid", retryable: true, target: summary }, 503);
   }
   if (!validRowIdentity(row, target) || !validRanking(ranking, target)) {
@@ -432,6 +472,7 @@ async function handleApi(request, env) {
   if (pathname === "/api/classes") return asset(env, request, "/api/classes.json");
   if (pathname === "/api/roles") return asset(env, request, "/api/roles.json");
   if (pathname === "/api/specs") return asset(env, request, "/api/specs.json");
+  if (pathname === "/api/spellbook") return asset(env, request, "/api/spellbook.json");
 
   const zoneMatch = pathname.match(/^\/api\/zones\/([^/]+)$/);
   if (zoneMatch) return asset(env, request, `/api/current_season/zones/${zoneMatch[1]}.json`);

@@ -180,3 +180,16 @@ test("其他专精或指标不触发 WCL", async () => {
         log: () => {},
     });
 });
+
+test("WCL GraphQL 错误保留有限字段摘要以便诊断", async () => {
+    const { graphql, resetWclTokenForTests } = await import("../src/wcl-client.js");
+    resetWclTokenForTests();
+    const fetchImpl = async (url) => String(url).endsWith("/oauth/token")
+        ? response({ access_token: "token", expires_in: 3600 })
+        : response({ errors: [{ message: "Unknown argument 'sourceID'\non field 'events'" }] });
+    await assert.rejects(
+        graphql({ WCL_CLIENT_ID: "test", WCL_CLIENT_SECRET: "secret" }, fetchImpl,
+            () => new Date(), () => {}, target, "query{...}"),
+        /wcl_graphql_error: Unknown argument 'sourceID' on field 'events'/,
+    );
+});

@@ -16,6 +16,7 @@ const REQUIRED_API_FILES = [
     "classes.json",
     "roles.json",
     "specs.json",
+    "spellbook.json",
     "zones.json",
 ];
 const STATIC_API_DIRECTORIES = ["boss_spells", "current_season", "spec_spells"];

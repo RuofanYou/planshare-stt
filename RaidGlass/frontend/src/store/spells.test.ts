@@ -10,6 +10,7 @@ import {
     set_fights,
 } from "./fights";
 import { process_spells } from "./spells";
+import { set_spec_spells } from "./specs";
 import { appReducer } from "./store";
 
 function spellFixture(spell_id: number, name: string): SpellDict[number] {
@@ -51,16 +52,36 @@ describe("技能数据处理", () => {
         const spells: SpellDict = {
             1249265: spellFixture(1249265, "Umbral Collapse"),
             999999999: spellFixture(999999999, "Untranslated Spell"),
+            48792: { ...spellFixture(48792, "冰封之韧"), catalog_source: "spellbook" },
         };
 
         const processed = process_spells(spells);
 
         expect(processed[1249265].name).toBe("幽影坍缩");
         expect(processed[999999999].name).toBe("未知技能（999999999）");
+        expect(processed[48792].icon_path).toBe("/log/assets/images/spells/spell.jpg");
     });
 });
 
 describe("已接收战斗的技能派生", () => {
+    it("技能书与 WCL 元数据任一先到都保留中文名和真实图标", () => {
+        const book: SpellDict = { 1256581: { ...spellFixture(1256581, "麦琳瑟拉的祝福"),
+            spell_type: "evoker-preservation", icon: "", catalog_source: "spellbook", show: false } };
+        const extra: SpellDict = { 1256581: { ...spellFixture(1256581, "Merithra's Blessing"),
+            spell_type: "additional", icon: "ability_evoker_spiritbloom.jpg", show: false } };
+        for (const bookFirst of [true, false]) {
+            const store = configureStore({ reducer: appReducer });
+            if (bookFirst) store.dispatch(set_spec_spells({ spec_slug: "evoker-preservation", spells: book }));
+            store.dispatch(fightsRequestStarted({ requestId: "new", targetKey: "target" }));
+            store.dispatch(fightsRequestSucceeded({ requestId: "new", targetKey: "target",
+                fights: [fightWithSpell(1256581)], extraSpells: extra, meta: null }));
+            if (!bookFirst) store.dispatch(set_spec_spells({ spec_slug: "evoker-preservation", spells: book }));
+            const spell = store.getState().spells.all_spells[1256581];
+            expect(spell.name).toBe("麦琳瑟拉的祝福");
+            expect(spell.icon_path).toBe("https://assets.rpglogs.com/img/warcraft/abilities/ability_evoker_spiritbloom.jpg");
+        }
+    });
+
     it("未初始化根状态拒绝无所有者的终态动作", () => {
         const initial = appReducer(undefined, { type: "test/init" });
         const staleSuccess = appReducer(undefined, fightsRequestSucceeded({

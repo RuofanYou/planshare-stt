@@ -6,7 +6,7 @@ import { set_boss_spells } from './bosses'
 import { fightsRequestSucceeded, set_fights } from './fights'
 import { set_spec_spells } from './specs'
 import { ASSETS } from '../constants'
-import { spellNameZhCN } from '../localization/spellNames'
+import { spellNameZhCN, SPELL_NAMES_ZH_CN } from '../localization/spellNames'
 
 
 export interface SpellSliceState {
@@ -154,9 +154,13 @@ export function process_spells(spells?: SpellDict) {
     Object.values(spells).forEach(spell => {
         localizedSpells[spell.spell_id] = {
             ...spell,
-            name: spellNameZhCN(spell.spell_id, spell.name),
+            name: spell.catalog_source === "spellbook" ? spell.name
+                : spell.spell_type === "additional" && !SPELL_NAMES_ZH_CN[String(spell.spell_id)]
+                ? spell.name : spellNameZhCN(spell.spell_id, spell.name),
             specs: spell.specs || [],
-            icon_path: `${ASSETS}/images/spells/${spell.icon}`,
+            icon_path: spell.icon_path || (!spell.icon ? "" : spell.spell_type === "additional"
+                ? `https://assets.rpglogs.com/img/warcraft/abilities/${spell.icon}`
+                : `${ASSETS}/images/spells/${spell.icon}`),
         }
     })
     return localizedSpells;
@@ -197,6 +201,12 @@ export function sort_spell_types(spell_types: string[]) {
 function _add_spells_to_state(state: SpellSliceState, new_spells: SpellDict) {
 
     new_spells = process_spells(new_spells)
+    for (const spell of Object.values(new_spells)) {
+        const previous = state.all_spells[spell.spell_id];
+        if (spell.catalog_source === "spellbook" && !spell.icon_path && previous?.icon_path) {
+            new_spells[spell.spell_id] = { ...spell, icon: previous.icon, icon_path: previous.icon_path };
+        }
+    }
     state.all_spells = { ...state.all_spells, ...new_spells }
 
     state.spells_by_type = {} // reset the list
@@ -316,6 +326,18 @@ const SLICE = createSlice({
             })
 
             .addCase(fightsRequestSucceeded, (state, action) => {
+                const extra = action.payload.extraSpells || {};
+                // Keep curated names, cooldowns and aura behavior, while hiding new event-only abilities by default.
+                const additions = Object.fromEntries(Object.entries(extra).map(([id, spell]) => {
+                    const previous = state.all_spells[Number(id)];
+                    return [id, {
+                        ...spell, ...(previous?.spell_type !== "unknown" ? previous : {}), show: false,
+                        icon: previous?.icon || spell.icon,
+                        icon_path: previous?.icon_path || (spell.icon
+                            ? `https://assets.rpglogs.com/img/warcraft/abilities/${spell.icon}` : ""),
+                    }];
+                }));
+                _add_spells_to_state(state, additions);
                 return _replace_used_spells(state, action.payload.fights)
             })
 

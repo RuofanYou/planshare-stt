@@ -4,11 +4,12 @@
   "main": "src/index.js",
   "compatibility_date": "2026-07-15",
   "triggers": {
-    "crons": ["0 */6 * * *"]
+    "crons": ["0 * * * *"]
   },
   "vars": {
     "UPSTREAM_ORIGIN": "https://api2.lorrgs.io",
-    "ALLOWED_CRON": "0 */6 * * *"
+    "WCL_ALL_CASTS": "true",
+    "ALLOWED_CRON": "0 * * * *"
   },
   "d1_databases": [
     {
@@ -60,6 +61,7 @@
       },
       "vars": {
         "UPSTREAM_ORIGIN": "https://api2.lorrgs.io",
+        "WCL_ALL_CASTS": "false",
         "ALLOWED_CRON": "* * * * *"
       },
       "d1_databases": [

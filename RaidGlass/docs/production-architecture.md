@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
   UPSTREAM["公开 GET 上游"] --> CRON["Cron · 每 6 小时"]
-  WCL["WCL 公共 API · 仅奶萨 HPS 迅捷事件"] --> WORKER
+  WCL["WCL 公共 API · 迅捷与主动施法补采"] --> WORKER
   CRON --> QUEUE["Queue · 每条最多 20 个目标"]
   QUEUE --> WORKER["Refresh Worker · 并发 4"]
   WORKER <--> DO["SQLite Durable Object · 单轮协调"]
@@ -42,13 +42,13 @@ Node、Edge 与 Pages 合同测试共同锁定矩阵 ID、角色指标和 `1674 
 
 当前公开阵容上游缺少 `lura` 与 `rotmire`。`edge/scripts/reference-comp-seed.mjs` 从保留的 WCL 原始排行和战斗摘要生成一次性历史种子，只填补 `ranking_json IS NULL` 的行。两项目标保持 `stale`，错误码保持真实上游结果；正常公开 GET 恢复后，刷新链会覆盖历史种子。页面运行时仍只读 D1，不读取仓库静态排行。
 
-Durable Object 只负责 run、batch、失败目标与去重。每次新 run 开始时清理超过 30 天的历史轮次；`latest_targets` 继续保存当前协调状态。D1 是页面可读取动态数据的唯一权威。
+Durable Object 负责 run、batch、失败目标、去重，以及账户 WCL 请求的串行与额度状态。每次新 run 开始时清理超过 30 天的历史轮次；`latest_targets` 继续保存当前协调状态。D1 是页面可读取动态数据的唯一权威。
 
 ## 刷新语义
 
 专精目标先请求公开 `/info`。`updated` 与 D1 行一致且已存排行通过身份校验时，只更新检查状态；发生变化时读取完整排行、校验目标身份并裁剪 Top10。
 
-奶萨 HPS 目标每轮都读取完整排行，再用 WCL 当前公开排行按 `report code + fight ID` 精确匹配 Top10，仅补充自然迅捷 `378081` 与先祖迅捷 `443454` 的 `applybuff` 时间点。无法匹配、WCL 失败或达到每小时 10% 预算时保留原排行；日志记录匹配报告数、补入事件数、额度和失败原因。
+奶萨 HPS 目标复用未变化的排行，再用 WCL 当前公开排行按 `report code + fight ID` 精确匹配 Top10，仅补充自然迅捷 `378081` 与先祖迅捷 `443454` 的 `applybuff` 时间点。无法匹配、WCL 失败或达到每小时 10% 预算时保留原排行；日志记录匹配报告数、补入事件数、额度和失败原因。
 
 阵容目标每轮请求一次公开 GET，固定 `limit=20`，校验身份后裁剪 Top10。
 
@@ -72,15 +72,23 @@ D1 写入发生在 Durable Object 记录终态之前。D1 写入失败时 Queue 
 
 超过 8 小时没有成功检查时，Web Worker 将结果按 `stale` 提供。旧排行仍可展示，页面明确显示“数据已过期”。排行缺失、状态损坏、JSON 损坏或身份错误统一返回 JSON `503`。公开 API 位于 `/log/api/*`。
 
+D1 当日行读取额度耗尽时，专精与阵容排行临时从既有公开上游读取 Top10，标记 `stale` 并缓存 60 秒；上游失败仍返回 JSON `503`。此时健康与刷新状态接口继续如实报告 D1 不可用，额度恢复后自动回到 D1 权威数据。
+
 - `/log/api/health`：Worker Assets、D1 模式、1683 可用数和全局新鲜度。
 - `/log/api/admin/refresh-state`：当前/最近 run、专精与阵容的 fresh/stale/unchecked 计数。
 - `/log/snapshot-manifest.json`：schema v2，只描述 UI、Web Worker、静态资源和构建身份。
 
 ## 免费额度设计
 
-每天四轮刷新约产生 376 条 Queue 消息，即约 1128 次标准操作；D1 刷新约读写 7480 行。当前 Workers Free 额度分别为 Queue 10000 次操作/日、D1 500 万行读取/日和 10 万行写入/日。Top10 样本总数据预计约百 MB，低于 D1 免费总存储 5 GB。免费额度触顶时 Cloudflare 返回错误，Queue 重试或下一轮继续处理，旧排行保持可用。
+基础排行每天四轮刷新约产生 376 条 Queue 消息，即约 1128 次标准操作；D1 刷新约读写 7480 行。当前 Workers Free 额度分别为 Queue 10000 次操作/日、D1 500 万行读取/日和 10 万行写入/日。Top10 样本总数据预计约百 MB，低于 D1 免费总存储 5 GB。免费额度触顶时 Cloudflare 返回错误，Queue 重试或下一轮继续处理，旧排行保持可用。
 
-WCL 补采只覆盖奶萨 HPS，并在 `pointsSpentThisHour >= limitPerHour * 10%` 时停止本轮补采；其余专精和指标不调用 WCL。
+上述估算不包含主动技能缓存的额外 D1 读写和存储，开启前须用三样本实测大小并检查 D1 用量。
+
+WCL 请求统一通过现有 RefreshCoordinator 串行执行，奶萨迅捷补采共用该入口。协调器持久化额度与重置时间，空闲 60 秒后先重新读取账户额度；`pointsSpentThisHour >= limitPerHour * 10%` 时停止后续请求。10% 是停止阈值，最后一个请求可能跨过阈值；其他应用的并发消耗也计入账户用量。
+
+`WCL_ALL_CASTS` 在 Production 开启、Preview 关闭。开启时，每个专精排行的 Top10 玩家进入 `wcl_samples`，按报告、战斗、玩家与采集版本去重；阵容排行不补采。每次目标刷新最多处理一个最早等待样本的一页主动施法，持久化分页游标，仅完整样本参与发布。每页查询包含报告技能元数据，缓存只保留实际出现的技能。完整样本跨指标、跨轮次复用；报告读取失败退避 24 小时，额度停止退避 1 小时，后续六小时轮次继续。超过 24 小时未被当前排行引用的未完成样本暂停采集。
+
+新增主动技能与原排行合并时，复用专精静态目录识别 Buff 和技能变体，保留原有 Buff 时间与持续时间，普通主动技能补入缺失施法并去重。API 增加 `extra_spells` 和 `skill_completion`，补全状态独立于排行新鲜度。前端复用搜索与勾选，新增技能默认隐藏、无本地中文名时使用 WCL 名称；筛选不访问 WCL。
 
 ## 发布与恢复
 

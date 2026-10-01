@@ -13,8 +13,10 @@ test("Production 与 Preview 配置锁住唯一 D1 Queue SQLite DO 免费刷新�
     const previewConsumer = preview.queues.consumers[0];
 
     assert.equal(config.name, "raidglass-refresh");
-    assert.deepEqual(config.triggers.crons, ["0 */6 * * *"]);
-    assert.equal(config.vars.ALLOWED_CRON, "0 */6 * * *");
+    assert.deepEqual(config.triggers.crons, ["0 * * * *"]);
+    assert.equal(config.vars.WCL_ALL_CASTS, "true");
+    assert.equal(config.env.preview.vars.WCL_ALL_CASTS, "false");
+    assert.equal(config.vars.ALLOWED_CRON, "0 * * * *");
     assert.deepEqual(config.d1_databases[0], {
         binding: "RANKING_DB",
         database_name: "raidglass-data",

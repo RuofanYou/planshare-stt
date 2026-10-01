@@ -5,6 +5,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { fetch_data } from '../api'
 import { group_spells_by_type } from './store_utils'
 import { catalogsAccepted } from './catalogCommit'
+import type { SpellDict } from '../types/spell'
 import {
     assertUnique,
     expectArray,
@@ -33,6 +34,11 @@ export interface SpecCatalogEntry {
 }
 
 export type SpecsCatalogPayload = SpecCatalogEntry[]
+
+interface SpellbookPayload {
+    schema_version: number
+    specs: Record<string, Record<string, { name: string; name_en?: string; aliases?: string[] }>>
+}
 
 
 export interface SpecSliceState {
@@ -203,9 +209,30 @@ export function load_spec_spells(spec_slug: string) {
         dispatch({ type: "ui/set_loading", payload: { key: load_key, value: true } })
 
         try {
-            const spells = await fetch_data(`/api/specs/${spec_slug}/spells`);
-            console.info("[Specs] spells loaded", { spec_slug, count: Object.keys(spells || {}).length })
-            dispatch(SLICE.actions.set_spec_spells({ spec_slug, spells }))
+            const [curated, book] = await Promise.allSettled([
+                fetch_data<SpellDict>(`/api/specs/${spec_slug}/spells`),
+                fetch_data<SpellbookPayload>('/api/spellbook'),
+            ]);
+            if (curated.status === 'rejected') throw curated.reason;
+            const spells: SpellDict = { ...curated.value };
+            if (book.status === 'fulfilled' && book.value?.schema_version === 1) {
+                for (const [rawId, entry] of Object.entries(book.value.specs?.[spec_slug] || {})) {
+                    const id = Number(rawId);
+                    if (!Number.isSafeInteger(id) || id <= 0 || typeof entry?.name !== 'string' || !entry.name) continue;
+                    const search_names = [entry.name_en, ...(Array.isArray(entry.aliases) ? entry.aliases : [])]
+                        .filter((name): name is string => typeof name === 'string' && name.length > 0);
+                    const base = curated.value[id] || {
+                        spell_id: id, spell_type: spec_slug, name: entry.name,
+                        icon: '', icon_path: '', color: '', cooldown: 0, duration: 0, show: false,
+                    };
+                    spells[id] = { ...base, name: entry.name, search_names, catalog_source: 'spellbook' };
+                }
+            } else {
+                console.warn('[Specs] spellbook unavailable', { spec_slug,
+                    reason: book.status === 'rejected' ? String(book.reason) : 'invalid_schema' });
+            }
+            console.info('[Specs] spells loaded', { spec_slug, count: Object.keys(spells).length });
+            dispatch(SLICE.actions.set_spec_spells({ spec_slug, spells }));
         } catch (error) {
             console.warn("[Specs] spells load failed", {
                 spec_slug,

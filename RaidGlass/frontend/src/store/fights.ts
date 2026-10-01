@@ -11,6 +11,7 @@ import type {
     RawCompPlayer,
     RawCompReport,
 } from "../types/comp_rankings";
+import type { SpellDict } from "../types/spell";
 import type SpecRanking from "../types/spec_ranking";
 import { PRODUCT_CONFIG } from "../config/product";
 import { WCL_URL } from "../constants";
@@ -241,6 +242,7 @@ const SLICE = createSlice({
             targetKey: string;
             fights: Fight[];
             meta: RankingMeta | null;
+            extraSpells?: SpellDict;
         }>) => {
             if (!isCurrentFightsRequest(state, action.payload)) {
                 return;
@@ -309,7 +311,7 @@ async function _load_spec_rankings(
     boss_slug: string,
     difficulty: string,
     metric: string = ""
-): Promise<{ fights: Fight[]; meta: RankingMeta }> {
+): Promise<{ fights: Fight[]; meta: RankingMeta; extraSpells?: SpellDict }> {
 
     const query = new URLSearchParams({
         difficulty: difficulty,
@@ -352,7 +354,9 @@ async function _load_spec_rankings(
     fights = _pin_first_fight(fights)
     return {
         fights,
+        extraSpells: spec_ranking.extra_spells,
         meta: {
+            skillCompletion: spec_ranking.skill_completion,
             updated: spec_ranking.updated,
             edgeTopN: PRODUCT_CONFIG.rankingTopN,
             sourceReportCount: spec_ranking.source_report_count ?? spec_ranking.reports.length,

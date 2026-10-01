@@ -1,4 +1,5 @@
 
+import type { SpellDict } from "./spell";
 import type Report from "./report";
 import type RankingRefresh from "./ranking_refresh";
 
@@ -8,6 +9,8 @@ export default interface SpecRanking {
     difficulty: string;
     metric: string;
 
+    extra_spells?: SpellDict;
+    skill_completion?: SkillCompletion;
     reports?: Report[];
     updated?: string;
     edge_top_n?: number;
@@ -25,3 +28,5 @@ export interface SpecRankingInfo {
     dirty?: boolean;
     refresh: RankingRefresh;
 }
+
+export interface SkillCompletion { version: number; complete: number; total: number; failed: number; }

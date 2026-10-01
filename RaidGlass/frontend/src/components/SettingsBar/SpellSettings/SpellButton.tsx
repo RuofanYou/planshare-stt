@@ -91,13 +91,14 @@ export default function SpellButton({spec, spell_id, onClick} : { spec: Spec|Bos
                 onClick={toggle_spell}
                 aria-label={spell.name}
                 aria-pressed={visible}
+                data-spell_id={spell.spell_id}
             >
-                <img
+                {spell.icon_path ? <img
                     className={`button icon-s rounded wow-border-${wow_class} ${disabled}`}
                     src={spell.icon_path}
                     data-spell_id={spell.spell_id}
                     alt=""
-                />
+                /> : <span className={disabled} aria-hidden="true">{spell.name.slice(0, 2)}</span>}
             </button>
 
             {visible && <CustomTooltip tooltip={spell.tooltip} /> }
