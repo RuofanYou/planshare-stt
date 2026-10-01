@@ -315,14 +315,16 @@ test("D1 写入失败时 Queue 重试且 Durable Object 不记录终态", async 
     assert.equal(recorded.length, 0);
 });
 
-test("上游未变化仍续补；完整缓存下轮复用；补采异常保留旧排行", async t => {
+test("刷新只合并缓存并登记队列；完整缓存复用；缓存异常保留旧排行", async t => {
     const target = specTarget();
     const fixture = await fakeEnvironment(t, target);
     await seedRanking(fixture.db, target);
     fixture.env.WCL_ALL_CASTS = "true";
     const coordinator = fixture.env.REFRESH_COORDINATOR.getByName();
     let calls = 0;
-    coordinator.enrichCasts = async value => {
+    coordinator.registerCasts = async () => {};
+    coordinator.enrichCasts = async () => { throw new Error("refresh must not query WCL casts"); };
+    coordinator.cacheCasts = async value => {
         calls++;
         return { ...value, skill_completion: { version: 1, complete: 1, total: 1, failed: 0 },
             extra_spells: { 7: { name: "sample", show: false } } };
@@ -341,7 +343,7 @@ test("上游未变化仍续补；完整缓存下轮复用；补采异常保留�
         skill_completion: { version: 1, complete: 5, total: 10, failed: 0 } };
     await writeTargetResult(fixture.db, { target, status: "published", ranking: partiallyComplete,
         checkedAt: PUBLISHED_AT, publishedAt: PUBLISHED_AT, upstreamUpdated: UPSTREAM_UPDATED }, "seed-1");
-    coordinator.enrichCasts = async () => { throw new Error("storage unavailable"); };
+    coordinator.cacheCasts = async () => { throw new Error("storage unavailable"); };
     await consumeQueueBatch({ messages: [queueMessage(target)] }, fixture.env, options);
     const failed = JSON.parse((await loadTargetRecord(fixture.db, target.targetKey)).ranking_json);
     assert.deepEqual(failed.reports, partiallyComplete.reports);

@@ -1,6 +1,7 @@
 export type DiagnosticDetails = Record<string, string | number | boolean | null>;
 
 export type DiagnosticEvent =
+    | "cast_backfill_failed"
     | "spell_filter_applied"
     | "timeline_session_restored"
     | "timeline_session_saved"

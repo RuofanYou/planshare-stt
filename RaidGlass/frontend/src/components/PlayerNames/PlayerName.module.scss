@@ -236,3 +236,10 @@
         }
     }
 }
+
+.castStatus {
+    display: block;
+    color: var(--rg-text-muted);
+    font-size: var(--rg-text-xs, 0.75rem);
+    font-weight: normal;
+}

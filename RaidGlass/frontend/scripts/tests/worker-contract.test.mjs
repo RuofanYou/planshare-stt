@@ -206,3 +206,31 @@ test("D1 当日读额度耗尽时仅对合法排行目标使用公开上游应�
     assert.equal(unrelated.status, 503);
     assert.equal(urls.length, 3);
 });
+
+test("按需补采通过内部绑定登记、GET只读，校验目标与跨站请求", async () => {
+    const env = fakeEnv();
+    env.ASSETS.fetch = async assetRequest => {
+        const path = new URL(assetRequest.url).pathname;
+        if (path === "/api/specs.json") return Response.json([{ full_name_slug: "mage-fire", role: "rdps" }]);
+        if (path === "/api/roles.json") return Response.json([{ code: "rdps", metrics: ["dps"] }]);
+        if (path === "/api/current_season/zones.json") return Response.json({ zones: [{ bosses: ["nekzali-the-soulcoiler"] }] });
+        return new Response("not found", { status: 404 });
+    };
+    const calls = [];
+    env.CAST_BACKFILL = { async request(key, client) {
+        calls.push({ key, client });
+        return { skill_completion: { version: 1, complete: 2, total: 10, status: "queued" }, revision: "sample" };
+    } };
+    const path = "/log/api/spec_ranking/mage-fire/nekzali-the-soulcoiler/backfill?difficulty=heroic&metric=dps";
+    const post = await worker.fetch(request(path, { method: "POST", headers: { "CF-Connecting-IP": "192.0.2.1" } }), env);
+    assert.equal(post.status, 202);
+    assert.equal(post.headers.get("cache-control"), "no-store");
+    assert.match(calls[0].client, /^[a-f0-9]{64}$/);
+    assert.equal((await worker.fetch(request(path), env)).status, 200);
+    assert.equal(calls[1].client, null);
+    assert.equal((await worker.fetch(request(path, { method: "POST", headers: { Origin: "https://foreign.test" } }), env)).status, 403);
+    assert.equal((await worker.fetch(request(path.replace("mage-fire", "missing"), { method: "POST" }), env)).status, 400);
+    assert.equal(calls.length, 2);
+    env.CAST_BACKFILL.request = async () => ({ error: "rate_limited", http_status: 429 });
+    assert.equal((await worker.fetch(request(path, { method: "POST" }), env)).status, 429);
+});

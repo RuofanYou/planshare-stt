@@ -3,7 +3,9 @@
   "name": "raidglass-web",
   "main": "./public/_worker.js",
   "compatibility_date": "2026-09-03",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": false,
   "preview_urls": false,
   "assets": {
@@ -31,7 +33,21 @@
           "database_name": "raidglass-data-preview",
           "database_id": "bc5f6867-3803-4a0d-9e41-376528090a6f"
         }
+      ],
+      "services": [
+        {
+          "binding": "CAST_BACKFILL",
+          "service": "raidglass-refresh-preview",
+          "entrypoint": "CastBackfill"
+        }
       ]
     }
-  }
+  },
+  "services": [
+    {
+      "binding": "CAST_BACKFILL",
+      "service": "raidglass-refresh",
+      "entrypoint": "CastBackfill"
+    }
+  ]
 }

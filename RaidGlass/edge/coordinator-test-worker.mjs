@@ -9,6 +9,6 @@ export default {
         if (typeof coordinator[action] !== "function") {
             return Response.json({ error: "unknown_action" }, { status: 400 });
         }
-        return Response.json(await coordinator[action](...args));
+        return Response.json((await coordinator[action](...args)) ?? null);
     },
 };

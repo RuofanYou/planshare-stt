@@ -49,14 +49,14 @@ function payloadError(data: unknown) {
     return typeof reason === "string" ? reason : JSON.stringify(reason);
 }
 
-export async function fetch_data<T = any>(url: string, params: QueryParams = {}): Promise<T> {
+export async function fetch_data<T = any>(url: string, params: QueryParams = {}, options?: RequestInit): Promise<T> {
     const search = queryString(params);
     if (search) {
         url = `${url}?${search}`;
     }
 
     const requestUrl = (BACKEND_URL || APP_BASE_URL) + url;
-    const response = await fetch(requestUrl);
+    const response = await (options ? fetch(requestUrl, options) : fetch(requestUrl));
     let data: unknown;
     try {
         data = await response.json();

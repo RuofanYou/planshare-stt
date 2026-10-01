@@ -9,6 +9,7 @@ import admin_reducer from "./admin"
 import bosses_reducer from "./bosses"
 import classes_reducer from "./classes"
 import fights_reducer, {
+    castsUpdated,
     fightsRequestFailed,
     fightsRequestSucceeded,
     isCurrentFightsRequest,
@@ -45,6 +46,8 @@ const initialAppState = combinedReducer(undefined, { type: "@@raidglass/INIT" })
 
 export function appReducer(state: AppState | undefined, action: UnknownAction): AppState {
     const currentState = state ?? initialAppState
+    if (castsUpdated.match(action) && (currentState.fights.accepted_target !== action.payload.targetKey
+        || currentState.fights.active_request_id)) return currentState;
     if (fightsRequestSucceeded.match(action)) {
         if (!isCurrentFightsRequest(currentState.fights, action.payload)) {
             return currentState

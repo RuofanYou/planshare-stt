@@ -152,6 +152,13 @@ export default function TimelineWorkbenchView({
                 onCopy={onCopy}
             />
 
+            {acceptedMatchesSelection && meta && <div className={styles.stateMessage} role="note" aria-live="polite" data-testid="cast-completion">
+                完整技能已补齐 {meta.skillCompletion?.complete ?? 0}/{meta.skillCompletion?.total ?? Math.min(10, meta.sourceReportCount)}
+                {(!meta.skillCompletion || meta.skillCompletion.complete !== meta.skillCompletion.total) && <span>
+                    · {meta.skillCompletion?.status === "budget_wait" ? "等待额度恢复" : meta.skillCompletion?.status === "failed" ? "补采暂不可用，可刷新榜单重试" : "正在排队补采"}
+                    · 未补齐行的技能缺失不代表未施放
+                </span>}
+            </div>}
             <div className={styles.timelineWorkspace}>
             <section
                 className={styles.timelinePanel}

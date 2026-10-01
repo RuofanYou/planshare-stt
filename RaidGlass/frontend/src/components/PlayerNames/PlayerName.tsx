@@ -84,6 +84,8 @@ export function PlayerName({ fight, player }: { fight: Fight; player: Actor }) {
     // hooks
     const spec = useAppSelector((state) => get_spec(state, player.spec_slug));
     const role = useAppSelector((state) => spec ? get_role(state, spec.role) : undefined);
+    const completion = useAppSelector(state => state.fights?.ranking_meta?.skillCompletion);
+    const castsComplete = player.casts_complete ?? (!!completion && completion.complete === completion.total);
     const mode_spec = player.rank !== undefined;
     const mode_comp = fight.composition !== undefined;
 
@@ -120,7 +122,11 @@ export function PlayerName({ fight, player }: { fight: Fight; player: Actor }) {
                     <WebpImg className={styles.icon} src={spec.icon_path} alt="" />
                 </span>
                 <span className={styles.rank} data-player-rank>{mode_spec && player.rank ? `#${player.rank}` : ""}</span>
-                <span className={styles.name} title={player.name}>{player.name}</span>
+                <span className={styles.name} title={player.name}>{player.name}
+                    {mode_spec && <small className={styles.castStatus} title={castsComplete ? "全部主动技能已补齐" : "技能缺失不代表未施放"}>
+                        {castsComplete ? "已补齐" : "待补齐"}
+                    </small>}
+                </span>
                 <span className={styles.total} data-player-total>{player.total ? kFormatter(player.total) : "—"}</span>
             </a>
             <CopyAsNoteButton fight={fight} player={player} />

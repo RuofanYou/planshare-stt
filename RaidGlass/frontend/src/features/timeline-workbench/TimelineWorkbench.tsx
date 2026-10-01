@@ -1,3 +1,4 @@
+import { useCastBackfill } from "./useCastBackfill";
 import {
     useCallback,
     useEffect,
@@ -116,6 +117,9 @@ export default function TimelineWorkbench({
 
     const selectedTargetKey = timelineTargetKey(target);
     useTimelineSession(selectedTargetKey);
+    useCastBackfill(selectedTargetKey, status === "ready" && acceptedTargetKeyFromState === selectedTargetKey
+        && meta?.skillCompletion?.status !== "complete"
+        && !(meta?.skillCompletion && meta.skillCompletion.complete === meta.skillCompletion.total), meta?.skillCompletion);
     const catalogs = useMemo(() => ({ bosses, specs }), [bosses, specs]);
     const acceptedTarget = useMemo(() => (
         acceptedTargetKeyFromState

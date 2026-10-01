@@ -80,6 +80,17 @@ const server = createServer(async (incoming, outgoing) => {
         const response = await worker.fetch(request, {
             ASSETS: { fetch: assetFetch },
             RANKING_DB: rankingDatabase,
+            // Offline E2E fixtures have no credentials or remote queue. Keep their stored progress unchanged.
+            ...(process.env.RAIDGLASS_E2E_FIXTURE === "generated" && rankingDatabase ? {
+                CAST_BACKFILL: { async request(targetKey) {
+                    const row = await rankingDatabase.prepare("SELECT ranking_json FROM ranking_targets WHERE target_key=?").bind(targetKey).first();
+                    if (!row?.ranking_json) return { error: "ranking_unavailable", http_status: 404 };
+                    const ranking = JSON.parse(row.ranking_json);
+                    return { target_key: targetKey, revision: `fixture/${ranking.updated}`,
+                        skill_completion: ranking.skill_completion || { version: 1, complete: 0,
+                            total: ranking.reports.length, failed: 0, status: "queued", retry_at: null } };
+                } },
+            } : {}),
         });
         outgoing.writeHead(response.status, Object.fromEntries(response.headers.entries()));
         if (!response.body || incoming.method === "HEAD") {

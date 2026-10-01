@@ -101,34 +101,17 @@ test("奶萨 HPS 只补精确匹配报告的自然迅捷与先祖迅捷", async 
     });
 });
 
-test("达到每小时 10% 预算后保留原排行并跳过事件请求", async () => {
-    resetWclTokenForTests();
+test("共享额度入口拒绝查询时保留原排行", async () => {
     const value = ranking();
     const before = JSON.stringify(value);
     const logs = [];
-    let calls = 0;
-    await enrichWclSwiftness(value, target, {
-        WCL_CLIENT_ID: "client",
-        WCL_CLIENT_SECRET: "secret",
-    }, {
-        fetchImpl: async (url, init) => {
-            calls += 1;
-            if (String(url).endsWith("/oauth/token")) return response({ access_token: "token", expires_in: 3600 });
-            assert.match(JSON.parse(init.body).query, /characterRankings/);
-            return response({ data: {
-                rateLimitData: { limitPerHour: 3600, pointsSpentThisHour: 360, pointsResetIn: 3000 },
-                worldData: { encounter: { characterRankings: { rankings: [] } } },
-            } });
-        },
-        now: () => new Date("2026-09-15T01:00:00.000Z"),
-        log: (event, details) => logs.push({ event, details }),
+    await enrichWclSwiftness(value, target, {}, {
+        graphql: async () => { throw new Error("wcl_hourly_budget"); },
+        now: () => new Date(), log: (event, details) => logs.push({ event, details }),
         bossIds: new Map([["nymrissa-wavecaller", 3379]]),
     });
-
     assert.equal(JSON.stringify(value), before);
-    assert.equal(calls, 2);
-    assert.equal(logs.at(-1).event, "wcl_enrichment_skipped");
-    assert.equal(logs.at(-1).details.reason, "hourly_budget");
+    assert.equal(logs.at(-1).details.reason, "wcl_hourly_budget");
 });
 
 test("WCL 事件分页时不写入部分结果并保留原排行", async () => {

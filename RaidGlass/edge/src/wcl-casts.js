@@ -78,12 +78,6 @@ export function parseCastsPage(sample, data) {
         additions.push({ id: event.abilityGameID, ts });
     }
     const casts = mergeCasts(JSON.parse(sample.casts_json), additions);
-    if (cursor == null && casts.length === 0) {
-        const first = events.data[0];
-        throw new Error(`wcl_casts_empty: events=${events.data.length} type=${first?.type ?? "none"}`
-            + ` source=${first?.sourceID ?? "none"} requested=${sample.source_id}`
-            + ` start=${sample.fight_start}`);
-    }
     const usedIds = new Set(casts.map(cast => cast.id));
     const spells = JSON.parse(sample.spells_json);
     for (const ability of report.masterData?.abilities || []) {
@@ -104,7 +98,7 @@ export async function enrichActiveCasts(ranking, target, db, query, now, log) {
     for (const spell of Object.values(catalog)) {
         for (const variation of spell.variations || []) aliases.set(variation, spell.spell_id);
     }
-    const trace = { target_key: target.targetKey, trace_id: `${target.targetKey}/${now}` };
+    const trace = { target_key: target.targetKey, trace_id: target.traceId || `${target.targetKey}/${now}` };
     const samples = rankingSamples(ranking);
     log("wcl_casts_started", { ...trace, sample_count: samples.length });
     const chunks = [];
@@ -127,9 +121,10 @@ export async function enrichActiveCasts(ranking, target, db, query, now, log) {
     // One page from this target's Top10 only; bounded primary-key lookups avoid a global D1 scan.
     const waiting = [...cached.values()]
         .filter(row => row.complete === 0 && row.retry_at <= now)
-        .sort((left, right) => left.queued_at.localeCompare(right.queued_at)
+        .sort((left, right) => Number(right.cursor != null) - Number(left.cursor != null)
+            || left.queued_at.localeCompare(right.queued_at)
             || left.sample_key.localeCompare(right.sample_key))[0];
-    if (waiting) {
+    if (waiting && query) {
         // Confirm D1 can still checkpoint this page before spending WCL points.
         await db.prepare("UPDATE wcl_samples SET last_seen=? WHERE sample_key=?")
             .bind(now, waiting.sample_key).run();
@@ -151,7 +146,7 @@ export async function enrichActiveCasts(ranking, target, db, query, now, log) {
             const reason = error instanceof Error ? error.message : "wcl_failed";
             const delay = reason === "wcl_hourly_budget" ? 3600_000
                 : reason === "wcl_temporarily_unavailable" ? 5 * 60_000 : 24 * 3600_000;
-            const retryAt = new Date(Date.parse(now) + delay).toISOString();
+            const retryAt = error?.retryAt || new Date(Date.parse(now) + delay).toISOString();
             await db.prepare("UPDATE wcl_samples SET retry_at=?, last_error=? WHERE sample_key=?")
                 .bind(retryAt, reason.slice(0, 180), waiting.sample_key).run();
             cached.set(waiting.sample_key, { ...waiting, retry_at: retryAt, last_error: reason });
@@ -169,6 +164,7 @@ export async function enrichActiveCasts(ranking, target, db, query, now, log) {
     for (const report of ranking.reports) for (const fight of report.fights || []) {
         for (const player of fight.players || []) {
             const sample = cached.get(`${report.report_id}/${fight.fight_id}/${player.source_id}/v${CASTS_VERSION}`);
+            player.casts_complete = !!sample?.complete;
             if (!sample?.complete) continue;
             const casts = JSON.parse(sample.casts_json);
             const metadata = JSON.parse(sample.spells_json);
@@ -190,6 +186,12 @@ export async function enrichActiveCasts(ranking, target, db, query, now, log) {
             }
         }
     }
+    const pending = [...cached.values()].filter(sample => !sample.complete);
+    const ready = pending.some(sample => sample.retry_at <= now);
+    completion.status = pending.length === 0 ? "complete" : ready ? "queued"
+        : pending.every(sample => sample.last_error === "wcl_hourly_budget") ? "budget_wait" : "failed";
+    completion.retry_at = pending.length && !ready
+        ? pending.map(sample => sample.retry_at).sort()[0] : null;
     ranking.skill_completion = completion;
     log("wcl_casts_finished", { ...trace, ...completion });
     return ranking;

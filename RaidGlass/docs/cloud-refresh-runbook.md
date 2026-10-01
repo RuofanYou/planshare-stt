@@ -8,7 +8,7 @@
 
 基础排行按每天四轮估算（不含主动技能缓存）：Queue 约 1128 ops/日，D1 刷新约 7480 行读写/日；均明显低于免费额度。
 
-奶萨 HPS 的自然迅捷与先祖迅捷由 Refresh Worker 使用 WCL 公共 API 补采；账户小时用量达到 WCL 额度的 10% 后停止后续补采（单次请求可能跨过阈值）。Production 需要 `WCL_CLIENT_ID` 与 `WCL_CLIENT_SECRET` 两个 Secret，缺失或补采失败时继续发布原排行。
+奶萨 HPS 的自然迅捷与先祖迅捷由 Refresh Worker 使用 WCL 公共 API 补采；账户小时用量达到 WCL 额度的 80% 后停止后续补采（单次请求可能跨过阈值）。Production 需要 `WCL_CLIENT_ID` 与 `WCL_CLIENT_SECRET` 两个 Secret，缺失或补采失败时继续发布原排行。
 
 ## 2. 本地门禁
 
@@ -190,11 +190,18 @@ npm run cron:disable:production
    node scripts/probe-wcl-casts.mjs /tmp/dps-ranking.json /tmp/heal-ranking.json /tmp/tank-ranking.json > /tmp/raidglass-wcl-probe.json
    ```
    脚本只读 WCL，不写云端数据；输出原始事件页、相对施法时间、点数差、事件数和缓存字节。核对玩家归属与时间轴，账户点数差可能包含其他应用同期消耗。缺凭据、分页异常、身份错误或额度达到阈值均停止。
-3. Production 已应用 `0002_wcl_samples.sql` 并启用补采后，按现有发布流程检查缓存复用、失败退避与实际技能交互。每页后检查账户点数；浏览、搜索、勾选不应产生 WCL 查询。
-4. 每小时 Cron 在 UTC 0、6、12、18 点执行原有完整刷新，其余整点从已存排行投递最多 300 个未完成目标；两条路径的每条 Queue 消息最多 8 个目标，补采不请求 Lorrgs 排行。两条路径共用 WCL 10% 小时额度，额度暂停时停止本轮。回退时关闭 Production 变量并回滚 Worker，保留缓存表。
+3. Production 已应用 `0002_wcl_samples.sql` 并启用补采后，按现有发布流程检查缓存复用、失败退避与实际技能交互。每页后检查账户点数；页面加载未完成榜单只登记一次优先任务，搜索和勾选不直接产生 WCL 查询。
+4. 每小时 Cron 在 UTC 0、6、12、18 点执行原有完整刷新，其余整点从已存排行投递最多 300 个未完成目标；两条路径的每条 Queue 消息最多 8 个目标，补采不请求 Lorrgs 排行。两条路径共用 WCL 80% 小时额度，额度暂停时停止本轮。回退时关闭 Production 变量并回滚 Worker，保留缓存表。
 
-遇到玩家指出的单个排行缺少关键技能时，运维可用独立的 `CASTS_ADMIN_TOKEN` 调用 Production Refresh Worker 的 `POST /admin/backfill-casts`，JSON 为 `{"target_key":"spec/<boss>/<spec>/<difficulty>/<metric>"}`。每次仅补当前 Top10 的一页，复用 WCL 10% 小时额度与 D1 样本缓存；按返回的 `skill_completion` 逐页核对，额度暂停时停止。此入口不供前端调用，令牌只存 Cloudflare Secret；令牌不可读取，遗失时通过 `wrangler secret put` 轮换。
+遇到玩家指出的单个排行缺少关键技能时，运维可用独立的 `CASTS_ADMIN_TOKEN` 调用 Production Refresh Worker 的 `POST /admin/backfill-casts`，JSON 为 `{"target_key":"spec/<boss>/<spec>/<difficulty>/<metric>"}`。此入口仅登记当前 Top10 的优先任务，返回 202；后台逐页执行并复用 WCL 80% 小时额度与 D1 样本缓存，额度恢复后自动续采。此入口不供前端调用，令牌只存 Cloudflare Secret；令牌不可读取，遗失时通过 `wrangler secret put` 轮换。
 
 D1 Free 每账户每日行写入额度耗尽时，整轮刷新会跳过，补采会在查询 WCL 前停止；UTC 00:00 额度重置后再续采。已登记样本不会因排行刷新重写 `last_seen`，避免重复消耗行写入额度。
 
 WCL 单份报告的 GraphQL 权限或查询错误只让对应样本退避；其余上游故障触发账户级短暂停止，避免一份私有报告拖住其他目标。
+
+
+### 当前榜单优先补采验收
+
+Web Worker 的 `CAST_BACKFILL` Service Binding 必须指向同环境 Refresh Worker 的 `CastBackfill` entrypoint。先部署 Refresh，再部署 Web；Preview 验收用 `--var WCL_ALL_CASTS:true` 显式开启，不开启 Preview Cron。只准备英雄乌拉特克恶魔术这一目标，记录 API 请求、点数和耗时；通过公开 POST 登记后，用同路径 GET 检查进度。10/10 后核对每行 104316 事件与页面显示，并确认重复访问不再查询 WCL。
+
+回退先将 `WCL_ALL_CASTS` 关闭，停止新的按需登记与 Queue 执行，再回滚 Worker。保留 D1 样本表及协调器队列，恢复开关后由访问或 Cron 续行。生产发布仍须取得对应授权。

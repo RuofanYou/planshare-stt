@@ -6,6 +6,7 @@ export default interface Actor {
 
     //////////////////
     // Base Actor
+    casts_complete?: boolean
     casts: Cast[]
     source_id?: number
 

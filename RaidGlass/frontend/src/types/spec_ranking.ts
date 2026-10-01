@@ -29,4 +29,9 @@ export interface SpecRankingInfo {
     refresh: RankingRefresh;
 }
 
-export interface SkillCompletion { version: number; complete: number; total: number; failed: number; }
+export interface SkillCompletion {
+    version: number; complete: number; total: number; failed: number;
+    status?: "queued" | "collecting" | "budget_wait" | "failed" | "complete";
+    retry_at?: string | null;
+    updated_at?: string;
+}

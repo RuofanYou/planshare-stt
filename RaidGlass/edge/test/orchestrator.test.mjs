@@ -115,7 +115,7 @@ test("D1 日写入额度耗尽时不启动整轮刷新或补采队列", async ()
     assert.equal(fixture.sent.length, 0);
 });
 
-test("小时补采最多三百目标、每消息八目标，避开正式刷新且达到额度即停", async t => {
+test("小时补采每消息八目标，只登记任务而不抢占采集", async t => {
     const db = openLocalD1();
     t.after(() => db.close());
     db.exec(await readFile(new URL("../migrations/0001_dynamic_rankings.sql", import.meta.url), "utf8"));
@@ -139,7 +139,7 @@ test("小时补采最多三百目标、每消息八目标，避开正式刷新�
     const coordinator = {
         async runProgress() { return { active }; },
         async wclPauseReason() { return pages ? "wcl_hourly_budget" : null; },
-        async enrichCasts(ranking) { pages++; ranking.skill_completion.complete = 1; return ranking; },
+        async registerCasts() { pages++; },
     };
     const env = { WCL_ALL_CASTS: "true", ALLOWED_CRON: "0 * * * *", RANKING_DB: db,
         REFRESH_COORDINATOR: { getByName() { return coordinator; } },
@@ -159,8 +159,8 @@ test("小时补采最多三百目标、每消息八目标，避开正式刷新�
     } }] }, env, new Map(targets.map(value => [value.targetKey, value])), { log: () => {},
         now: () => new Date("2026-09-28T01:00:01Z") });
     assert.equal(acked, true);
-    assert.equal(pages, 1);
-    assert.equal(JSON.parse((await loadTargetRecord(db, targets[0].targetKey)).ranking_json).skill_completion.complete, 1);
+    assert.equal(pages, 8);
+    assert.equal(JSON.parse((await loadTargetRecord(db, targets[0].targetKey)).ranking_json).skill_completion.complete, 0);
     assert.equal(JSON.parse((await loadTargetRecord(db, targets[1].targetKey)).ranking_json).skill_completion.complete, 0);
 });
 
@@ -258,7 +258,7 @@ test("手动 retry 只接受 Durable Object 返回的失败目标且上限为 10
     });
 });
 
-test("授权补采只处理矩阵内专精，保留并更新原排行", async () => {
+test("授权补采只登记矩阵内专精，不同步查询或改写排行", async () => {
     const target = { kind: "spec", targetKey: "spec/boss/evoker-preservation/mythic/hps",
         specSlug: "evoker-preservation" };
     const original = JSON.stringify({ reports: [{ report_id: "REPORTCODE123456" }] });
@@ -269,9 +269,10 @@ test("授权补采只处理矩阵内专精，保留并更新原排行", async ()
             async first() { return sql.startsWith("SELECT") ? { ranking_json: original } : null; },
             async run() { saved = values; return { meta: { changes: 1 } }; },
         }; } }; } },
-        REFRESH_COORDINATOR: { getByName() { return { async enrichCasts(ranking) {
-            ranking.skill_completion = { version: 1, complete: 1, total: 1, failed: 0 };
-            return ranking;
+        REFRESH_COORDINATOR: { getByName() { return { async registerCasts(value, completion, foreground) {
+            assert.equal(value.targetKey, target.targetKey);
+            assert.equal(foreground, true);
+            return { version: 1, complete: 0, total: 1, failed: 0, status: "queued" };
         } }; } },
     };
     const request = (token, key) => new Request("https://edge.test/admin/backfill-casts", {
@@ -282,11 +283,9 @@ test("授权补采只处理矩阵内专精，保留并更新原排行", async ()
     assert.equal((await handleAdminRequest(request("wrong", target.targetKey), env, deps)).status, 401);
     assert.equal((await handleAdminRequest(request("backfill-secret", "other"), env, deps)).status, 400);
     const response = await handleAdminRequest(request("backfill-secret", target.targetKey), env, deps);
-    assert.equal(response.status, 200);
-    assert.equal((await response.json()).skill_completion.complete, 1);
-    assert.equal(saved[1], target.targetKey);
-    assert.equal(saved[2], original);
-    assert.equal(JSON.parse(saved[0]).skill_completion.complete, 1);
+    assert.equal(response.status, 202);
+    assert.equal((await response.json()).skill_completion.status, "queued");
+    assert.equal(saved, undefined);
 });
 
 test("完整矩阵分组发送队列消息，断点续排只投递缺失批次", async () => {

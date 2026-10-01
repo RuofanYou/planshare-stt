@@ -456,6 +456,31 @@ async function handleApi(request, env) {
   const url = new URL(request.url);
   const { pathname, searchParams } = url;
 
+  const backfillMatch = pathname.match(/^\/api\/spec_ranking\/([^/]+)\/([^/]+)\/backfill$/);
+  if (backfillMatch) {
+    if (!["GET", "POST"].includes(request.method)) return json({ error: "method_not_allowed" }, 405);
+    if (request.method === "POST" && request.headers.get("Origin") && request.headers.get("Origin") !== url.origin)
+      return json({ error: "origin_not_allowed" }, 403);
+    const target = await specTarget(request, env, backfillMatch[1], backfillMatch[2], searchParams);
+    if (target.error) return target.error;
+    if (!env.CAST_BACKFILL) return json({ error: "backfill_disabled" }, 503);
+    try {
+      let clientKey = null;
+      if (request.method === "POST") {
+        // Hash the edge-provided address; never persist or log client addresses.
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(request.headers.get("CF-Connecting-IP") || "unknown"));
+        clientKey = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+      }
+      const result = await env.CAST_BACKFILL.request(target.target_key, clientKey);
+      const { http_status, ...payload } = result;
+      return json(payload, http_status || (request.method === "POST" && payload.skill_completion?.status !== "complete" ? 202 : 200),
+        { "Content-Type": "application/json", "Cache-Control": "no-store" });
+    } catch (error) {
+      console.error(JSON.stringify({ event: "wcl_backfill_request_failed", target_key: target.target_key, reason: String(error).slice(0,180) }));
+      return json({ error: "backfill_unavailable" }, 503);
+    }
+  }
+
   if (request.method === "OPTIONS") return new Response(null, { status: 204 });
   if (request.method !== "GET" && request.method !== "HEAD") {
     return json({ error: "method_not_allowed" }, 405);

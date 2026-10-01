@@ -12,6 +12,7 @@ import type {
     RawCompReport,
 } from "../types/comp_rankings";
 import type { SpellDict } from "../types/spell";
+import type { SkillCompletion } from "../types/spec_ranking";
 import type SpecRanking from "../types/spec_ranking";
 import { PRODUCT_CONFIG } from "../config/product";
 import { WCL_URL } from "../constants";
@@ -259,6 +260,25 @@ const SLICE = createSlice({
             state.error = null;
             state.ranking_meta = action.payload.meta;
         },
+        castProgressUpdated: (state, action: PayloadAction<{ targetKey: string; completion: SkillCompletion }>) => {
+            if (state.accepted_target !== action.payload.targetKey || state.active_request_id || !state.ranking_meta) return;
+            state.ranking_meta.skillCompletion = action.payload.completion;
+        },
+        castsUpdated: (state, action: PayloadAction<{ targetKey: string; fights: Fight[]; extraSpells?: SpellDict; meta: RankingMeta }>) => {
+            if (state.accepted_target !== action.payload.targetKey || state.active_request_id) return;
+            for (const fight of action.payload.fights) {
+                const key = `${fight.report_id}/${fight.fight_id}/${fight.players[0]?.source_id || 0}`;
+                const current = state.fights_by_id[key];
+                if (!current) continue;
+                for (const player of current.players) {
+                    const incoming = fight.players.find(value => value.source_id === player.source_id);
+                    if (!incoming) continue;
+                    player.casts = _process_actor(incoming).casts;
+                    player.casts_complete = incoming.casts_complete;
+                }
+            }
+            state.ranking_meta = action.payload.meta;
+        },
         fightsRequestFailed: (state, action: PayloadAction<{
             requestId: string;
             targetKey: string;
@@ -285,6 +305,8 @@ export const {
     fightsRequestStarted,
     fightsRequestSucceeded,
     fightsRequestFailed,
+    castProgressUpdated,
+    castsUpdated,
 } = SLICE.actions
 export default SLICE.reducer
 
@@ -310,7 +332,8 @@ async function _load_spec_rankings(
     spec_slug: string,
     boss_slug: string,
     difficulty: string,
-    metric: string = ""
+    metric: string = "",
+    signal?: AbortSignal
 ): Promise<{ fights: Fight[]; meta: RankingMeta; extraSpells?: SpellDict }> {
 
     const query = new URLSearchParams({
@@ -319,7 +342,7 @@ async function _load_spec_rankings(
     })
 
     const url = `/api/spec_ranking/${spec_slug}/${boss_slug}?${query.toString()}`;
-    const spec_ranking = await fetch_data<SpecRanking>(url);
+    const spec_ranking = await fetch_data<SpecRanking>(url, {}, { signal, cache: "no-store" });
     if (!Array.isArray(spec_ranking.reports)) {
         throw new Error("排行响应缺少 reports");
     }
@@ -727,4 +750,17 @@ export function load_report_fights(report_id: string, search: string = "") {
             dispatch({ type: "ui/set_loading", payload: { key: "fights", value: false } })
         }
     }
+}
+
+export function refreshCastDetails(targetKey: string, signal: AbortSignal) {
+    return async (dispatch: AppDispatch, getState: () => RootState) => {
+        const [boss, spec, difficulty, metric] = targetKey.split("/");
+        const result = await _load_spec_rankings(spec, boss, difficulty, metric, signal);
+        if (signal.aborted || getState().fights.accepted_target !== targetKey || getState().fights.active_request_id) return;
+        // A new leaderboard must go through normal navigation; never label old rows with new completion.
+        const keys = result.fights.map(fight => `${fight.report_id}/${fight.fight_id}/${fight.players[0]?.source_id || 0}`);
+        if (keys.join("|") !== getState().fights.fight_ids.join("|")) throw new Error("ranking_changed");
+        dispatch(castsUpdated({ targetKey, ...result }));
+        return result.meta.skillCompletion;
+    };
 }

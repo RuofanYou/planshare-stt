@@ -3,7 +3,7 @@ import type { SpellDict } from '../types/spell'
 import { RootState } from './store'
 import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit'
 import { set_boss_spells } from './bosses'
-import { fightsRequestSucceeded, set_fights } from './fights'
+import { fightsRequestSucceeded, castsUpdated, set_fights } from './fights'
 import { set_spec_spells } from './specs'
 import { ASSETS } from '../constants'
 import { spellNameZhCN, SPELL_NAMES_ZH_CN } from '../localization/spellNames'
@@ -248,6 +248,22 @@ const INITIAL_STATE: SpellSliceState = {
 }
 
 
+function applyCastSpells(state: SpellSliceState, payload: { extraSpells?: SpellDict; fights: Fight[] }) {
+    const extra = payload.extraSpells || {};
+    // Keep curated names, cooldowns and aura behavior, while hiding new event-only abilities by default.
+    const additions = Object.fromEntries(Object.entries(extra).map(([id, spell]) => {
+        const previous = state.all_spells[Number(id)];
+        return [id, {
+            ...spell, ...(previous?.spell_type !== "unknown" ? previous : {}), show: false,
+            icon: previous?.icon || spell.icon,
+            icon_path: previous?.icon_path || (spell.icon
+                ? `https://assets.rpglogs.com/img/warcraft/abilities/${spell.icon}` : ""),
+        }];
+    }));
+    _add_spells_to_state(state, additions);
+    return _replace_used_spells(state, payload.fights)
+}
+
 const SLICE = createSlice({
     name: "spells",
 
@@ -325,20 +341,10 @@ const SLICE = createSlice({
                 return _replace_used_spells(state, action.payload)
             })
 
+            .addCase(castsUpdated, (state, action) => applyCastSpells(state, action.payload))
+
             .addCase(fightsRequestSucceeded, (state, action) => {
-                const extra = action.payload.extraSpells || {};
-                // Keep curated names, cooldowns and aura behavior, while hiding new event-only abilities by default.
-                const additions = Object.fromEntries(Object.entries(extra).map(([id, spell]) => {
-                    const previous = state.all_spells[Number(id)];
-                    return [id, {
-                        ...spell, ...(previous?.spell_type !== "unknown" ? previous : {}), show: false,
-                        icon: previous?.icon || spell.icon,
-                        icon_path: previous?.icon_path || (spell.icon
-                            ? `https://assets.rpglogs.com/img/warcraft/abilities/${spell.icon}` : ""),
-                    }];
-                }));
-                _add_spells_to_state(state, additions);
-                return _replace_used_spells(state, action.payload.fights)
+                return applyCastSpells(state, action.payload);
             })
 
             /**

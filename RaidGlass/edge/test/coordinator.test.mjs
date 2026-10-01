@@ -221,7 +221,7 @@ test("并发 WCL 请求共享持久额度；跨过阈值后不再发第二个事
             const body = await request.json();
             if (body.query.includes("reportData")) eventQueries++;
             return Response.json({ data: { rateLimitData: {
-                limitPerHour: 100, pointsSpentThisHour: eventQueries ? 11 : 0, pointsResetIn: 3600,
+                limitPerHour: 100, pointsSpentThisHour: eventQueries ? 81 : 0, pointsResetIn: 3600,
             } } });
         },
     });
@@ -267,4 +267,92 @@ test("单份报告权限错误不暂停其它公开报告的 WCL 查询", async 
     assert.equal(eventQueries, 2);
     await assert.rejects(() => call(mf, "wclQuery", query, {}, TARGET), /wcl_graphql_http_503/);
     assert.equal(await call(mf, "wclPauseReason"), "wcl_temporarily_unavailable");
+});
+
+test("持久队列去重、每客户端六次限制、三前台一后台轮转及排行 CAS", async context => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    const queried = [];
+    let duringQuery = null;
+    const mf = new Miniflare({
+        rootPath: root, modules: true, modulesRoot: root, script: coordinatorScript,
+        compatibilityDate: "2026-07-15",
+        bindings: { WCL_CLIENT_ID: "test", WCL_CLIENT_SECRET: "test" },
+        d1Databases: { RANKING_DB: "test-casts" },
+        durableObjects: { REFRESH_COORDINATOR: { className: "RefreshCoordinator", useSQLite: true } },
+        outboundService: async request => {
+            if (request.url.endsWith("/oauth/token")) return Response.json({ access_token: "test", expires_in: 3600 });
+            const { query, variables } = await request.json();
+            const rateLimitData = { limitPerHour: 1000, pointsSpentThisHour: queried.length, pointsResetIn: 3600 };
+            if (!query.includes("reportData")) return Response.json({ data: { rateLimitData } });
+            queried.push(variables.source);
+            if (duringQuery) { await duringQuery(); duringQuery = null; }
+            return Response.json({ data: { rateLimitData, reportData: { report: {
+                fights: [{ id: 1, startTime: 10000, endTime: 70000 }],
+                masterData: { actors: [{ id: variables.source, type: "Player" }], abilities: [] },
+                events: { nextPageTimestamp: null, data: [{ type: "cast", sourceID: variables.source, abilityGameID: 104316, timestamp: 11000 }] },
+            } } } });
+        },
+    });
+    context.after(() => mf.dispose());
+    const db = await mf.getD1Database("RANKING_DB");
+    const { readFile } = await import("node:fs/promises");
+    for (const name of ["0001_dynamic_rankings.sql", "0002_wcl_samples.sql"]) {
+        for (const sql of (await readFile(new URL(`../migrations/${name}`, import.meta.url), "utf8")).split(";")) {
+            if (sql.trim()) await db.prepare(sql).run();
+        }
+    }
+    const { writeTargetResult } = await import("../src/ranking-store.js");
+    const completion = { version: 1, complete: 0, total: 1, failed: 0 };
+    const targets = Array.from({ length: 6 }, (_, index) => ({ ...TARGET,
+        targetKey: `spec/boss-${index}/mage-fire/heroic/dps`, bossSlug: `boss-${index}` }));
+    const ranking = source => ({ reports: [{ report_id: "REPORTCODE123456", start_time: "2026-09-26T00:00:00Z",
+        fights: [{ fight_id: 1, start_time: "2026-09-26T00:00:10Z", duration: 60000,
+            players: [{ source_id: source, casts: [] }] }] }], skill_completion: completion });
+    for (const [i, target] of targets.entries()) {
+        await writeTargetResult(db, { target, status: "published", ranking: ranking(42 + i),
+            checkedAt: NOW, publishedAt: NOW, upstreamUpdated: NOW }, "seed");
+        await call(mf, "registerCasts", target, completion, i < 4);
+    }
+    for (let i = 0; i < 6; i++) {
+        assert.equal((await call(mf, "registerCasts", targets[0], completion, true, "a".repeat(64))).status, "queued");
+    }
+    assert.equal((await call(mf, "registerCasts", targets[0], completion, true, "a".repeat(64))).error, "rate_limited");
+    for (let i = 0; i < 5; i++) await call(mf, "processCastPage");
+    assert.deepEqual(queried, [42, 43, 44, 46, 45]);
+    // While the last target is in flight, a refresh publishes a different ranking.
+    const changed = JSON.stringify(ranking(99));
+    duringQuery = () => db.prepare("UPDATE ranking_targets SET ranking_json=? WHERE target_key=?")
+        .bind(changed, targets[5].targetKey).run();
+    await call(mf, "processCastPage");
+    assert.equal((await db.prepare("SELECT ranking_json FROM ranking_targets WHERE target_key=?")
+        .bind(targets[5].targetKey).first()).ranking_json, changed);
+    await call(mf, "processCastPage");
+    assert.deepEqual(queried.slice(-2), [47, 99]);
+    await call(mf, "processCastPage");
+    assert.equal(queried.length, 7, "duplicate registrations cannot duplicate WCL work");
+});
+
+test("WCL额度窗口重置后重新读取用量并继续查询", async context => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    let pages = 0, quotaChecks = 0;
+    const mf = new Miniflare({
+        rootPath: root, modules: true, modulesRoot: root, script: coordinatorScript,
+        compatibilityDate: "2026-07-15",
+        bindings: { WCL_CLIENT_ID: "test", WCL_CLIENT_SECRET: "test" },
+        durableObjects: { REFRESH_COORDINATOR: { className: "RefreshCoordinator", useSQLite: true } },
+        outboundService: async request => {
+            if (request.url.endsWith("/oauth/token")) return Response.json({ access_token: "test", expires_in: 3600 });
+            const { query } = await request.json();
+            const event = query.includes("reportData");
+            if (event) pages++; else quotaChecks++;
+            return Response.json({ data: { rateLimitData: { limitPerHour: 100,
+                pointsSpentThisHour: event ? 80 : 0, pointsResetIn: event ? 0 : 3600 } } });
+        },
+    });
+    context.after(() => mf.dispose());
+    const query = "query{rateLimitData{limitPerHour pointsSpentThisHour pointsResetIn}reportData{}}";
+    await call(mf, "wclQuery", query, {}, TARGET);
+    await call(mf, "wclQuery", query, {}, TARGET);
+    assert.equal(pages, 2);
+    assert.equal(quotaChecks, 2);
 });

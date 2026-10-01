@@ -1,7 +1,6 @@
 import { graphql as directGraphql } from "./wcl-client.js";
 export { resetWclTokenForTests } from "./wcl-client.js";
 const SPELL_IDS = [378081, 443454];
-const HOURLY_BUDGET_FRACTION = 0.1;
 function logDetails(target, extra = {}) { return { target_key: target.targetKey, ...extra }; }
 function safeMessage(error) { return (error instanceof Error ? error.message : String(error)).slice(0, 180); }
 
@@ -94,14 +93,6 @@ export async function enrichWclSwiftness(ranking, target, env, options) {
         const currentQuota = quota(rankingData);
         const rankings = rankingData.worldData?.encounter?.characterRankings?.rankings;
         if (!Array.isArray(rankings)) throw new Error("wcl_rankings_invalid");
-        if (currentQuota.spent >= currentQuota.limit * HOURLY_BUDGET_FRACTION) {
-            log("wcl_enrichment_skipped", logDetails(target, {
-                reason: "hourly_budget",
-                points_spent: currentQuota.spent,
-                points_limit: currentQuota.limit,
-            }));
-            return ranking;
-        }
         const publicReports = new Set(rankings.flatMap((entry) => entry.report
             ? [`${entry.report.code}/${entry.report.fightID}`]
             : []));

@@ -1,9 +1,12 @@
 import { DurableObject } from "cloudflare:workers";
 import { graphql } from "./wcl-client.js";
-import { enrichActiveCasts } from "./wcl-casts.js";
+import { enrichActiveCasts, CASTS_VERSION } from "./wcl-casts.js";
 
 import { COMP_EXPECTED_COUNT, SPEC_EXPECTED_COUNT } from "./matrix.js";
 import { validateTarget } from "./refresh.js";
+
+const WCL_BUDGET_FRACTION = 0.8;
+const quotaReached = quota => quota && quota.spent >= quota.limit * WCL_BUDGET_FRACTION;
 
 const TERMINAL_TARGET_STATUSES = new Set(["published", "reused", "failed"]);
 const RUN_TIMEOUT_MS = 3 * 60 * 60 * 1000;
@@ -88,7 +91,7 @@ export class RefreshCoordinator extends DurableObject {
         const now = Date.now();
         if (Number(this.#state("wcl_retry_after")) > now) return "wcl_temporarily_unavailable";
         const quota = JSON.parse(this.#state("wcl_quota") || "null");
-        return quota && quota.resetAt > now && quota.spent >= quota.limit * 0.1
+        return quota && quota.resetAt > now && quotaReached(quota)
             ? "wcl_hourly_budget" : null;
     }
 
@@ -98,7 +101,7 @@ export class RefreshCoordinator extends DurableObject {
             if (Number(this.#state("wcl_retry_after")) > now) throw new Error("wcl_temporarily_unavailable");
             const log = (event, fields) => console.log(JSON.stringify({ event, ...fields }));
             const saved = JSON.parse(this.#state("wcl_quota") || "null");
-            if (saved && saved.resetAt > now && saved.spent >= saved.limit * 0.1) {
+            if (saved && saved.resetAt > now && quotaReached(saved)) {
                 throw new Error("wcl_hourly_budget");
             }
             const saveQuota = (data) => {
@@ -128,26 +131,143 @@ export class RefreshCoordinator extends DurableObject {
             // Refresh account-wide usage after idle periods, including use by other applications.
             if (!saved || saved.resetAt <= now || now - saved.checkedAt >= 60_000) {
                 const quota = saveQuota(await request("query{rateLimitData{limitPerHour pointsSpentThisHour pointsResetIn}}"));
-                if (quota.spent >= quota.limit * 0.1) throw new Error("wcl_hourly_budget");
+                if (quotaReached(quota)) throw new Error("wcl_hourly_budget");
             }
+            const before = JSON.parse(this.#state("wcl_quota") || "null");
+            const started = Date.now();
             const data = await request(query, variables);
-            saveQuota(data);
+            const after = saveQuota(data);
+            log("wcl_query_finished", { target_key: target.targetKey, trace_id: target.traceId || null,
+                elapsed_ms: Date.now() - started, account_points_delta: before && after.spent >= before.spent ? after.spent - before.spent : null });
             return data;
         });
         this.#wclQueue = work.catch(() => {});
-        return work;
+        return work.catch(error => {
+            const pause = this.castPause();
+            if (pause) error.retryAt = pause.retry_at;
+            throw error;
+        });
     }
 
-    async enrichCasts(ranking, target) {
-        const work = this.#castsQueue.then(() => enrichActiveCasts(ranking, target, this.env.RANKING_DB,
-            (query, variables) => this.wclQuery(query, variables, target), new Date().toISOString(),
-            (event, fields) => console.log(JSON.stringify({ event, ...fields }))));
+    async cacheCasts(ranking, target) {
+        return enrichActiveCasts(ranking, target, this.env.RANKING_DB, null,
+            new Date().toISOString(), () => {});
+    }
+
+    castPause() {
+        const now = Date.now();
+        const quota = JSON.parse(this.#state("wcl_quota") || "null");
+        if (quota?.resetAt > now && quotaReached(quota))
+            return { status: "budget_wait", retry_at: new Date(quota.resetAt).toISOString() };
+        const retry = Number(this.#state("wcl_retry_after"));
+        if (retry > now) return { status: "failed", retry_at: new Date(retry).toISOString() };
+        return null;
+    }
+
+    async registerCasts(target, completion, foreground = false, clientKey = null) {
+        validateTarget(target);
+        if (target.kind !== "spec") throw new Error("invalid_target");
+        const now = Date.now();
+        if (clientKey) {
+            if (!/^[a-f0-9]{64}$/.test(clientKey)) throw new Error("invalid_client");
+            this.ctx.storage.sql.exec("DELETE FROM casts_clients WHERE reset_at<=?", now);
+            const client = oneOrNull(this.ctx.storage.sql.exec("SELECT * FROM casts_clients WHERE client_key=?", clientKey));
+            if (client?.count >= 6) return { error: "rate_limited", retry_at: new Date(client.reset_at).toISOString() };
+            this.ctx.storage.sql.exec(`INSERT INTO casts_clients VALUES(?,1,?)
+                ON CONFLICT(client_key) DO UPDATE SET count=count+1`, clientKey, now + 60_000);
+        }
+        if (completion?.version === CASTS_VERSION && completion.complete === completion.total) {
+            return { ...completion, status: "complete", retry_at: null };
+        }
+        this.ctx.storage.sql.exec(`INSERT INTO casts_jobs(target_key,target_json,priority,last_served,next_at,status)
+            VALUES(?,?,?,0,0,'queued') ON CONFLICT(target_key) DO UPDATE SET
+            priority=MAX(priority,excluded.priority), target_json=excluded.target_json`,
+            target.targetKey, JSON.stringify(target), Number(foreground));
+        await this.#wakeCasts();
+        return this.castStatus(target.targetKey, completion);
+    }
+
+    castStatus(key, completion) {
+        const job = oneOrNull(this.ctx.storage.sql.exec("SELECT * FROM casts_jobs WHERE target_key=?", key));
+        if (completion?.complete === completion?.total && completion?.version === CASTS_VERSION)
+            return { ...completion, status: "complete", retry_at: null };
+        const pause = this.castPause();
+        return { version: CASTS_VERSION, complete: 0, total: 10, failed: 0, ...completion,
+            status: pause?.status || job?.status || completion?.status || "queued",
+            retry_at: pause?.retry_at || (job?.next_at > Date.now() ? new Date(job.next_at).toISOString() : completion?.retry_at || null) };
+    }
+
+    async #wakeCasts() {
+        if (this.env.WCL_ALL_CASTS !== "true") return;
+        const job = oneOrNull(this.ctx.storage.sql.exec("SELECT MIN(next_at) AS next_at FROM casts_jobs"));
+        if (job?.next_at == null) return;
+        const when = Math.max(Date.now() + 1000, job.next_at, Date.parse(this.castPause()?.retry_at || '') || 0);
+        const alarm = await this.ctx.storage.getAlarm();
+        if (alarm == null || alarm > when || (this.castPause() && alarm < when)) await this.ctx.storage.setAlarm(when);
+    }
+
+    async alarm() {
+        if (this.env.WCL_ALL_CASTS !== "true") return;
+        if (this.castPause()) { await this.#wakeCasts(); return; }
+        // Queue owns execution/retries; the alarm is a durable wake-up and delivery watchdog.
+        await this.ctx.storage.setAlarm(Date.now() + 60_000);
+        await this.env.REFRESH_QUEUE.send({ schema_version: 2, trigger: "casts_tick" });
+    }
+
+    async processCastPage() {
+        const work = this.#castsQueue.then(async () => {
+            const now = Date.now();
+            if (this.castPause()) { await this.#wakeCasts(); return; }
+            const streak = Number(this.#state("casts_foreground_streak") || 0);
+            let job = streak >= 3 ? oneOrNull(this.ctx.storage.sql.exec(
+                "SELECT * FROM casts_jobs WHERE next_at<=? AND priority=0 ORDER BY last_served,target_key LIMIT 1", now)) : null;
+            job ||= oneOrNull(this.ctx.storage.sql.exec(
+                "SELECT * FROM casts_jobs WHERE next_at<=? ORDER BY priority DESC,last_served,target_key LIMIT 1", now));
+            if (!job) { await this.ctx.storage.deleteAlarm(); await this.#wakeCasts(); return; }
+            this.#setState("casts_foreground_streak", job.priority ? streak + 1 : 0);
+            this.ctx.storage.sql.exec("UPDATE casts_jobs SET status='collecting',last_served=? WHERE target_key=?", now, job.target_key);
+            const target = { ...JSON.parse(job.target_json), traceId: `${job.target_key}/${now}` };
+            const log = (event, fields) => console.log(JSON.stringify({ event, target_key: job.target_key, trace_id: `${job.target_key}/${now}`, ...fields }));
+            try {
+                const row = await this.env.RANKING_DB.prepare("SELECT ranking_json FROM ranking_targets WHERE target_key=?").bind(job.target_key).first();
+                if (!row?.ranking_json) throw new Error("ranking_unavailable");
+                const ranking = await enrichActiveCasts(JSON.parse(row.ranking_json), target, this.env.RANKING_DB,
+                    (query, variables) => this.wclQuery(query, variables, target), new Date(now).toISOString(), log);
+                ranking.skill_completion.updated_at = new Date().toISOString();
+                const pause = this.castPause();
+                if (pause && ranking.skill_completion.status !== "complete") Object.assign(ranking.skill_completion, pause);
+                const saved = await this.env.RANKING_DB.prepare(`UPDATE ranking_targets SET ranking_json=?
+                    WHERE target_key=? AND ranking_json=?`).bind(JSON.stringify(ranking), job.target_key, row.ranking_json).run();
+                if (saved.meta?.changes !== 1) {
+                    log("wcl_casts_ranking_changed", {});
+                    this.ctx.storage.sql.exec("UPDATE casts_jobs SET status='queued',next_at=0 WHERE target_key=?", job.target_key);
+                } else if (ranking.skill_completion.status === "complete") {
+                    this.ctx.storage.sql.exec("DELETE FROM casts_jobs WHERE target_key=?", job.target_key);
+                } else {
+                    const state = ranking.skill_completion;
+                    this.ctx.storage.sql.exec("UPDATE casts_jobs SET status=?,next_at=? WHERE target_key=?",
+                        state.status, Date.parse(state.retry_at || '') || 0, job.target_key);
+                }
+            } catch (error) {
+                log("wcl_casts_job_failed", { reason: String(error).slice(0,180) });
+                this.ctx.storage.sql.exec("UPDATE casts_jobs SET status='failed',next_at=? WHERE target_key=?", Date.now() + 300_000, job.target_key);
+            }
+            await this.ctx.storage.deleteAlarm();
+            await this.#wakeCasts();
+        });
         this.#castsQueue = work.catch(() => {});
         return work;
     }
 
     #migrate() {
         this.ctx.storage.sql.exec(`
+            CREATE TABLE IF NOT EXISTS casts_jobs (
+                target_key TEXT PRIMARY KEY, target_json TEXT NOT NULL, priority INTEGER NOT NULL,
+                last_served INTEGER NOT NULL, next_at INTEGER NOT NULL, status TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS casts_clients (
+                client_key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS runs (
                 run_id TEXT PRIMARY KEY,
                 trigger TEXT NOT NULL,

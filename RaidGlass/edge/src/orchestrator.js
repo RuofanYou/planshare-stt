@@ -238,19 +238,13 @@ export async function consumeBackfillBatch(batch, env, targetIndex, dependencies
         let stoppedBy = null;
         for (const targetKey of keys) {
             try {
-                stoppedBy = await coordinator.wclPauseReason();
-                if (stoppedBy) break;
                 const row = await loadTargetRecord(env.RANKING_DB, targetKey);
                 if (!row?.ranking_json || !row.spec_slug || row.refresh_status !== "fresh") continue;
                 const ranking = JSON.parse(row.ranking_json);
                 if (ranking.skill_completion?.version === CASTS_VERSION
                     && ranking.skill_completion.complete >= ranking.skill_completion.total) continue;
-                const enriched = await coordinator.enrichCasts(ranking, { targetKey, specSlug: row.spec_slug });
-                const saved = await env.RANKING_DB.prepare(`UPDATE ranking_targets
-                    SET ranking_json=?, published_at=? WHERE target_key=? AND ranking_json=?`)
-                    .bind(JSON.stringify(enriched), now().toISOString(), targetKey, row.ranking_json).run();
-                if (saved.meta?.changes === 1) processed++;
-                else log("wcl_backfill_skipped", { target_key: targetKey, reason: "ranking_changed" });
+                await coordinator.registerCasts(targetIndex.get(targetKey), ranking.skill_completion);
+                processed++;
             } catch (error) {
                 log("wcl_backfill_failed", { target_key: targetKey, reason: safeMessage(error) });
                 message.retry();
@@ -341,14 +335,9 @@ export async function handleAdminRequest(request, env, dependencies = {}) {
                 log("wcl_casts_manual_failed", { target_key: target.targetKey, reason: "ranking_unavailable" });
                 return json({ error: "ranking_unavailable" }, 404);
             }
-            const ranking = await env.REFRESH_COORDINATOR.getByName(COORDINATOR_NAME)
-                .enrichCasts(JSON.parse(row.ranking_json), target);
-            const saved = await env.RANKING_DB.prepare(`UPDATE ranking_targets SET ranking_json=?
-                WHERE target_key=? AND ranking_json=?`)
-                .bind(JSON.stringify(ranking), target.targetKey, row.ranking_json).run();
-            if (saved.meta?.changes !== 1) throw new Error("ranking_changed_during_backfill");
-            log("wcl_casts_manual_finished", { target_key: target.targetKey, ...ranking.skill_completion });
-            return json({ target_key: target.targetKey, skill_completion: ranking.skill_completion });
+            const completion = await env.REFRESH_COORDINATOR.getByName(COORDINATOR_NAME)
+                .registerCasts(target, JSON.parse(row.ranking_json).skill_completion, true);
+            return json({ target_key: target.targetKey, skill_completion: completion }, 202);
         } catch (error) {
             log("wcl_casts_manual_failed", { target_key: target.targetKey, reason: safeMessage(error) });
             return json({ error: "backfill_failed" }, 503);

@@ -294,7 +294,7 @@ async function refreshSpecTarget(target, env, options, checkedAt, stored) {
     });
     if (env.WCL_ALL_CASTS === "true") {
         try {
-            ranking = await coordinator.enrichCasts(ranking, target);
+            ranking = await coordinator.cacheCasts(ranking, target);
         } catch (error) {
             options.log("wcl_casts_failed", { target_key: target.targetKey, reason: safeErrorMessage(error) });
             const previous = ranking.skill_completion?.version === CASTS_VERSION ? ranking.skill_completion : null;
@@ -363,6 +363,10 @@ async function refreshTarget(target, env, options) {
         };
     }
     const storedState = await writeTargetResult(env.RANKING_DB, result, options.runId);
+    if (target.kind === "spec" && env.WCL_ALL_CASTS === "true" && result.ranking) {
+        await env.REFRESH_COORDINATOR.getByName(COORDINATOR_NAME)
+            .registerCasts(target, result.ranking.skill_completion);
+    }
     result = {
         ...result,
         available: storedState.available,

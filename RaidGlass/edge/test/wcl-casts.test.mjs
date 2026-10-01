@@ -37,7 +37,7 @@ test("分页断点持久化；整份完成后发布，跨指标和刷新零重�
         return requests === 1 ? page(20000) : page(null, 22000);
     };
     const first = await enrichActiveCasts(ranking(), target, db, query, NOW, quiet);
-    assert.deepEqual(first.skill_completion, { version: 1, complete: 0, total: 1, failed: 0 });
+    assert.deepEqual(first.skill_completion, { version: 1, complete: 0, total: 1, failed: 0, status: "queued", retry_at: null });
     assert.equal(first.reports[0].fights[0].players[0].casts.length, 1);
     const completed = await enrichActiveCasts(ranking(), target, db, query, NOW, quiet);
     assert.equal(completed.skill_completion.complete, 1);
@@ -139,7 +139,8 @@ test("身份、分页与数据形状校验，重复事件去重，原有 Buff �
     assert.throws(() => parseCastsPage({ ...sample, source_id: 99 }, page()), /player_identity/);
     assert.throws(() => parseCastsPage({ ...sample, fight_start: 0 }, page()), /fight_identity/);
     const empty = page(); empty.reportData.report.events.data = [];
-    assert.throws(() => parseCastsPage(sample, empty), /wcl_casts_empty: events=0 type=none/);
+    assert.deepEqual(parseCastsPage(sample, empty).casts, []);
+    assert.equal(parseCastsPage(sample, empty).complete, true);
     const malformed = page(); delete malformed.reportData.report.events.nextPageTimestamp;
     assert.throws(() => parseCastsPage(sample, malformed), /events_missing/);
     const data = page(); data.reportData.report.events.data.push(data.reportData.report.events.data[0]);
@@ -177,4 +178,22 @@ test("Top10 样本批量登记与读取，保持有限 D1 往返", async t => {
     const result = await enrichActiveCasts(value, target, db, async () => page(), NOW, quiet);
     assert.equal(result.skill_completion.total, 10);
     assert.ok(statementCount <= 5, `D1 statements=${statementCount}`);
+});
+
+test("已有分页先完成；缓存登记不请求 WCL；真实零次保持完整状态", async t => {
+    const db = await dbFor(t);
+    const value = ranking();
+    value.reports[0].fights[0].players.push({ source_id: 43, casts: [] });
+    await enrichActiveCasts(value, target, db, null, NOW, quiet);
+    await db.prepare("UPDATE wcl_samples SET cursor=20000 WHERE source_id=43").run();
+    const result = await enrichActiveCasts(value, target, db, async (_q, vars) => {
+        assert.equal(vars.source, 43);
+        assert.equal(vars.start, 20000);
+        const data = page(); data.reportData.report.events.data = [];
+        return data;
+    }, NOW, quiet);
+    assert.equal(result.skill_completion.complete, 1);
+    assert.equal(result.reports[0].fights[0].players[1].casts_complete, true);
+    assert.equal(result.reports[0].fights[0].players[1].casts.length, 0);
+    assert.equal(result.reports[0].fights[0].players[0].casts_complete, false);
 });
