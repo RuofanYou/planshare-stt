@@ -50,6 +50,20 @@ import {
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
+export interface EditorWclFight { id: number; name: string; kill: boolean; difficulty: number; startTime: number; endTime: number }
+export interface EditorWclMember { name: string; server: string; className: string; specName: string; specID: number | null }
+export function getEditorWclReport(code: string) {
+  return request<{title: string; fights: EditorWclFight[]}>(`/api/editor/wcl/report?code=${encodeURIComponent(code)}`)
+}
+export function getEditorWclRoster(code: string, fight: number) {
+  return request<{members: EditorWclMember[]}>(`/api/editor/wcl/roster?code=${encodeURIComponent(code)}&fight=${fight}`)
+}
+export interface EditorSpell {id: number; name: string; icon: string; castTime?:number}
+export async function getEditorSpells(ids: number[]): Promise<{spells:EditorSpell[]}> {
+  const valid=[...new Set(ids)].filter(id=>Number.isSafeInteger(id)&&id>0&&id<100000000).slice(0,40)
+  return valid.length?request<{spells:EditorSpell[]}>(`/api/editor/spells?ids=${valid.join(',')}`):{spells:[]}
+}
+
 function apiUrl(path: string): string {
   return `${API_BASE}${path}`
 }

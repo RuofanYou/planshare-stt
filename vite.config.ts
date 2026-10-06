@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+declare const process: {env:{PORT?:string}}
 
 const localPath = (path: string) => decodeURIComponent(new URL(path, import.meta.url).pathname)
 
@@ -12,9 +13,11 @@ const readlineSyncShim = localPath('./src/lib/node-shims/readline-sync.ts')
 const tmpShim = localPath('./src/lib/node-shims/tmp.ts')
 
 // PlanShare 前端构建配置：Vite + React 18 + TS + Tailwind v4。
-// dev 期间 /api/* 反代到本地 Fastify 后端（端口 3001）。
+// dev 期间 /api/* 反代到本地 Fastify 后端，端口与 server/index.mjs 一致。
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // Nested projects have separate HTML entrypoints and dependency trees.
+  optimizeDeps: { entries: ['index.html'] },
   define: {
     global: 'globalThis',
     'process.env': '{}',
@@ -54,15 +57,8 @@ export default defineConfig({
     allowedHosts: ['.trycloudflare.com', '.cpolar.top', '.cpolar.cn'],
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: `http://localhost:${process.env.PORT || 3001}`,
         changeOrigin: true,
-      },
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        inlineDynamicImports: true,
       },
     },
   },

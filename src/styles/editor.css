@@ -1,0 +1,19 @@
+@font-face {font-family:'STT Dragonflight';src:url('/stt-editor/fonts/stt_dragonflight_zhcn.ttf') format('truetype');font-display:block}
+.stt-native {position:fixed;inset:0;background:#071321;color:white;font-family:'STT Dragonflight',sans-serif}
+.stt-lua-surface {position:absolute;inset:0 0 34px;overflow:hidden;isolation:isolate}
+.stt-lua-surface>* {position:absolute;box-sizing:border-box;margin:0;line-height:1}
+.stt-native-button,.stt-native-input {border:0;border-radius:0;background:transparent;color:inherit;padding:0;outline-offset:-1px;font:inherit}
+.stt-native-button {touch-action:none;cursor:default}
+.stt-native-input {resize:none;overflow:hidden;outline:0}
+.stt-native-slider {appearance:none;background:transparent;cursor:pointer}
+.stt-native-slider::-webkit-slider-thumb {appearance:none;width:8px;height:20px;background:transparent}
+.stt-native-font {overflow:hidden}
+.stt-native-frame,.stt-native-texture,.stt-native-font {user-select:none}
+.stt-browser-tools {position:absolute;bottom:0;left:0;right:0;height:34px;display:flex;align-items:center;gap:12px;padding:2px 8px;background:#071321;font-size:12px;z-index:900000}
+.stt-browser-tools button,.stt-host-error button,.stt-wcl button {padding:3px 8px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer}
+.stt-browser-tools label {cursor:pointer}.stt-browser-tools input {width:160px}
+.stt-host-error {position:fixed;bottom:38px;left:10px;right:10px;z-index:1000001;background:#381d20;color:#fff;padding:10px;white-space:pre-wrap;font:13px/1.5 sans-serif}
+.stt-host-error button{float:right}
+.stt-wcl {position:fixed;inset:0;z-index:1000000;display:grid;place-items:center;background:#0008}
+.stt-wcl section {width:560px;padding:20px;background:#071321;border:1px solid #c9b37b;display:grid;gap:12px}
+.stt-wcl input,.stt-wcl select {width:100%;color:white;background:#132536;border:1px solid #aaa;padding:5px}
