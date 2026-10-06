@@ -66,6 +66,7 @@ export default function Header() {
           >
             翻译器
           </NavLink>
+          <NavLink to="/editor" className={({isActive}) => isActive ? 'ps-header__link is-active' : 'ps-header__link'}>时间轴编辑器</NavLink>
           <NavLink
             to="/creator"
             className={({ isActive }) =>

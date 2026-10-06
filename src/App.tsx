@@ -12,6 +12,7 @@ import Submit from './pages/Submit'
 import Creator from './pages/Creator'
 import Translator from './pages/Translator'
 import Loot from './pages/Loot'
+import Editor from './pages/Editor'
 import { pageTransition } from './lib/motion'
 
 /**
@@ -27,13 +28,14 @@ import { pageTransition } from './lib/motion'
 export default function App() {
   const location = useLocation()
   const isLootPage = location.pathname === '/loot' || location.pathname === '/loot/'
+  const isEditorPage = location.pathname === '/editor' || location.pathname === '/editor/'
 
   return (
     <>
       {/* 装备库使用自己的静谧拱门动效，其他页面继续沿用全局余烬暗场 */}
-      {!isLootPage && <EmberBackground />}
-      <Header />
-      <main className="ps-main">
+      {!isLootPage && !isEditorPage && <EmberBackground />}
+      {!isEditorPage && <Header />}
+      <main className={isEditorPage ? 'stt-page-main' : 'ps-main'}>
         {/* mode="wait" 让旧页面先淡出再淡入新页面；key 用 pathname 触发过场 */}
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -51,13 +53,14 @@ export default function App() {
               <Route path="/submit" element={<Submit />} />
               <Route path="/creator" element={<Creator />} />
               <Route path="/translator" element={<Translator />} />
+              <Route path="/editor" element={<Editor />} />
               <Route path="/loot" element={<Loot />} />
               <Route path="/admin" element={<Admin />} />
             </Routes>
           </motion.div>
         </AnimatePresence>
       </main>
-      <Footer />
+      {!isEditorPage && <Footer />}
     </>
   )
 }

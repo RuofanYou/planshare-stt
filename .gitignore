@@ -2,6 +2,7 @@ node_modules/
 dist/
 public/downloads/
 .env
+.env.local
 server/planshare.db
 server/planshare.db-wal
 server/planshare.db-shm

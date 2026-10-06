@@ -5,6 +5,22 @@ declare module 'fengari/src/fengaricore' {
 
 declare module 'fengari/src/lua' {
   export const LUA_OK: number
+  export const LUA_TTABLE: number
+  export const LUA_TSTRING: number
+  export const LUA_TNUMBER: number
+  export const LUA_TBOOLEAN: number
+  export function lua_gettop(state: unknown): number
+  export function lua_checkstack(state: unknown, extra: number): boolean
+  export function lua_settop(state: unknown, index: number): void
+  export function lua_absindex(state: unknown, index: number): number
+  export function lua_type(state: unknown, index: number): number
+  export function lua_tonumber(state: unknown, index: number): number
+  export function lua_toboolean(state: unknown, index: number): boolean
+  export function lua_next(state: unknown, index: number): number
+  export function lua_createtable(state: unknown, narr: number, nrec: number): void
+  export function lua_settable(state: unknown, index: number): void
+  export function lua_pushboolean(state: unknown, value: boolean): void
+  export function lua_close(state: unknown): void
   export function lua_getglobal(state: unknown, name: Uint8Array): number
   export function lua_isnil(state: unknown, index: number): boolean
   export function lua_pcall(state: unknown, nargs: number, nresults: number, msgh: number): number
@@ -34,6 +50,11 @@ declare module 'fengari/src/lauxlib' {
     openFn: (state: unknown) => number,
     global: number,
   ): void
+}
+
+declare module 'fengari-interop' {
+  export function push(state: unknown, value: unknown): void
+  export function luaopen_js(state: unknown): number
 }
 
 declare module 'fengari/src/lbaselib' {

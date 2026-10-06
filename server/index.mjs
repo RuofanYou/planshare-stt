@@ -22,6 +22,8 @@ import cors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
 import { raids, bosses, authors, boards } from './seed/seed-data.mjs'
 import { ensureDatabasePath } from './db-path.mjs'
+import { registerEditorWclRoutes } from './editor-wcl.mjs'
+import { registerEditorSpellRoutes } from './editor-spells.mjs'
 import {
   assertSafeAdminPassword,
   createViewDeduper,
@@ -1354,6 +1356,8 @@ function publishSubmission(submission, authorId, body = {}) {
 // ---------------------------------------------------------------------------
 
 const app = Fastify({ logger: false })
+registerEditorWclRoutes(app)
+registerEditorSpellRoutes(app)
 await app.register(cors, {
   origin(origin, cb) {
     cb(null, isOriginAllowed(origin, ALLOWED_ORIGINS))

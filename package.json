@@ -6,9 +6,9 @@
   "description": "STT 战术板分享平台 —— 让会写战术板的人有舞台，不会写的人有得抄",
   "scripts": {
     "dev": "concurrently -n web,server -c cyan,magenta \"npm:dev:web\" \"npm:dev:server\"",
-    "dev:e2e": "concurrently -n web,server -c cyan,magenta \"vite --port 5183 --strictPort\" \"node server/index.mjs\"",
-    "dev:web": "vite",
-    "dev:server": "node server/index.mjs",
+    "dev:e2e": "npm run sync:stt-editor && concurrently -n web,server -c cyan,magenta \"vite --port 5183 --strictPort\" \"node --env-file-if-exists=.env.local server/index.mjs\"",
+    "dev:web": "npm run sync:stt-editor && vite",
+    "dev:server": "node --env-file-if-exists=.env.local server/index.mjs",
     "start": "node server/index.mjs",
     "serve": "node --env-file=.env server/index.mjs",
     "sync:stt-translator": "node scripts/sync-stt-translator-assets.mjs",
@@ -34,8 +34,12 @@
     "deploy:log:legacy-redirect": "wrangler pages deploy RaidGlass/legacy-wowlogs-redirect --project-name wowlogs --branch main --commit-dirty=true --skip-caching",
     "deploy:pages:preview": "npm run build && wrangler pages deploy --commit-dirty=true --skip-caching",
     "deploy:pages": "npm run build && wrangler pages deploy --branch main --commit-dirty=true --skip-caching",
-    "build": "npm run sync:stt-translator && npm run prepare:voice-pack && npm run prepare:raidplan-extension && tsc -b && vite build && npm run prepare:stt-skill",
-    "preview": "vite preview"
+    "build": "npm run sync:stt-translator && npm run prepare:voice-pack && npm run prepare:raidplan-extension && npm run sync:stt-editor && tsc -b && vite build && npm run prepare:stt-skill",
+    "preview": "vite preview",
+    "sync:stt-editor": "node scripts/sync-stt-editor-assets.mjs",
+    "check:stt-editor": "node scripts/sync-stt-editor-assets.mjs --check && node scripts/check-stt-editor.mjs",
+    "test:editor": "npm run sync:stt-editor && npm run check:stt-editor && node --test server/editor-wcl.test.mjs && playwright test tests/e2e/editor.spec.ts",
+    "build:editor": "npm run sync:stt-editor && tsc -b && vite build"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
@@ -49,6 +53,7 @@
     "concurrently": "^10.0.1",
     "fastify": "^5.8.5",
     "fengari": "^0.1.5",
+    "fengari-interop": "^0.1.4",
     "fflate": "^0.8.3",
     "framer-motion": "^12.40.0",
     "react": "^18.3.1",
@@ -56,7 +61,8 @@
     "react-router-dom": "^6.26.2",
     "remotion": "^4.0.506",
     "tailwindcss": "^4.3.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "undici": "^7.29.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
