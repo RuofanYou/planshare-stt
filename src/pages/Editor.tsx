@@ -118,6 +118,8 @@ export default function Editor() {
   const runtime=useRef<EditorRuntime|null>(null),viewRef=useRef<EditorView|null>(null),blocked=useRef(false),latestText=useRef(''),requested=useRef(new Set<number>()),documents=useRef<Record<string,string>>({}),references=useRef<Record<string,{text?:string;hidden?:boolean}>>({}),uiNodes=useRef(new Map<number,UiNode>()),pointerDirty=useRef(true)
   const acceptRef=useRef<(view:EditorView)=>void>(),failRef=useRef<(error:unknown)=>void>(),sendRef=useRef<Send>()
   const [view,setView]=useState<EditorView|null>(null),[error,setError]=useState(''),[wcl,setWcl]=useState(false),[url,setUrl]=useState(''),[busy,setBusy]=useState(false),[report,setReport]=useState<{code:string;title:string;fights:EditorWclFight[];fight:number}|null>(null)
+  const reportRequest=useRef(0),[reportLoading,setReportLoading]=useState(false)
+  useEffect(()=>()=>{reportRequest.current++},[])
   const persist=(v:EditorView)=>{
     latestText.current=v.text
     if(blocked.current)return
@@ -194,12 +196,28 @@ export default function Editor() {
     if(!ids.length)return;ids.forEach(id=>requested.current.add(id))
     getEditorSpells(ids).then(result=>{if(runtime.current===vm&&result.spells.length)call('spellMetadata',{spells:result.spells.map(s=>({...s}))})}).catch(()=>setError('技能元数据暂不可用；方案文本已保留。'))
   },[view?.text,view?.document.bossKeyText,view?.ui.revision])
-  async function loadReport(){setBusy(true);try{const parsed=new URL(url);if(!['warcraftlogs.com','www.warcraftlogs.com','cn.warcraftlogs.com'].includes(parsed.hostname))throw Error('请输入 Warcraft Logs 报告链接');const code=parsed.pathname.match(/^\/reports\/([A-Za-z0-9]{16})/)?.[1];if(!code)throw Error('报告链接无效');const result=await getEditorWclReport(code);const fight=Number(new URLSearchParams(parsed.hash.slice(1)).get('fight'))||result.fights[0]?.id;setReport({...result,code,fight})}catch(e){fail(e)}finally{setBusy(false)}}
+  function changeReportUrl(nextUrl:string){reportRequest.current++;setReportLoading(false);setReport(null);setUrl(nextUrl)}
+  function closeWcl(){reportRequest.current++;setReportLoading(false);setReport(null);setWcl(false)}
+  async function loadReport(){
+    const request=++reportRequest.current
+    setReportLoading(true);setReport(null)
+    try{
+      const parsed=new URL(url)
+      if(!['warcraftlogs.com','www.warcraftlogs.com','cn.warcraftlogs.com'].includes(parsed.hostname))throw Error('请输入 Warcraft Logs 报告链接')
+      const code=parsed.pathname.match(/^\/reports\/([A-Za-z0-9]{16})/)?.[1]
+      if(!code)throw Error('报告链接无效')
+      const result=await getEditorWclReport(code)
+      if(request!==reportRequest.current)return
+      const fight=Number(new URLSearchParams(parsed.hash.slice(1)).get('fight'))||result.fights[0]?.id
+      setReport({...result,code,fight})
+    }catch(e){if(request===reportRequest.current)fail(e)}
+    finally{if(request===reportRequest.current)setReportLoading(false)}
+  }
   async function importRoster(){if(!report)return;setBusy(true);try{const result=await getEditorWclRoster(report.code,report.fight);if(call('roster',{members:result.members.map(m=>({...m}))}))setWcl(false)}catch(e){fail(e)}finally{setBusy(false)}}
   return <section className="stt-native" aria-busy={!view}>
     {view&&<LuaSurface tree={view.ui} send={send}/>}
     <div className="stt-browser-tools"><button onClick={()=>navigator.clipboard.writeText(latestText.current).catch(fail)}>复制战术方案</button><button onClick={()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([latestText.current],{type:'text/plain;charset=utf-8'}));a.download='STT.txt';a.click();URL.revokeObjectURL(a.href)}}>导出文本</button><label>导入文本<input type="file" accept=".txt,text/plain" onChange={async e=>{const file=e.currentTarget.files?.[0];if(file)call('text',{text:await file.text()})}}/></label><span role="status">{view?.message||(!view?'正在载入编辑器…':'本地草稿')}</span></div>
     {error&&<div className="stt-host-error" role="alert">{error}<button onClick={()=>setError('')}>关闭提示</button></div>}
-    {wcl&&<div className="stt-wcl"><section role="dialog" aria-modal="true" aria-label="从 WCL 导入团员"><button onClick={()=>setWcl(false)}>关闭</button><label>WCL 报告链接<input value={url} onChange={e=>setUrl(e.target.value)}/></label><button disabled={busy} onClick={loadReport}>读取报告</button>{report&&<><label>战斗<select value={report.fight} onChange={e=>setReport({...report,fight:Number(e.target.value)})}>{report.fights.map(f=><option value={f.id} key={f.id}>#{f.id} {f.name}</option>)}</select></label><button disabled={busy} onClick={importRoster}>导入这场名单</button></>}</section></div>}
+    {wcl&&<div className="stt-wcl"><section role="dialog" aria-modal="true" aria-label="从 WCL 导入团员"><button onClick={closeWcl}>关闭</button><label>WCL 报告链接<input value={url} onChange={e=>changeReportUrl(e.target.value)}/></label><button disabled={busy||reportLoading} onClick={loadReport}>读取报告</button>{report&&<><label>战斗<select value={report.fight} onChange={e=>setReport({...report,fight:Number(e.target.value)})}>{report.fights.map(f=><option value={f.id} key={f.id}>#{f.id} {f.name}</option>)}</select></label><button disabled={busy||reportLoading} onClick={importRoster}>导入这场名单</button></>}</section></div>}
   </section>
 }
