@@ -189,7 +189,7 @@ async function probeFirecrawl({ apiKey, code: code2, fetchImpl = fetch }) {
     await call(path, "DELETE");
   }
 }
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (process.argv[1]?.endsWith("/probe-death-note-cloud.mjs") && fileURLToPath(import.meta.url) === process.argv[1]) {
   const code2 = process.argv[2] || "F9WjkYzBDyrHaT7X";
   const result = await probeFirecrawl({ apiKey: process.env.FIRECRAWL_API_KEY, code: code2 });
   await mkdir(".workflow/cloud-fetch-probe", { recursive: true });
