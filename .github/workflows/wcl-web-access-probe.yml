@@ -1,0 +1,40 @@
+name: WCL web access probe
+on:
+  push:
+    branches:
+      - codex/wcl-web-access-probe
+  workflow_dispatch:
+    inputs:
+      report_code:
+        description: Public M7 report code; no cached input
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install browser control library
+        run: |
+          npm install --prefix .probe-runtime --ignore-scripts --no-audit --no-fund playwright-core@1.60.0
+          ln -s .probe-runtime/node_modules node_modules
+      - name: Read uncached WCL metadata and one second of replay
+        env:
+          REPORT_CODE: ${{ inputs.report_code || 'H6BAxdDZCfrtTpcb' }}
+          CHROME_BIN: /usr/bin/google-chrome
+          PROBE_OUTPUT: probe-output
+        run: node scripts/probe-death-note-normal-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wcl-web-access-evidence
+          path: probe-output/
+          retention-days: 1
