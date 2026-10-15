@@ -31,6 +31,7 @@ jobs:
           REPORT_CODE: ${{ inputs.report_code || 'H6BAxdDZCfrtTpcb' }}
           CHROME_BIN: /usr/bin/google-chrome
           PROBE_OUTPUT: probe-output
+          WCL_WEB_HOST: www.warcraftlogs.com
         run: node scripts/probe-death-note-normal-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()

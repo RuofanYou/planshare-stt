@@ -108,8 +108,9 @@ function validateDeathNoteInput(kind, params) {
 }
 
 // scripts/probe-death-note-cloud.mjs
-function cloudProbeCode(code2) {
+function cloudProbeCode(code2, { host = "cn.warcraftlogs.com" } = {}) {
   validateDeathNoteInput("report", { code: code2 });
+  if (!["cn.warcraftlogs.com", "www.warcraftlogs.com"].includes(host)) throw new Error("\u4E0D\u652F\u6301\u7684WCL\u4E3B\u673A");
   return `const evidence = await (async () => {
     const { gzipSync } = await import('node:zlib');
     const { createHash } = await import('node:crypto');
@@ -117,7 +118,7 @@ function cloudProbeCode(code2) {
     let officialApiAttempts = 0;
     const api = /^https:\\/\\/(?:cn|www)\\.warcraftlogs\\.com\\/(?:api\\/v2\\/(?:client|user)|oauth\\/token)(?:[/?]|$)/;
     await page.route(api, async route => { officialApiAttempts++; await route.abort(); });
-    await page.goto('https://cn.warcraftlogs.com/reports/' + code, {waitUntil:'domcontentloaded',timeout:30000});
+    await page.goto('https://' + ${JSON.stringify(host)} + '/reports/' + code, {waitUntil:'domcontentloaded',timeout:30000});
     if (/just a moment|\u8BF7\u7A0D\u5019/i.test(await page.title())) await page.waitForSelector('#report-title-link',{timeout:15000}).catch(()=>{});
     const title = await page.title(), url = page.url();
     if (!await page.locator('#report-title-link').count()) return {code,title,url,blocked:true,officialApiAttempts};
@@ -211,7 +212,7 @@ var evidence;
 try {
   const page = await browser.newPage();
   const execute = new (Object.getPrototypeOf(async function() {
-  })).constructor("page", `${cloudProbeCode(code)}
+  })).constructor("page", `${cloudProbeCode(code, { host: process.env.WCL_WEB_HOST || "cn.warcraftlogs.com" })}
 return evidence;`);
   evidence = await execute(page);
   assert.equal(evidence.code, code);
