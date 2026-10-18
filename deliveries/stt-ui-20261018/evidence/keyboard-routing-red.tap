@@ -1,0 +1,57 @@
+✖ unfocused high-level edit box cannot swallow timeline Delete (18.129158ms)
+✔ focused text edit box retains ordinary Delete priority (4.603748ms)
+✔ focused edit box consumed undo remains consumed (3.414975ms)
+✖ unfocused edit boxes also do not receive root key-up (3.953643ms)
+✔ visible root priority and stop-on-consume are preserved (3.073098ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138.113973
+
+✖ failing tests:
+
+test at scripts/test-stt-keyboard-routing.mjs:32:1
+✖ unfocused high-level edit box cannot swallow timeline Delete (18.129158ms)
+  AssertionError [ERR_ASSERTION]: [string "..."]:39: assertion failed!
+  
+  2 !== 0
+  
+      at check (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-keyboard-routing.mjs:30:70)
+      at TestContext.<anonymous> (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-keyboard-routing.mjs:32:73)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/test-stt-keyboard-routing.mjs:46:1
+✖ unfocused edit boxes also do not receive root key-up (3.953643ms)
+  AssertionError [ERR_ASSERTION]: [string "..."]:37: assertion failed!
+  
+  2 !== 0
+  
+      at check (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-keyboard-routing.mjs:30:70)
+      at TestContext.<anonymous> (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-keyboard-routing.mjs:46:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

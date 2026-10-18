@@ -329,7 +329,9 @@ function __STT_EDITOR_CALL(action,args)
         local consumed=false
         local candidates={}
         if not focused then
-            for _,f in ipairs(__STT_WEB_FRAMES)do if f.__sttWebUI.keyboard and f:IsVisible()then candidates[#candidates+1]=f end end
+            -- Unfocused EditBoxes do not receive global keys in the game client.
+            -- They otherwise stop routing before the timeline root sees Delete.
+            for _,f in ipairs(__STT_WEB_FRAMES)do if f.__sttWebUI.keyboard and f.__sttWebUI.kind~='EditBox'and f:IsVisible()then candidates[#candidates+1]=f end end
             table.sort(candidates,function(a,b)local x,y=a.__sttWebUI,b.__sttWebUI;return (strata[x.frameStrata]or 2)*10000+x.frameLevel>(strata[y.frameStrata]or 2)*10000+y.frameLevel end)
             for _,f in ipairs(candidates)do f:_Fire(event,args.key);if f.__sttWebUI.propagateKeyboard==false then consumed=true;break end end
         else

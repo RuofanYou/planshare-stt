@@ -20,7 +20,13 @@ Actual single-point and multi-point drag moved the timeline and source text, but
 
 Actual Chromium checks after this change: single drag 9s → 11s immediately showed tooltip 11s; Ctrl-multiselect drag (11s,12s) → (13s,14s) immediately showed tooltip 13s while the pointer remained over the moved point. Direct click still focused the selected source line; Delete removed just that line and Ctrl+Z restored it. These exact sequences are covered; other focus/modifier combinations are not implied.
 
-Product changes against the 10/14 baseline are shown in `evidence/product-fix.patch`. Packaging additions include `source/scripts/serve-local.mjs` and `preview:local`; new regression cases are in the draft-recovery, import-context and hover-refresh test scripts. `evidence/hover-fix.patch` isolates the tooltip change. The remaining source/runtime/asset changes relative to the old remote branch come from the recovered baseline, not new 10/18 work.
+### Global Delete blocked by an unfocused edit box
+
+The real UI reported two selected timeline points, but Delete did nothing after the source editor had lost focus. Native route logs showed the key still being sent to an unfocused EditBox. The web compatibility bridge incorrectly included all keyboard-enabled EditBoxes in the unfocused/global candidate list. Its native-text handler stopped the timeline root from receiving the key.
+
+`source/src/lib/stt-editor/bridge.lua` now excludes EditBoxes from that global candidate list. The focused-EditBox path is unchanged. Real Chromium confirms both row-header multi-select and Ctrl-multiselect followed by native Escape can delete two points and undo them. Clicking a point and retaining the source editor focus still deletes only that selected source line; its undo also works. The frozen game Lua bundle and Wasmoon adapter are unchanged; this new change is in the **web compatibility bridge**.
+
+Product changes against the 10/14 baseline are shown in `evidence/product-fix.patch`; `evidence/keyboard-routing-fix.patch` isolates the bridge fix. Packaging additions include `source/scripts/serve-local.mjs` and `preview:local`; new regression cases are in the draft-recovery, import-context, hover-refresh and keyboard-routing test scripts. `evidence/hover-fix.patch` isolates the tooltip change. The remaining source/runtime/asset changes relative to the old remote branch come from the recovered baseline, not new 10/18 work.
 
 ## Run after pulling
 
@@ -55,17 +61,22 @@ Real cloud-desktop Chromium, with the HTTP server running on that same cloud des
 - Explicit original/legacy appearance persisted after reload and WASM readiness.
 - Native zoom slider Home/End reached both endpoints and changed actual tick scale; horizontal scrollbar thumb drag moved the viewport from 4:30 back to 0:00.
 - Personal timeline single-point drag changed 7s to 9s; Ctrl-multiselect batch drag changed (9s,12s) to (11s,14s). Native text and clipboard agreed.
-- Direct event click then Delete, retaining the native-selected source-line focus, removed that one event; undo restored it. This does not cover multi-delete or forced button-focus keyboard paths.
+- Direct event click then Delete, retaining the native-selected source-line focus, removed that one event; undo restored it. This was repeated after the keyboard bridge fix.
+- Two-point row selection → Delete → native “deleted 2 points” hint → Ctrl+Z restored both exact source lines. Ctrl-multiselect → native Escape to release source focus → Delete → undo also passed. This is not an artificial button-focus test.
+- Imported a 116-line synthetic Chinese/emoji plan. Source-pane wheel scrolled down; scrollbar drag reached lines 72–116 and returned to the beginning. Copied source remained byte-for-byte equal to the fixture.
+- In vertical timeline view, wheel scrolled down and back up; scrollbar drag reached later rows (03:37–07:48, including bundled boss reference rows) and returned to 00:05. Copied source still exactly matched the synthetic fixture. No WCL or external account data was used.
 
 Screenshots (raw JPEG capture bytes), the downloaded file, JSON observations, fixture and logs are in `evidence/`. These screenshots show the web editor, not the game client.
 
-Host tests: baseline 109 passed; draft-fix stage 113 passed; final tooltip-fix stage 130 passed (`host-tests-final.tap`). The newly added actual `accept` → `persist` regression fails against the saved baseline and passes against the fix (`fresh-draft-red.tap`, `fresh-draft-green.tap`). The 17 hover-refresh cases also fail against the saved pre-hover source and pass with the fix (`hover-refresh-red.tap`, `hover-refresh-green.tap`). These tests use controlled host doubles and are not additional real-browser acceptance checks. TypeScript and Vite build pass; latest logs are `typecheck-hover.log` and `build-hover.log`. Vite retains its existing externalized Node-module and large-chunk warnings. The local preview helper returned the editor, font and WASM with correct MIME types; `/api/raids` intentionally returned 404. Node used for checks: v24.19.0.
+Host tests: baseline 109 passed; draft-fix stage 113 passed; tooltip-fix stage 130 passed (`host-tests-final.tap`); final keyboard-routing stage 135 passed (`tests-keyboard-final.tap`). The newly added actual `accept` → `persist` regression fails against the saved baseline and passes against the fix (`fresh-draft-red.tap`, `fresh-draft-green.tap`). The 17 hover-refresh cases also fail against the saved pre-hover source and pass with the fix (`hover-refresh-red.tap`, `hover-refresh-green.tap`). Five new tests execute the actual Lua keyboard bridge branch with controlled frame doubles; unfocused/global routing fails before the fix and passes after it, while focused text behavior stays intact (`keyboard-routing-red.tap`, `keyboard-routing-green.tap`). These controlled tests are not additional real-browser acceptance checks. TypeScript and Vite build pass; latest logs are `typecheck-keyboard.log` and `build-keyboard.log`. Vite retains its existing externalized Node-module and large-chunk warnings. The local preview helper returned the editor, font and WASM with correct MIME types; `/api/raids` intentionally returned 404. Node used for checks: v24.19.0.
 
 ## Still open
 
 - A second independent review began but did not finish due to platform quota. Do not label this independently approved.
 - No game-client launch, same-version game screenshot, or game/web visual parity acceptance.
-- No complete matrix for drag/selection/zoom: only the exact sequences above. Multi-delete, vertical scroll, remaining modifier/focus combinations, skill drawer, real OS IME composition, WCL service and full-site routes remain unverified.
+- No complete matrix for drag/selection/zoom: only the exact sequences above. Remaining modifier/focus combinations, skill drawer, WCL service and full-site routes remain unverified. Multi-delete coverage is keyboard-based; context-menu preservation of a multi-selection is not accepted by these checks.
+- **System Chinese IME composition remains unverified.** The actual cloud desktop has no installed ibus/fcitx/uim/pinyin input method (see `ime-environment-check.txt`). No input method was installed or configured. Direct Chinese text entry/import and simulated composition events do not establish a system-IME pass. The existing automated composition guard test is only controlled host coverage.
+- Vertical-scroll coverage is the source pane and vertical timeline's wheel/scrollbar sequences above. This does not claim a full vertical-view visual-parity or horizontal-view many-track virtualization matrix.
 - No deployment or publication performed. A GitHub delivery branch does not establish production readiness.
 - The existing pending permission for other preview routes remains unresolved; this local cloud-desktop route required no such deployment.
 

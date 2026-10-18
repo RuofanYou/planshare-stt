@@ -1,0 +1,13 @@
+✔ unfocused high-level edit box cannot swallow timeline Delete (17.135194ms)
+✔ focused text edit box retains ordinary Delete priority (4.369891ms)
+✔ focused edit box consumed undo remains consumed (3.37789ms)
+✔ unfocused edit boxes also do not receive root key-up (2.957356ms)
+✔ visible root priority and stop-on-consume are preserved (2.243367ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137.41393

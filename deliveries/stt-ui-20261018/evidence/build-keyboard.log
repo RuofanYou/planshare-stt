@@ -1,0 +1,21 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> build
+> node node_modules/vite/bin/vite.js build --config vite.editor.config.mjs
+
+vite v5.4.21 building for production...
+transforming...
+[plugin:vite:resolve] [plugin vite:resolve] Module "util" has been externalized for browser compatibility, imported by "/workspace/shared/stt-ui-20261018/source/node_modules/fengari-interop/src/js.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin:vite:resolve] [plugin vite:resolve] Module "path" has been externalized for browser compatibility, imported by "/workspace/shared/stt-ui-20261018/source/node_modules/fengari/src/loadlib.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+✓ 164 modules transformed.
+rendering chunks...
+dist/index.html                      0.58 kB
+dist/assets/index-Cct1DS4R.css       9.19 kB
+dist/assets/index-QGXHKRxd.js      218.77 kB
+dist/assets/runtime--19UFaw5.js  3,813.24 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.04s

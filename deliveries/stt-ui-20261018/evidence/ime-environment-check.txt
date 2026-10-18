@@ -1,0 +1,6 @@
+2026-10-18 UTC: system IME acceptance NOT RUN.
+Cloud desktop shell host: 6965aa84da5f (same as visible terminal prompt).
+command -v: ibus, fcitx5, fcitx, uim-xim all absent.
+dpkg-query patterns *ibus*, *fcitx*, *pinyin*, *scim* returned no packages.
+Desktop app inventory exposed no Chinese input method.
+No IME installed/configured for this check; no synthetic composition events counted as system IME acceptance.

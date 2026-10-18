@@ -134,16 +134,74 @@
       "actual": "Clicked13s point; native focus moved to selected source line; Delete removed13s line leaving14s, exact clipboard verified. Textarea Ctrl+Z restored13s/14s, exact clipboard verified. No artificial button focus used for Delete.",
       "evidence": "hover-fix-click-delete-undo.jpg",
       "limit": "Single deletion only; no multi-delete claim."
+    },
+    {
+      "name": "multi-delete before web bridge fix",
+      "result": "fail",
+      "actual": "Real row-header click reported selected2; after source lost focus Delete left both points. Existing native route logs showed source=editbox fromEditBox=true focusedEditBox=false, native_text filter.",
+      "evidence": [
+        "multidelete-selected-row.jpg",
+        "multidelete-native.jpg",
+        "multidelete-before-routing-logs.json"
+      ]
+    },
+    {
+      "name": "fixed row multi-delete and undo",
+      "result": "pass",
+      "actual": "Row-header selected2; Delete removed both and native hint reported deleted2; Ctrl+Z restored13s/14s; clipboard matched original exact text.",
+      "evidence": [
+        "multidelete-row-fixed.jpg",
+        "multidelete-undo-fixed.jpg"
+      ]
+    },
+    {
+      "name": "fixed Ctrl-multiselect delete and undo with native focus rules",
+      "result": "pass",
+      "actual": "Clicked13s; Ctrl-clicked14s; native Escape released source focus; Delete removed2; Ctrl+Z restored2. No forced DOM blur/focus or synthetic keyboard dispatch.",
+      "evidence": "keyboard-routing-real-browser-logs.json"
+    },
+    {
+      "name": "focused source Delete preserved after routing fix",
+      "result": "pass",
+      "actual": "Direct13s click selected/focused source line; Delete removed that line only; textarea Ctrl+Z restored both13s/14s."
+    },
+    {
+      "name": "long source vertical scroll",
+      "result": "pass",
+      "fixture": "vertical-scroll-fixture.txt",
+      "actual": "116 source lines including70 Chinese/emoji notes and41 timeline events. Wheel down moved source; thumb drag reached lines72–116; reverse drag restored start. Native copy exactly matched fixture after full sequence.",
+      "evidence": [
+        "source-scroll-top.jpg",
+        "source-scroll-middle.jpg",
+        "source-scroll-bottom.jpg"
+      ]
+    },
+    {
+      "name": "vertical timeline wheel and scrollbar",
+      "result": "pass",
+      "actual": "Vertical menu; top00:05; wheel down to00:15 and00:25; scrollbar drag reached03:37–07:48 (bundled boss references included). Wheel up reached03:20; reverse thumb drag returned00:05. Exact copied source unchanged.",
+      "evidence": [
+        "vertical-timeline-scroll-top.jpg",
+        "vertical-timeline-scroll-bottom.jpg",
+        "vertical-timeline-scroll-return.jpg"
+      ],
+      "limit": "Specific wheel/thumb sequence; not full visual parity or every scroll mode."
+    },
+    {
+      "name": "system Chinese IME composition",
+      "result": "not_run",
+      "actual": "No ibus/fcitx/uim/pinyin installed on same actual cloud desktop host; no input method installed/configured. Text fill/import and synthetic events not used as IME acceptance.",
+      "evidence": "ime-environment-check.txt"
     }
   ],
   "limits": [
     "Standalone actual Editor entry, not full website router",
     "No game client or same-version game screenshot",
     "Skills metadata API absent on static localhost; WCL requests not functional",
-    "System IME composition not tested by text fill",
+    "System Chinese IME composition unverified: no installed input method; explicit inventory in ime-environment-check.txt",
     "No public/site deployment; remote branch delivery is separately authorized",
     "No current STT main parity; frozen game sources are aa79370",
-    "Drag/multiselect/zoom/horizontal-scroll are covered only by the specific sequences above; multi-delete, vertical scroll and remaining modifier/focus combinations unverified",
+    "Drag, selection, zoom, horizontal/vertical scroll and multi-delete cover only exact listed sequences; other modifier/focus combinations and full virtualization matrix remain unverified",
     "Skill drawer not accepted"
   ]
 }
