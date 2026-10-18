@@ -1,0 +1,267 @@
+/* ============================================================
+   PlanShare 全局基线（暗色液态玻璃底座）
+   reset + 深空径向暖黑背景 + 暗角 vignette + 极淡颗粒 grain
+   + 暖白字 + 链接 + 通用容器 + 可见 focus 环 + prefers-reduced-motion。
+   玻璃组件类（.glass / .glass-strong / .text-gold-grad）的单一权威在 tailwind.css，
+   本文件只负责页面 chrome（背景/暗角/颗粒/排版基线），不重复定义玻璃类。
+   令牌全部来自 tokens.css，本文件不写裸值。
+   ============================================================ */
+
+/* ---------- 轻量 reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ul,
+ol {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+picture,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ---------- html / body 基线：深空径向暖黑 + 暖白字 ---------- */
+html {
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--color-bg-base);
+  /* 深空径向暖黑（非纯黑死板），固定不随滚动跑 */
+  background-image: var(--grad-page);
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- 暗角 vignette + 极淡颗粒 grain（电影暗场去塑料感） ----------
+   两层固定全屏伪元素叠在内容之下、three 背景之上，pointer-events:none。
+   grain 透明度极低（≈0.035），凑近才看得到；vignette 四周压暗保中心可读。 */
+body::before {
+  /* 暗角 vignette */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 100% at 50% 38%,
+    transparent 0%,
+    transparent 55%,
+    rgba(6, 5, 4, 0.45) 100%
+  );
+}
+
+body::after {
+  /* 极淡颗粒 grain：内联 SVG 噪点，opacity 极低 */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+}
+
+/* 内容层抬到暗角/颗粒之上 */
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- 链接：亮金，hover 提亮 + 金 hairline 下划线 ---------- */
+a {
+  color: var(--color-gold);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-gold-bright);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* ---------- 排版层级（类工具，页面/组件按语境取用） ---------- */
+.text-hero {
+  font-family: var(--font-epic);
+  font-size: var(--text-hero);
+  line-height: var(--lh-hero);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.text-display {
+  font-family: var(--font-epic);
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.text-h1 {
+  font-size: var(--text-h1);
+  line-height: var(--lh-h1);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+}
+
+.text-h2 {
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+}
+
+.text-h3 {
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+}
+
+.text-body {
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-regular);
+  color: var(--color-ink);
+}
+
+.text-meta {
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+  color: var(--color-ink-soft);
+}
+
+.text-caption {
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+  color: var(--color-ink-soft);
+}
+
+/* 标题元素默认贴齐字阶（避免浏览器默认大字号） */
+h1 {
+  font-size: var(--text-h1);
+  line-height: var(--lh-h1);
+  font-weight: var(--weight-semibold);
+}
+
+h2 {
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+  font-weight: var(--weight-semibold);
+}
+
+h3 {
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--weight-medium);
+}
+
+/* ---------- 通用容器：内容最大宽度居中 ---------- */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-inline: var(--space-8);
+  }
+}
+
+/* 详情正文更窄阅读宽度 */
+.container-read {
+  width: 100%;
+  max-width: var(--container-read);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .container-read {
+    padding-inline: var(--space-8);
+  }
+}
+
+/* ---------- 可见焦点环：禁止裸 outline:none（无障碍红线） ---------- */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* 非键盘聚焦（鼠标点击）不显示焦点环，避免视觉噪音 */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ---------- 降低动效偏好：尊重系统设置 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "https://wow.zamimg.com/images/wow/icons/medium/ability_shaman_healingtide.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/ability_shaman_healingtide.jpg",
+    "spellIDs": [
+      108280
+    ],
+    "file": "spell-icons/ability_shaman_healingtide.jpg",
+    "sha256": "a3ccf49fc1a96f2e9472fa0e21fc2efe733c0d6fb4e2672f2e445f747379a000",
+    "bytes": 1135,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/spell_fire_bluerainoffire.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/spell_fire_bluerainoffire.jpg",
+    "spellIDs": [
+      1260837
+    ],
+    "file": "spell-icons/spell_fire_bluerainoffire.jpg",
+    "sha256": "6c22a5a3d33ef5a1874d0519280c923c1d8d3a8acc0c8ff8e323abc8ae62ca9b",
+    "bytes": 1233,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/inv_elemental_primal_water.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/inv_elemental_primal_water.jpg",
+    "spellIDs": [
+      1284015
+    ],
+    "file": "spell-icons/inv_elemental_primal_water.jpg",
+    "sha256": "a9b94da0bf4b9acf26f119f47f65d77aabf697db1e0896c0f4a18851f8d10f59",
+    "bytes": 1023,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/spell_holy_painsupression.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/spell_holy_painsupression.jpg",
+    "spellIDs": [
+      33206
+    ],
+    "file": "spell-icons/spell_holy_painsupression.jpg",
+    "sha256": "6db4461c8dc417d3c34a0994724f3c76e0f47bb27ffdb40f0305600edae0fb01",
+    "bytes": 913,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/ability_warrior_rallyingcry.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/ability_warrior_rallyingcry.jpg",
+    "spellIDs": [
+      97462
+    ],
+    "file": "spell-icons/ability_warrior_rallyingcry.jpg",
+    "sha256": "37cdc8a019d187089a41679e8babbd5dafab6c8ee062e440c8300fc803699a2e",
+    "bytes": 1074,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/spell_holy_powerwordbarrier.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/spell_holy_powerwordbarrier.jpg",
+    "spellIDs": [
+      62618
+    ],
+    "file": "spell-icons/spell_holy_powerwordbarrier.jpg",
+    "sha256": "b5c098a29153fefdec85a3e0065fb4eacb673a4b977e9868d57d077d4f100749",
+    "bytes": 1055,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/spell_nature_tranquility.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/spell_nature_tranquility.jpg",
+    "spellIDs": [
+      740
+    ],
+    "file": "spell-icons/spell_nature_tranquility.jpg",
+    "sha256": "e289e60c9a6fd7de580682d681ea2a8e75d27b9fe026e3b0ca2e36469fa8e4ed",
+    "bytes": 861,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/spell_monk_revival.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/spell_monk_revival.jpg",
+    "spellIDs": [
+      115310
+    ],
+    "file": "spell-icons/spell_monk_revival.jpg",
+    "sha256": "82ab47576bf42925f404f7bae79db2af910a161de54c3f812235a4888c27808c",
+    "bytes": 1157,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  },
+  "https://wow.zamimg.com/images/wow/icons/medium/spell_holy_auramastery.jpg": {
+    "sourceURL": "https://wow.zamimg.com/images/wow/icons/medium/spell_holy_auramastery.jpg",
+    "spellIDs": [
+      31821
+    ],
+    "file": "spell-icons/spell_holy_auramastery.jpg",
+    "sha256": "a3198df459d97709b6b135ee49c38a687c6f5a64d504ce84e260f26e8980a64a",
+    "bytes": 1120,
+    "retrievedAtUtc": "2026-10-07T03:26:00Z",
+    "provenance": "Original Wowhead CDN bytes referenced by verified tooltip metadata"
+  }
+}

@@ -1,0 +1,486 @@
+/* Submit —— 游客投稿页。令牌全部来自 tokens.css，不写裸 hex / rgba / blur。 */
+
+.ps-submit {
+  padding-block: calc(var(--space-12) + var(--space-8)) var(--space-12);
+}
+
+.ps-submit__head {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 760px;
+  margin-bottom: var(--space-8);
+}
+
+.ps-submit__template-note {
+  margin: calc(var(--space-4) * -1) 0 var(--space-6);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-submit__draft-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: calc(var(--space-6) * -1) 0 var(--space-6);
+}
+
+.ps-submit__draft-note {
+  margin: 0;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__draft-clear {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--color-gold);
+  font: inherit;
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.ps-submit__draft-clear:hover {
+  color: var(--color-gold-bright);
+}
+
+.ps-submit__draft-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: calc(var(--space-5) * -1) 0 var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-strong);
+}
+
+.ps-submit__draft-confirm p {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__draft-confirm-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ps-submit__creator-session,
+.ps-submit__identity-note {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-gold-glow);
+  border-radius: var(--radius-md);
+  background: var(--glass-strong);
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__creator-session {
+  margin: calc(var(--space-4) * -1) 0 var(--space-6);
+}
+
+.ps-submit__receipt-lookup {
+  display: grid;
+  gap: var(--space-4);
+  margin: calc(var(--space-4) * -1) 0 var(--space-6);
+  padding: var(--space-5);
+}
+
+.ps-submit__receipt-head h2,
+.ps-submit__receipt-result h3 {
+  margin: 0;
+  color: var(--color-gold-cream);
+  font-size: var(--text-title);
+  line-height: var(--lh-title);
+}
+
+.ps-submit__receipt-head p,
+.ps-submit__receipt-result p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__receipt-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.ps-submit__receipt-form .ps-submit__label {
+  grid-column: 1 / -1;
+}
+
+.ps-submit__receipt-error {
+  margin: 0;
+  color: var(--color-ember-bright);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__receipt-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-strong);
+}
+
+.ps-submit__receipt-result .ps-submit__receipt-kicker {
+  margin: 0 0 var(--space-1);
+  color: var(--color-gold);
+  font-weight: var(--weight-medium);
+}
+
+.ps-submit__receipt-result .ps-submit__receipt-kicker.is-success {
+  color: var(--color-success);
+}
+
+.ps-submit__receipt-result .ps-submit__receipt-kicker.is-warning {
+  color: var(--color-ember-bright);
+}
+
+.ps-submit__form {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-6);
+}
+
+.ps-submit__honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.ps-submit__grid,
+.ps-submit__creator-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.ps-submit__field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ps-submit__field--wide {
+  grid-column: 1 / -1;
+}
+
+.ps-submit__label {
+  color: var(--color-gold-cream);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+}
+
+.ps-submit__input,
+.ps-submit__select,
+.ps-submit__textarea {
+  width: 100%;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink);
+  font: inherit;
+  outline: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-epic),
+    box-shadow var(--dur-fast) var(--ease-epic),
+    background var(--dur-fast) var(--ease-epic);
+}
+
+.ps-submit__input,
+.ps-submit__select {
+  min-height: 46px;
+  padding: 0 var(--space-4);
+}
+
+.ps-submit__textarea {
+  min-height: 360px;
+  padding: var(--space-4);
+  font-family: var(--font-mono);
+  line-height: 1.65;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+.ps-submit__input::placeholder,
+.ps-submit__textarea::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.ps-submit__input:hover,
+.ps-submit__select:hover,
+.ps-submit__textarea:hover {
+  border-color: var(--color-gold-glow);
+}
+
+.ps-submit__input:focus,
+.ps-submit__select:focus,
+.ps-submit__textarea:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px var(--color-gold-glow);
+}
+
+.ps-submit__select {
+  appearance: none;
+}
+
+.ps-submit__select:disabled {
+  color: var(--color-ink-faint);
+  cursor: not-allowed;
+}
+
+.ps-submit__select option {
+  color: var(--color-bg-base);
+}
+
+.ps-submit__seg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 46px;
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+}
+
+.ps-submit__seg-btn {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ps-submit__seg-btn:hover,
+.ps-submit__seg-btn.is-active {
+  color: var(--color-gold-bright);
+}
+
+.ps-submit__seg-btn.is-active {
+  background: var(--glass-strong);
+  box-shadow: inset 0 0 0 1px var(--color-gold-glow);
+}
+
+.ps-submit__identity {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.ps-submit__identity-btn {
+  display: grid;
+  gap: 2px;
+  min-height: 46px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink-soft);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-epic),
+    box-shadow var(--dur-fast) var(--ease-epic),
+    background var(--dur-fast) var(--ease-epic);
+}
+
+.ps-submit__identity-btn span {
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: var(--weight-medium);
+}
+
+.ps-submit__identity-btn small {
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__identity-btn:hover,
+.ps-submit__identity-btn.is-active {
+  border-color: var(--color-gold-glow);
+}
+
+.ps-submit__identity-btn.is-active {
+  background: var(--glass-strong);
+  box-shadow: inset 0 0 0 1px var(--color-gold-glow);
+}
+
+.ps-submit__identity-btn.is-active span {
+  color: var(--color-gold-bright);
+}
+
+.ps-submit__creator {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.ps-submit__creator-section {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+}
+
+.ps-submit__creator-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ps-submit__creator-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.ps-submit__creator-section-head span:first-child {
+  color: var(--color-gold-cream);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+}
+
+.ps-submit__creator-section-head span:last-child {
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__hint {
+  margin: 0;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__hint.is-error {
+  color: var(--color-ember-bright);
+}
+
+.ps-submit__error,
+.ps-submit__success {
+  margin: 0;
+  font-size: var(--text-meta);
+}
+
+.ps-submit__error {
+  color: var(--color-ember-bright);
+}
+
+.ps-submit__success {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-success);
+}
+
+.ps-submit__success p {
+  margin: 0;
+}
+
+.ps-submit__success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.ps-submit__receipt-status {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.ps-submit__ready {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  color: var(--color-ink-soft);
+  font-size: var(--text-meta);
+  line-height: var(--lh-meta);
+}
+
+.ps-submit__ready.is-ready {
+  color: var(--color-success);
+  border-color: var(--color-gold-glow);
+  background: var(--glass-strong);
+}
+
+.ps-submit__activation-link {
+  color: var(--color-gold);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.ps-submit__actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .ps-submit {
+    padding-block: var(--space-8);
+  }
+
+  .ps-submit__form {
+    padding: var(--space-4);
+  }
+
+  .ps-submit__draft-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ps-submit__draft-confirm {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ps-submit__receipt-form {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-submit__receipt-result {
+    display: grid;
+    align-items: stretch;
+  }
+
+  .ps-submit__creator-section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .ps-submit__grid,
+  .ps-submit__identity,
+  .ps-submit__creator-fields {
+    grid-template-columns: 1fr;
+  }
+}

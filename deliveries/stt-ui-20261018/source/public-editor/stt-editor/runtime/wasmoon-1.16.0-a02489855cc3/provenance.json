@@ -1,0 +1,20 @@
+{
+  "package": "wasmoon",
+  "version": "1.16.0",
+  "license": "MIT",
+  "source": "git+https://github.com/ceifa/wasmoon.git",
+  "tarball": "https://registry.npmjs.org/wasmoon/-/wasmoon-1.16.0.tgz",
+  "integrity": "sha512-FlRLb15WwAOz1A9OQDbf6oOKKSiefi5VK0ZRF2wgH9xk3o5SnU11tNPaOnQuAh1Ucr66cwwvVXaeVRaFdRBt5g==",
+  "unpackedSize": 458718,
+  "downloadSize": 160431,
+  "wasmSha256": "95f3f19ddb740125883bc41d5ec670cd0828e7b58c8bdad385323cbff497b55c",
+  "runtimeHash": "93d05e46b3f9c3b021cb8a35832d253ae1303e7aaa17943180e67b197b614a14",
+  "hostHash": "3c49792ba36c938ac9d37244d5521556ec4278808361b4714c79411e171fa3ec",
+  "bridgeHash": "04081ccec3a41a1a7d2095b1155f31dd690d43ac2dd31e0dabfd4100a22bbe0d",
+  "benchmarkAdapterSha256": "ca431b9cc3e40f21813842cae2de5bf4a1da607758900cbe5c079042ca7c1568",
+  "finalNodeAdapterSha256": "e64abdd7eb7ef3a38a208faa052ae9baf2436b8923f444b46f8c8ca8b46589ff",
+  "finalBrowserAdapterSha256": "a02489855cc3885554bc36f44ed04b37c23b5fbad146c4d43815bdc8e18a97ce",
+  "originalBrowserAdapterSha256": "53c63d5bb942cb5d74ee4a0f95c60f9f4d64ffb397c8bacf7579ce4fe63fb57e",
+  "browserAdapterVariant": "browser-adapter-string-cache.mjs; per-return-traversal decoded-string cache",
+  "selectedBridgeSha256": "e9c25a958ca1c4813aac4cfb31cd2f617d459007311e1bb05bd51c49a5f8e7c0"
+}

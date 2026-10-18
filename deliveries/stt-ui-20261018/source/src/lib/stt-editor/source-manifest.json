@@ -1,0 +1,463 @@
+{
+  "repository": "RuofanYou/STT",
+  "revision": "aa79370c5736e26f5b1b77c90186e87d8d5473da",
+  "files": {
+    "STT/libs/LibStub/LibStub.lua": {
+      "gitBlob": "6628f74dd4227389df4e4cd24cccd79cbf7cb5a4",
+      "sha256": "cc5bd721738f7938fcdf038f6f2289fada238a3318a1931aa3db4ac3f2db5aac"
+    },
+    "STT/libs/LibDeflate/LibDeflate.lua": {
+      "gitBlob": "02b36ab29aae3e447785f5b9223c5e4b925a9a84",
+      "sha256": "880e396fbaac7dcf99d33fc706a7f129147f2910f8414a143f8dea57e327c06b"
+    },
+    "STT/core/init.lua": {
+      "gitBlob": "d7d5edbda74897bcac6c3632c70953c9ae200de1",
+      "sha256": "0b3941cd0b5a9c1e2647e52e4fe038729831adee8f95ad10089deb4d9ffae709"
+    },
+    "STT/core/assets.lua": {
+      "gitBlob": "27ebf3470f16c9cfeef0a4e2f2f4d07f601ea6be",
+      "sha256": "05e4167c06552dba9fcf55c9e8642343e3d69122f9ab06bfd4da1ce8bd28992c"
+    },
+    "STT/locale/enUS.lua": {
+      "gitBlob": "6969cfa71fb33fb2ec7d2a69193267f8822b73de",
+      "sha256": "8e2ff0341db3dfd667d60bef91938c5027b33a558b9137fdba8e516bbeca18d9"
+    },
+    "STT_Locales/locale/zhCN.lua": {
+      "gitBlob": "219c5739a924423b9af4657e2afad27308443277",
+      "sha256": "6393e4b32368e4fae5970ef13c96c21569826efc402f641afd36a9b2acf2eb63"
+    },
+    "STT/ui/ui_skin.lua": {
+      "gitBlob": "faf9accbfb548164dfce0a9c69ba95a5a860178f",
+      "sha256": "8d56b252605e8930f8ae5556ad99ce12681ed66d66afb71bc1f025402f0689a0"
+    },
+    "STT/ui/legacy_skin.lua": {
+      "gitBlob": "e85fc7910fa7d422a32526719840800522735af0",
+      "sha256": "5138a51ddab1bd6bb9b035559c514317250b689b493cd10ffb788feaf1329e68"
+    },
+    "STT/ui/ui_theme.lua": {
+      "gitBlob": "b566bea9244d348acec772f6fff0ce640648b61d",
+      "sha256": "233b35af1f821debe2e55dcf17e858e8a714b19532a8d655eed06482b900a40b"
+    },
+    "STT/ui/font.lua": {
+      "gitBlob": "fa7df6d15cbfe460d1290c10fd6c619a625d286b",
+      "sha256": "ccc59d58c2eb924f3a1e44a2d2f52f6fdce10bf265a7cfe27c4199049a18a725"
+    },
+    "STT/ui/style.lua": {
+      "gitBlob": "10ea479c34cf09d4d811a88ea60014e203d84bf6",
+      "sha256": "1ef4204bac0b838a7c53ec412c42e31648801ee2d68f292b181b287a8bcb0081"
+    },
+    "STT/ui/glass.lua": {
+      "gitBlob": "9b768ac067c23db47325721864ed15283768ee96",
+      "sha256": "7e6695ac0d146c48371d528b95e49bf62ff9307c0412a867fd318fe325888e89"
+    },
+    "STT/ui/glass_surface.lua": {
+      "gitBlob": "4deecf614f17078b8e64d0024abd12419a16878d",
+      "sha256": "7728ee12e15139541afa5797bd83b81564e8f884a634ed7abac143e5888adffc"
+    },
+    "STT/ui/glass_optics.lua": {
+      "gitBlob": "b3f529b7d269e1cd34be1b6dd802be83002f21fc",
+      "sha256": "0e711cdb5a7761303f6a2f665caa370617b7709d3511bb9684212356880b396e"
+    },
+    "STT/ui/glass_motion.lua": {
+      "gitBlob": "2d579095c0a1c875223b1a5154044006076df6e3",
+      "sha256": "6287b6db7fb879ee841fd82adbfe1e8bcfb2800ae3e3597aa5a6fdc431ede3be"
+    },
+    "STT/ui/diagnostics.lua": {
+      "gitBlob": "caf88c501907160332fe837c43aad2424d6bd221",
+      "sha256": "d8b9b1b83162c73e961f780b7f37df99bc09c5465933b82e11e72cc79281210a"
+    },
+    "STT/ui/status_indicator.lua": {
+      "gitBlob": "5282b7c26baef027d5c4b98722f9f2dcd2375374",
+      "sha256": "4c64373605d6e4e04a316a030dfbc062ebb6d69fdb85b548e956ff765da39fff"
+    },
+    "STT/ui/ui_transition.lua": {
+      "gitBlob": "0c8ac582f67ef8ff06ca5240c9328701c2cad5c7",
+      "sha256": "bdba13cba88522995b10b485c2f4485d1c780ef1a6dbeb3ebe8e1d55e3a40ab6"
+    },
+    "STT/ui/scroll.lua": {
+      "gitBlob": "20c3e084c47dc527237eb908cf9a9da343077462",
+      "sha256": "dad50f7ac26d42a5b29142d9ea5a99203ae3d6e28249e5d9ba31410e104812eb"
+    },
+    "STT/ui/components.lua": {
+      "gitBlob": "192d59c70da3c7e1e1d6946c6ff798394fa7a3f1",
+      "sha256": "6cb53ccb1d4c19e5f9666300f6ddea58235c3ec902baa6afbc087922f11620ae"
+    },
+    "STT/ui/legacy_api.lua": {
+      "gitBlob": "8227c9c0868d7be7cafc156126d389803c86b553",
+      "sha256": "c881df4331b72a62f168ae12a35f905453e9540292f23ba725c15a794435458d"
+    },
+    "STT/ui/owned_dialogs.lua": {
+      "gitBlob": "b2fbcae5847dd367128f37de8c241b2949904281",
+      "sha256": "959014fd584dd7f7ccb4e6ce8bb7e1402d26d2e6640d845d0468bd3e91c1c032"
+    },
+    "STT/ui/context_menu.lua": {
+      "gitBlob": "ef636aa5f47365ba0d207f5292dd9be18ae01959",
+      "sha256": "5ef97cd2f318cd7752ecda21acaf14be23730b8d9031781b3f6f79eb13e37166"
+    },
+    "STT/ui/color_picker.lua": {
+      "gitBlob": "585427e03c0ee3c0338a31691c5e26de68264cae",
+      "sha256": "c2c21ecbd2cb8671c9343ad93ad53588f39482f7fa25a0b5eace4f89d462b362"
+    },
+    "STT/ui/note_editor.lua": {
+      "gitBlob": "b28426330429855094c616493fb5cccbdebc9a9d",
+      "sha256": "0b14a723ba19c66029628f0ba3b038cd00bca00e096b06661693e2d4876c35e8"
+    },
+    "STT/ui/ui_tooltip.lua": {
+      "gitBlob": "1de9c94553b78aa6e171fbf5950e0477946c7173",
+      "sha256": "14380e8437c150ab48a21410c54ef40f7e16c41a7edfe7f0b8773ee6cc2a4f71"
+    },
+    "STT/ui/cell_renderer.lua": {
+      "gitBlob": "fa5f2df9f29e9e5071822b02f8454fa373d1ab36",
+      "sha256": "050fa56f19e25cc2336789dcd5da684ca993a7bfc5f20e86547e4ddd8a34018a"
+    },
+    "STT/core/profile_directory.lua": {
+      "gitBlob": "5036344af47d24a01006c53351ec6f483cb5d4ba",
+      "sha256": "48ff1a68ae9bdb3eaee105cbdc402ae98472588eb74832fce70916d94938e62c"
+    },
+    "STT/core/profile.lua": {
+      "gitBlob": "c39ec2c5aae581c83ec1a83c2a4c75880cfa2d25",
+      "sha256": "248daab31cf653cd8a681bd1a1509a4fb67b17b8ba473d0d36c0224edbc50910"
+    },
+    "STT/core/version.lua": {
+      "gitBlob": "c4d1776279823cfb508fa43c1af6c6311e4d38de",
+      "sha256": "f98bd7fc070e4bf94ecdccf39ff3ebb21b82ca5c8b2130a494f294cb7be28d74"
+    },
+    "STT/core/event_bus.lua": {
+      "gitBlob": "7053f3fed5bb873d9ed5b00af92f61056e5edb5e",
+      "sha256": "12bad938e19539b6e91c929d9717597df1a381ffd04a8b711fb7273c3758a3d4"
+    },
+    "STT/core/lite.lua": {
+      "gitBlob": "b270d3131381bbf94a73d882394dd1a861c62f32",
+      "sha256": "b2790c2102af00e96835097be20451cb40d35a9feef780dc4a0f6312e7bb8f1d"
+    },
+    "STT_Tactics/bootstrap.lua": {
+      "gitBlob": "11620522acb1aa4b325f6c7c2eb03e6fe0aacc71",
+      "sha256": "bdbbc7f4d423248569f921f1709e2754a68e2b7439591c474b5c365f18caf12f"
+    },
+    "STT_TacticsEditor/bootstrap.lua": {
+      "gitBlob": "11620522acb1aa4b325f6c7c2eb03e6fe0aacc71",
+      "sha256": "bdbbc7f4d423248569f921f1709e2754a68e2b7439591c474b5c365f18caf12f"
+    },
+    "STT_Options/bootstrap.lua": {
+      "gitBlob": "11620522acb1aa4b325f6c7c2eb03e6fe0aacc71",
+      "sha256": "bdbbc7f4d423248569f921f1709e2754a68e2b7439591c474b5c365f18caf12f"
+    },
+    "STT_Options/core/frame_skin.lua": {
+      "gitBlob": "3af68f524a7bb732364849ce490417c9c458b74f",
+      "sha256": "bc325c17bd26a80b90142826f38204a53198eefb550208e61bbd8aea9731c639"
+    },
+    "STT/core/runtime_settings.lua": {
+      "gitBlob": "278028271c3b0229df431c41e585df3cd00ed09b",
+      "sha256": "b733ab21b296f202ad0b31f146465cc37eb7f00212e90faf9f55c857edeadba1"
+    },
+    "STT/core/analysis/pull_identity.lua": {
+      "gitBlob": "dc119a869944fb0b5f7186cafe42ba370ff30eb7",
+      "sha256": "f38b649a83940bd0a88e4a39124d76f00b24a75c2d5765e70051e9fd074b6483"
+    },
+    "STT/core/analysis/analysis_store.lua": {
+      "gitBlob": "54f5dc7038f2000ccbdedffdb901d5fb5637bc03",
+      "sha256": "a3be7115da8511d239aea090b05d8c8e854460cdf8d2a7e4d8a832cb62fbe5f1"
+    },
+    "STT/core/analysis/analysis_migration.lua": {
+      "gitBlob": "e80ecb2d06642ab15c0bb1f0c932c065fd1160b9",
+      "sha256": "d4de2aaaeed8c724675a9e4c87fc93cb8fa3834240a03d13495cda9a35fedae2"
+    },
+    "STT/core/analysis/cast_capture.lua": {
+      "gitBlob": "f8a116ee4b84dbbeafe3463d90bb9c4dc683c211",
+      "sha256": "7e434cfc1da46d0d37554f5e94a2e2acb06096cedb323ffb9e6335180a24d300"
+    },
+    "STT/core/analysis/spell_catalog.lua": {
+      "gitBlob": "503ab9408fce1a529fd1644cc0cb04df39dd598b",
+      "sha256": "0851e7a003a427c98c3657dd281fb9aad0c0d6353eb23478cbbc9264735a1c93"
+    },
+    "STT/core/analysis/death_recap_service.lua": {
+      "gitBlob": "8c834ad372e7925b53df7072af69214ba6696beb",
+      "sha256": "8e1fe8f5cff266cde300f68299e8e5a294e6ef03184ceceff62b4cf45cc23eb4"
+    },
+    "STT/core/analysis/analysis_recorder.lua": {
+      "gitBlob": "d3383c2514baf50ad8ec9ef7bddad10aa0501970",
+      "sha256": "6fb1ef0b28b543eb72dd262bc6537f9376168a376a4904eda3e5a94b61194cf0"
+    },
+    "STT/core/analysis/analysis_sync.lua": {
+      "gitBlob": "3b1235382dea5c4716c985b2676defbeaa8b4ee6",
+      "sha256": "ac7a093da17b354a57a899db4561f3fc3759e1e8a8a2d41c12d72b28d3297214"
+    },
+    "STT/core/boss_catalog.lua": {
+      "gitBlob": "853cdc18d20c65b4584c39afe30fff920124ff94",
+      "sha256": "18bf0216b5302162e89f39597066532e11efbf8ab72d22e4fd2c64884ef1f630"
+    },
+    "STT_Tactics/data/season_catalog_121.lua": {
+      "gitBlob": "3ba09b330186156930918a1b472eb59604448e65",
+      "sha256": "f657a1df4b26b5130ef991379dcf2408aa196d7fa9cb7bded3be2bc1347e667a"
+    },
+    "STT_Tactics/data/season_data_s1.lua": {
+      "gitBlob": "5f148b5ab1f392e0db156ea107108165de412d0d",
+      "sha256": "3febf01b662f38eb768857dfa9be8b2f5e395f40b8b8799b60c91a21721f1b01"
+    },
+    "STT_Tactics/data/season_phase_data_s2.lua": {
+      "gitBlob": "9f89081811d4726c1452d3dd59dbb5303cc55bfd",
+      "sha256": "ab1c7fec693c415f7eb4d4f292e5a078f73ca2127a2b132cfd990ddc3303a092"
+    },
+    "STT_Tactics/defaults.lua": {
+      "gitBlob": "15272063cc9230168eaab1befa267577ae812703",
+      "sha256": "b0e15a75d9b4f0a10f4b308c38c0462c1e9cff1c0b99c64adce38e21a6608dc2"
+    },
+    "STT_Tactics/core/tactical_ui_config.lua": {
+      "gitBlob": "c035b7affc4ffd842fda70eb3121c8b30476190e",
+      "sha256": "dd801b2847e8810709036c68aa2c8c989a5effc2a02b2a9f76b82dd8261adda6"
+    },
+    "STT_TacticsEditor/data/season_plans_s1.lua": {
+      "gitBlob": "d45ef3932eb07668fe8092089c552e021f9a589d",
+      "sha256": "8f741451251f022b163ff31ff20bfd8f0093c1c7317474708b083ccbb93626fd"
+    },
+    "STT_TacticsEditor/data/season_plans_s2.lua": {
+      "gitBlob": "962e164edb802a6093c20af5b89914a947042bf4",
+      "sha256": "6fea85df36ff8dde39cd7e5755bffd212722ab3aa7428e8c4141ad48fb65024b"
+    },
+    "STT_Tactics/locale/zhCN.lua": {
+      "gitBlob": "b9033afe89c14ee1eee75acd5aae63c4392f88e4",
+      "sha256": "c5ff70b18ee360d6085cb9357d67d855c2bdf4a4c9aa3e98c01556e60aa44e6e"
+    },
+    "STT_TacticsEditor/locale/zhTW.lua": {
+      "gitBlob": "12cdd021063752ff50ece3500b7f8421471ce250",
+      "sha256": "53e56b7095dccdefe1806b68e9f5c07155d352a9c0cd85286fccc20f07e800ea"
+    },
+    "STT_TacticsEditor/locale/enUS.lua": {
+      "gitBlob": "122f95dc8a7345b4d557bc686de4fb7c66d10190",
+      "sha256": "095b5f1449245e29783634e46c0091676c3b8f94ba31b8c7b963bc9b80491aee"
+    },
+    "STT_TacticsEditor/locale/zhCN.lua": {
+      "gitBlob": "f838e868b66eac0d66a8572ece5f6a07dccf270a",
+      "sha256": "5d854d3a37adfa397bdb5fd1dad0c2c4d500c8e5e8090a1783c7a34d91092298"
+    },
+    "STT_Tactics/core/spec_aliases.lua": {
+      "gitBlob": "3a54893e5610ed503941418c1e578c9fa7b7cfb2",
+      "sha256": "35285496a6139bc456a671a945a8ceb9295eb969f51fff7013be49ae2323cc7d"
+    },
+    "STT_Tactics/core/condition_filter.lua": {
+      "gitBlob": "a0f90abe08ab9b9c53e68fa9a93a7a5ef5a49ce8",
+      "sha256": "013e6ebeabe7393d10c1e9b77dde9d348b198440a7444ab471b1ae9a92bb6549"
+    },
+    "STT_Tactics/core/stn_template.lua": {
+      "gitBlob": "6e3800bb47fa48dfc47c4dc07ac720579cf1acd5",
+      "sha256": "e868aa2353fafd6f27c60ae8cafb2aa579f95920f118fa3b6d00416ebc6ccdc0"
+    },
+    "STT_Tactics/core/inline_modifier.lua": {
+      "gitBlob": "288221ec424a9612f882bdd142ab32b011971f91",
+      "sha256": "796759b1af916393c79943b7dafb94775ac71966b6eb010f1bec9da4eb832cca"
+    },
+    "STT_Tactics/core/timeline_syntax.lua": {
+      "gitBlob": "66fc0633cf870b86d971e2657e7a22366293373f",
+      "sha256": "f97a0d11c4beffb8d7828e872ae18bac10aecd7fa9dd7fcb173b63fb28eec253"
+    },
+    "STT_Tactics/core/semantic_plan_difficulty.lua": {
+      "gitBlob": "718facefc4e7017d2ef694212c62665766d0a940",
+      "sha256": "44efc1187977f89b49aab2d8f71e69170862b3aefa10994973ae2f176e8ddbbc"
+    },
+    "STT_Tactics/core/plan_store.lua": {
+      "gitBlob": "ae2a1b978df3fba8378662bdd66d99e4de7d8578",
+      "sha256": "b940d435de242ccb88b78148af348237242eab99804ff76c9357a6a606746900"
+    },
+    "STT_Tactics/core/plan_resolver.lua": {
+      "gitBlob": "daa007f486c7da56a7ed0c87aafdc64831a3bb0d",
+      "sha256": "e4060bbb658f00a4ac85fda7e3a9f44628ef50ed9d601e7287c99ee737461294"
+    },
+    "STT_Tactics/core/plan_editor_session.lua": {
+      "gitBlob": "b446776ca967a9f95d30eb5cec15e70f528d3e52",
+      "sha256": "851ca348d49d820971117062f93db588ae9a38f56915b0d4d928d6f3cba67c80"
+    },
+    "STT_Tactics/core/plan_workbench.lua": {
+      "gitBlob": "e103214c41ade5b260767202dbb35082bb340d7f",
+      "sha256": "b50949c72a0fed380e8548e589f684fba4b3d68a1ea7974944dcc90b05a4c47e"
+    },
+    "STT_Tactics/core/phase_timeline_layout.lua": {
+      "gitBlob": "2f47c8d8dd17eed08cd9752c73eca952398460ff",
+      "sha256": "28edbe78e8d7fa7335f943d78e4c40c389b9943f84990c4c478ed61eecbd6d2c"
+    },
+    "STT_Tactics/core/plan_diagnostics.lua": {
+      "gitBlob": "c089eca5cd58ea07d9d6be63ebc54e11d3e7d8e6",
+      "sha256": "89622004c45fe26e23aa49f037ed8541a4a5997ec5c1754faf76d90aa167996b"
+    },
+    "STT_Tactics/core/spell_alias_index.lua": {
+      "gitBlob": "144a0a0d54015c7f7a5cfc5563bbf7822bf32e7c",
+      "sha256": "4afb84778ad502626e991eb8934b5241d291cea3919fd1d0df93ab746a74a55c"
+    },
+    "STT_Tactics/core/root_schema_migration.lua": {
+      "gitBlob": "865936b663ffeb5108fcb6e285214cf98ed89b67",
+      "sha256": "05ea35d13bd479213d67b46fc4f76b1bceb70fa7450f2be1595a41544043923d"
+    },
+    "STT_Tactics/core/note_sync.lua": {
+      "gitBlob": "140b8771c1dcd8ce21deaf9cceb5b9ff665af492",
+      "sha256": "cd0f5193808f4d417ed9fd36c1c216a562f0c919fce5e442ecefcb742e0b3678"
+    },
+    "STT_Tactics/core/semantic_runtime.lua": {
+      "gitBlob": "ee9197e0585f44ed8fd32428f1515c7875519684",
+      "sha256": "0d61f7d68b0a2da6acb77b46c3c21a092c5bc3a0b6e4edc7af3e24abc574c6cb"
+    },
+    "STT_Tactics/core/note_parser.lua": {
+      "gitBlob": "6531d210e90e08a5c188e9fe29c85c7ef15d5c59",
+      "sha256": "aa8a7172dea490b8b13fdb58f3611ef9e1cbedb65289e0db3dfbf898d3061398"
+    },
+    "STT_Tactics/core/export_import.lua": {
+      "gitBlob": "95abc356d5e5a488020b8feb02bd5d2dbbda6c32",
+      "sha256": "43f642ba9989879a9c80e7d9ff201339b42bfc9da6066d29c08dced4b3ca1cd3"
+    },
+    "STT_Tactics/core/phase_detector.lua": {
+      "gitBlob": "ec32f3a083b5c68e0665a9cfa2e8811fab72a86c",
+      "sha256": "ff80b7e9a182a4f3ced4de5b8aea1330cf51fdb9d2d2ef56441e081150fc7812"
+    },
+    "STT_Tactics/core/dungeon_phase_adapter.lua": {
+      "gitBlob": "879f96fd9fd469457062e5be8c3becbd64cc0b40",
+      "sha256": "c1dab4754bc44237941256ff5aaf52bf5ec3204fa04d03d9757a259561a5c336"
+    },
+    "STT_Tactics/core/timeline_runtime_cache.lua": {
+      "gitBlob": "261582ea1c706a4c2d1457eb24737d2a4e3dbdf8",
+      "sha256": "e49d1ab3e3dc913238ad013ec439875dc419d4027898bce4f339ed90bc9ca3a8"
+    },
+    "STT_Tactics/core/timeline_runner.lua": {
+      "gitBlob": "cebfa58a1cfdadc0fce39b49a5fb44f837b14263",
+      "sha256": "a405bc1945dcb9fcbc27215bf53f1f215d4eebd92fa88c8a6e52574dd09a6a55"
+    },
+    "STT_Tactics/core/runtime_test_controls.lua": {
+      "gitBlob": "a79a74df71a1c46fffcb4b72d3fd4ff3bd2e1ae0",
+      "sha256": "a5c31c422507c26da3d633e254eeb235f0e13d964a0d12467a46f745adf65b15"
+    },
+    "STT_TacticsEditor/core/simple_paste.lua": {
+      "gitBlob": "dd6367276e419917071f7cb25f8f925a0efc2cb9",
+      "sha256": "36de70459bbdf196bf930cd900cc24562fa7c6f05cf07e2c1e77628bb147774f"
+    },
+    "STT_TacticsEditor/core/raid_spec_reader.lua": {
+      "gitBlob": "8b438d4a59fd0ab2167d1447bcf4008f4a824a8b",
+      "sha256": "2ce15686882edf5b3332fcdf732e28a515fb04c595c607011b9b2fd16848ab0f"
+    },
+    "STT_TacticsEditor/core/sync_raid.lua": {
+      "gitBlob": "1a58599a5fe3d2479562375c16d605af7f9ee827",
+      "sha256": "c3240c6d980e0f24d0c611dd2ff1b6194372e375b08b072b18b9c46bbca09bc1"
+    },
+    "STT_TacticsEditor/core/timeline_text_edit.lua": {
+      "gitBlob": "ab8bd71f73abbd9c776c2932f771d3c5d59c3943",
+      "sha256": "7f7e9907f76245e56861212320c8314691a21903b60b8de214afb7a85b88b8be"
+    },
+    "STT_TacticsEditor/core/keyboard_capture.lua": {
+      "gitBlob": "ba43f3382f5679e12d29c02d4709eb31ddd06208",
+      "sha256": "865592f604ab1ea0e9b350ee6feb4f7fd88c6f4ea9c0ec968862d4b74c23d37c"
+    },
+    "STT_TacticsEditor/core/semantic_timeline.lua": {
+      "gitBlob": "ebb0606dca31ffc80d7370218524cdce62e1d2c9",
+      "sha256": "7dab2ffb7d0ffcb9d8ff6a33cfde01ce6a218932a081871c04d6295a31006947"
+    },
+    "STT_TacticsEditor/core/semantic_template_reload.lua": {
+      "gitBlob": "923eb94293dca074b6c06216ca2b0bca22f9e169",
+      "sha256": "705fece27d5b544d84ebb5b1ae0fb6817609410656c4c8a2264ca084b05347f2"
+    },
+    "STT_TacticsEditor/core/boss_reference.lua": {
+      "gitBlob": "52d41127cf6056c726c7bdf0297b24b852ab1ffb",
+      "sha256": "422d8cb5ea38d24b0198ba7bcc2309288fa78d0d60c51d12830cd197db5c6d86"
+    },
+    "STT_TacticsEditor/core/semantic_timeline_gui.lua": {
+      "gitBlob": "ea7a48201dfe1b06ae2d52ea0fde03fa3e2a3efb",
+      "sha256": "c669284c411cf5681d7386490d98ffaeb2a81d941e3ae0167e6505a6f852c608"
+    },
+    "STT_TacticsEditor/core/semantic_timeline_sync_button.lua": {
+      "gitBlob": "ca08358ea28adf030170791e2a130c34f797018b",
+      "sha256": "df0a50e48b4633ee38c609bd30f03dab0b202b47c611c3e279eb2087c090a8c6"
+    },
+    "STT_TacticsEditor/core/editor_find_replace.lua": {
+      "gitBlob": "dfcbddb237814c2e61b86cf51cef4f3d7bd87d28",
+      "sha256": "cfb02bb2872470571830eb102d8515aedd6b8ea669ebc066674e6542b0a43323"
+    },
+    "STT_TacticsEditor/core/editor_completion.lua": {
+      "gitBlob": "40e528816c8dee9eae7a3bd1842d6fd72ea3b1f4",
+      "sha256": "9535494e1643969ce64b1f93ebcc372f7577ec3127b2c728321ecced58575251"
+    },
+    "STT_TacticsEditor/core/semantic_timeline_gui_editor.lua": {
+      "gitBlob": "23ba70a6953cd80067e071b9c52d02fe439ff695",
+      "sha256": "972889864c67bc8358801de81abdfe5148bd69efba281c2967713cf97823a598"
+    },
+    "STT_TacticsEditor/core/horizontal_timeline_data.lua": {
+      "gitBlob": "1831df3024f90c245a4b490c143ba7c05774f9e5",
+      "sha256": "f9817bdd8682b3f2c9912ad910f644f07aaf7556a49b38596075dab4cf683277"
+    },
+    "STT_TacticsEditor/core/timeline_coords.lua": {
+      "gitBlob": "300ae4abc43cecebcc4c6090c977137c8e333624",
+      "sha256": "61e4c09dffee15769d2636b03642fb77ce174d963a01b53c23f1c076cf2a6e13"
+    },
+    "STT_TacticsEditor/core/recent_skills.lua": {
+      "gitBlob": "456a3d853eb55a2061ef52b36de5a714a3c75f1b",
+      "sha256": "231fc52fabaf250c290bb0590cfbcaef9ef71d259aab8974cb2021fbf129cf9f"
+    },
+    "STT_TacticsEditor/data/class_spells.lua": {
+      "gitBlob": "11fd8682a4fa16eafadf4a91a4b638252ba26e2f",
+      "sha256": "3c35259839c1b65c8e36c266750bc63dde86caf5a68d50b1557e347ca3e634c9"
+    },
+    "STT_TacticsEditor/data/spell_pinyin.lua": {
+      "gitBlob": "bc1138274c9c5f92826638a4a236e3ea3b5ab15d",
+      "sha256": "5ed3342cb444b778a2dca6672068c72d99f77e5f1a16f3875d6d056ef7ec73cc"
+    },
+    "STT_TacticsEditor/core/skill_picker_logic.lua": {
+      "gitBlob": "6b1e783e859e09d2417617d0b1cb9169c47b2311",
+      "sha256": "baef3851c4c0843c6820810e0714131e0f0a0b644abea3dd77601e1532a34a92"
+    },
+    "STT_TacticsEditor/core/clipboard.lua": {
+      "gitBlob": "c8fd9de35e0136036799036a6351c625026379c9",
+      "sha256": "1e7e99e5f2b28bda849f16934c5a8b52a2b4a2c13d7db70eadd67eed03fed9cc"
+    },
+    "STT_TacticsEditor/core/timeline_edit.lua": {
+      "gitBlob": "f351a140fd228c5d3dc00e0d306e24abd85aac76",
+      "sha256": "48901295899e8a90fe7e78598891a9c09f6938df8777f52a201f68fab736c874"
+    },
+    "STT_TacticsEditor/core/timeline_track_delete.lua": {
+      "gitBlob": "89313658be9c2a2389bfc202d4c144120685d422",
+      "sha256": "59ceea7d806b601f405ccb6b81c653e9e158be3ab872a8776d3f1f2389152708"
+    },
+    "STT_TacticsEditor/core/timeline_personnel_row_editor.lua": {
+      "gitBlob": "fd9c44b4a14e0f94202d606bcddaceca96645502",
+      "sha256": "30cecb0adec8c8093f70f3fd46e40440e5b774b0c676e8770855775c5e761a26"
+    },
+    "STT_TacticsEditor/core/timeline_context_menu.lua": {
+      "gitBlob": "4383217afb349cb794543c9dba07bae3597b1c8e",
+      "sha256": "02b62087261e0cb0fcbecf20dde0f6b10c7bf25fbac1f67145cc212bc50867ad"
+    },
+    "STT_TacticsEditor/core/timeline_event_editor.lua": {
+      "gitBlob": "f62aa7cfac3ad3f506e57eb244e4ccfca7e6a6e3",
+      "sha256": "20727a1de9f812fdd4759f642f8fc7ab4de1a63cabbca734de8e906a6635adef"
+    },
+    "STT_TacticsEditor/core/skill_drawer.lua": {
+      "gitBlob": "5e97a98d12df6a58d2806c70443d749048ed83ef",
+      "sha256": "e866fbf56195508e28b9967da4ae7f0acfe7c45c93452bea3047bdebe385aa1e"
+    },
+    "STT_TacticsEditor/core/horizontal_timeline_shortcut_hint.lua": {
+      "gitBlob": "7b587daaa13a1bb04f417c9021b34cc36dbe0f00",
+      "sha256": "c94ebb65820300360c282214f27cf5a3e27b1a15975bb5c26a9223ff1d8e34fe"
+    },
+    "STT_TacticsEditor/core/analysis_overlay.lua": {
+      "gitBlob": "ceaa2459aea816c8a9253559add00e2b8cb47bd8",
+      "sha256": "d1fc6bc7963363116677be7b148faa048aab6bba60bc4f56fee85fa6a5f0e56b"
+    },
+    "STT_TacticsEditor/core/analysis_panel.lua": {
+      "gitBlob": "a53f0ba4c8edece867bf2870ff1177d398500b6b",
+      "sha256": "c9dd0d8362bbec3ef97f1943b7231e475595ebdf459c4c705bb1e618b6fbb537"
+    },
+    "STT_TacticsEditor/core/gcd_tracker.lua": {
+      "gitBlob": "01cde9d95fbcc71ecaeb59eea42a522d781b612a",
+      "sha256": "12c8ecc527cb8dc949214665afe63a7fb3b9c741b4d38def87397b3bee6afa2c"
+    },
+    "STT_TacticsEditor/core/spell_alias_scanner.lua": {
+      "gitBlob": "d4d73be27d62aebd8bc1390498a6cfa45180f2e5",
+      "sha256": "ec81b7c9b0b7e2f6e89407b8991f709db39eb3a35101f99d24a88e347af1a375"
+    },
+    "STT_TacticsEditor/core/spell_alias_suggestion_menu.lua": {
+      "gitBlob": "035969f16e354fd15c408e95d3eb00ed74d3bc89",
+      "sha256": "9fe9188bf9ed67d84552161ef967104231479bcab312666307edbf0574b41ba3"
+    },
+    "STT_TacticsEditor/core/selection_box.lua": {
+      "gitBlob": "f6529f312979041578432b39f126a7edc28cf3eb",
+      "sha256": "a59b08f077dd95e89ae66087200ca0a911fc22f0581061aab04ed7092870b7b3"
+    },
+    "STT_TacticsEditor/core/horizontal_timeline_gui.lua": {
+      "gitBlob": "0278d623ef3a095bdb25ff0bbb94ec8a90cee841",
+      "sha256": "059485955bceedee9362b0eb0cbad75bb2a66b9b1fba34958614fbe85b8f69f7"
+    }
+  },
+  "tree": "2755164a825f5673159f71e9d49ae0e6912faa19"
+}

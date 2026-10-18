@@ -1,0 +1,26 @@
+Local editor: http://127.0.0.1:4178/source-editor/
+HTTP/1.1 302 Found
+Location: /source-editor/
+Date: Sun, 18 Oct 2026 04:23:08 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 603
+Cache-Control: no-store
+Date: Sun, 18 Oct 2026 04:23:08 GMT
+HTTP/1.1 200 OK
+Content-Type: font/ttf
+Content-Length: 6118572
+Cache-Control: no-store
+Date: Sun, 18 Oct 2026 04:23:08 GMT
+HTTP/1.1 200 OK
+Content-Type: application/wasm
+Content-Length: 271581
+Cache-Control: no-store
+Date: Sun, 18 Oct 2026 04:23:08 GMT
+HTTP/1.1 404 Not Found
+Date: Sun, 18 Oct 2026 04:23:08 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

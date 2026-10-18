@@ -1,0 +1,22 @@
+--- a/src/pages/Editor.tsx
++++ b/src/pages/Editor.tsx
+@@ -165,7 +165,8 @@
+     if(v.ui.delta){for(const id of v.ui.hidden)uiNodes.current.delete(id);for(const node of v.ui.nodes)uiNodes.current.set(node.id,node)}
+     else{uiNodes.current.clear();for(const node of v.ui.nodes)uiNodes.current.set(node.id,node)}
+     v={...v,ui:{...v.ui,nodes:[...uiNodes.current.values()],hidden:[],delta:false}}
+-    if(v.documents)documents.current=v.documents
++    // Empty Lua tables arrive as arrays; document keys require a JSON object.
++    if(v.documents)documents.current={...v.documents}
+     if(v.references)references.current=v.references
+     const documentKey=v.document.bossKeyText+'#'+v.document.difficulty+'#'+v.document.scope
+     if(previous&&(previous.text!==v.text||previous.document.bossKeyText!==v.document.bossKeyText
+@@ -213,6 +214,9 @@
+         const value=localStorage.getItem(STORAGE_KEY);saved=value?JSON.parse(value):null
+         if(saved!==null){
+           const record=(value:unknown)=>!!value&&typeof value==='object'&&!Array.isArray(value)
++          // Recover drafts written by the former empty-table array serializer.
++          // The explicit text is authoritative; ambiguous arrays remain protected.
++          if(record(saved)&&Array.isArray(saved.documents)&&saved.documents.length===0&&typeof saved.text==='string')saved.documents={}
+           if(!record(saved)||!record(saved.context)||!record(saved.documents)
+             ||typeof saved.context.boss!=='string'||typeof saved.context.difficulty!=='string'||typeof saved.context.scope!=='string'
+             ||Object.values(saved.documents).some(text=>typeof text!=='string')

@@ -1,0 +1,41 @@
+/* ============================================================
+   Stat —— 图标 + 数字只读统计。
+   inline = 紧凑 ink-soft；large = 金图标 + epic 大数字（详情侧栏）。
+   ============================================================ */
+.ps-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-ink-soft);
+}
+
+.ps-stat__icon {
+  display: inline-flex;
+  color: var(--color-ink-soft);
+}
+
+/* ---------- inline：卡片底栏紧凑 ---------- */
+.ps-stat--inline .ps-stat__value {
+  font-size: var(--text-meta);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- large：详情侧栏，金图标 + epic 大数字 ---------- */
+.ps-stat--large {
+  gap: var(--space-2);
+}
+
+.ps-stat--large .ps-stat__icon {
+  color: var(--color-gold);
+}
+
+.ps-stat--large .ps-stat__value {
+  font-family: var(--font-epic);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}

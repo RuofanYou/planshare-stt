@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-18",
+  "base": "STT independent review candidate 20261014; Lua aa79370c5736e26f5b1b77c90186e87d8d5473da; 114 original Lua assets",
+  "method": "Actual cloud Chromium through CUA; localhost-only Python static server launched on cloud desktop; no public/site deployment",
+  "observations": [
+    {
+      "name": "baseline initial engine",
+      "result": "pass",
+      "evidence": "Lua: WASM plus actual editor DOM and screenshot"
+    },
+    {
+      "name": "baseline edit + explicit save + clipboard + completed download + reload",
+      "result": "pass",
+      "text": "[人员]\n\n[笔记]\nSTT真实浏览器测试：中文😀 20261018\n\n[时间轴]",
+      "download": "baseline-browser-export.txt"
+    },
+    {
+      "name": "baseline new draft auto-save then reload without explicit save",
+      "result": "fail",
+      "evidence": [
+        "unsaved-draft-before-reload.png",
+        "unsaved-draft-after-reload.png"
+      ],
+      "actual": "empty template; corrupt draft warning"
+    },
+    {
+      "name": "fixed migration of same original bad saved bytes",
+      "result": "pass",
+      "actual": "new draft text recovered intact; no warning",
+      "evidence": "old-array-draft-recovered.png"
+    },
+    {
+      "name": "fixed edit without explicit save then reload",
+      "result": "pass",
+      "actual": "修复后自动保存：中文😀 preserved"
+    },
+    {
+      "name": "actual Ctrl+Z then clipboard",
+      "result": "pass",
+      "actual": "prior note 修复后自动保存：中文😀"
+    },
+    {
+      "name": "actual Ctrl+Shift+Z then clipboard",
+      "result": "pass",
+      "actual": "new note 第二段：撤销重做测试😀"
+    },
+    {
+      "name": "native orientation menu horizontal to vertical to horizontal",
+      "result": "pass",
+      "evidence": [
+        "vertical-real-browser.png",
+        "import-real-browser.png"
+      ],
+      "limit": "menu/layout transition only; not full visual parity"
+    },
+    {
+      "name": "actual file chooser import then native copy",
+      "result": "pass",
+      "fixture": "import-ui-fixture.txt",
+      "actual": "Copied text exactly equals fixture, including Chinese, emoji and two timeline entries",
+      "evidence": "import-real-browser.png"
+    }
+  ],
+  "limits": [
+    "Standalone actual Editor entry, not full website router",
+    "No game client or same-version game screenshot",
+    "Skills metadata API absent on static localhost; WCL requests not functional",
+    "System IME composition not tested by text fill",
+    "No public/site deployment; remote branch delivery is separately authorized",
+    "No drag, multiselect, zoom, scroll, skill-drawer acceptance",
+    "No current STT main parity; frozen game sources are aa79370"
+  ]
+}
