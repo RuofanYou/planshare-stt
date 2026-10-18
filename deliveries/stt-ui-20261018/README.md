@@ -43,8 +43,9 @@ Real cloud-desktop Chromium, with the HTTP server running on that same cloud des
 - Actual Ctrl+Z / Ctrl+Shift+Z, with exact copied text before and after.
 - Native horizontal/vertical menu transitions.
 - Native file chooser import of `evidence/import-ui-fixture.txt`, followed by exact clipboard equality.
+- Two separate unsaved drafts in Team and Personal scopes: switched both ways, reloaded the browser, and verified both exact texts remained.
 
-Screenshots, the downloaded file, JSON observations, fixture and logs are in `evidence/`. These screenshots show the web editor, not the game client.
+Screenshots (raw JPEG capture bytes), the downloaded file, JSON observations, fixture and logs are in `evidence/`. These screenshots show the web editor, not the game client.
 
 Host tests: baseline 109 passed; final 113 passed. The newly added actual `accept` → `persist` regression fails against the saved baseline and passes against the fix (`fresh-draft-red.tap`, `fresh-draft-green.tap`). These tests use controlled host doubles and are not additional real-browser acceptance checks. TypeScript and Vite build pass. The local preview helper returned the editor, font and WASM with correct MIME types; `/api/raids` intentionally returned 404. Node used for checks: v24.19.0.
 

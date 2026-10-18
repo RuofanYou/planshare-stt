@@ -18,8 +18,8 @@
       "name": "baseline new draft auto-save then reload without explicit save",
       "result": "fail",
       "evidence": [
-        "unsaved-draft-before-reload.png",
-        "unsaved-draft-after-reload.png"
+        "unsaved-draft-before-reload.jpg",
+        "unsaved-draft-after-reload.jpg"
       ],
       "actual": "empty template; corrupt draft warning"
     },
@@ -27,7 +27,7 @@
       "name": "fixed migration of same original bad saved bytes",
       "result": "pass",
       "actual": "new draft text recovered intact; no warning",
-      "evidence": "old-array-draft-recovered.png"
+      "evidence": "old-array-draft-recovered.jpg"
     },
     {
       "name": "fixed edit without explicit save then reload",
@@ -48,8 +48,8 @@
       "name": "native orientation menu horizontal to vertical to horizontal",
       "result": "pass",
       "evidence": [
-        "vertical-real-browser.png",
-        "import-real-browser.png"
+        "vertical-real-browser.jpg",
+        "import-real-browser.jpg"
       ],
       "limit": "menu/layout transition only; not full visual parity"
     },
@@ -58,7 +58,13 @@
       "result": "pass",
       "fixture": "import-ui-fixture.txt",
       "actual": "Copied text exactly equals fixture, including Chinese, emoji and two timeline entries",
-      "evidence": "import-real-browser.png"
+      "evidence": "import-real-browser.jpg"
+    },
+    {
+      "name": "unsaved team and personal drafts switch and browser reload",
+      "result": "pass",
+      "actual": "Team text 切换保留测试：团队😀 and personal text 切换保留测试：个人😀 each retained after switching both ways and actual Control+r reload",
+      "evidence": "context-switch-reload-real-browser.jpg"
     }
   ],
   "limits": [
