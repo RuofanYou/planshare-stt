@@ -1,0 +1,50 @@
+[
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=focus source=editbox root=anonymous owner=anonymous key= ctrl=false meta=false shift=false alt=false fromEditBox=true focusedEditBox=true candidate= consumed=false reason=focus_gained",
+    "timestamp": "2026-10-18T05:18:38.251Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  },
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=filtered source=editbox root=anonymous owner=anonymous key=ESCAPE ctrl=false meta=false shift=false alt=false fromEditBox=true focusedEditBox=true candidate= consumed=false reason=native_text",
+    "timestamp": "2026-10-18T05:18:38.299Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  },
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=focus source=editbox root=anonymous owner=anonymous key= ctrl=false meta=false shift=false alt=false fromEditBox=true focusedEditBox=false candidate= consumed=false reason=focus_lost",
+    "timestamp": "2026-10-18T05:18:38.299Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  },
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=focus source=editbox root=anonymous owner=anonymous key= ctrl=false meta=false shift=false alt=false fromEditBox=true focusedEditBox=true candidate= consumed=false reason=focus_gained",
+    "timestamp": "2026-10-18T05:19:15.375Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  },
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=focus source=editbox root=anonymous owner=anonymous key= ctrl=false meta=false shift=false alt=false fromEditBox=true focusedEditBox=false candidate= consumed=false reason=focus_lost",
+    "timestamp": "2026-10-18T05:19:15.689Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  },
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=focus source=editbox root=anonymous owner=anonymous key= ctrl=false meta=false shift=false alt=false fromEditBox=true focusedEditBox=true candidate= consumed=false reason=focus_gained",
+    "timestamp": "2026-10-18T05:19:57.530Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  },
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=matched source=editbox root=anonymous owner=anonymous key=Z ctrl=true meta=false shift=false alt=false fromEditBox=true focusedEditBox=true candidate=Z consumed=true reason=handler_result",
+    "timestamp": "2026-10-18T05:19:57.860Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  },
+  {
+    "level": "debug",
+    "message": "[STT Lua] [STT_KEYBOARD_ROUTE] phase=focus source=editbox root=anonymous owner=anonymous key= ctrl=false meta=false shift=false alt=false fromEditBox=true focusedEditBox=false candidate= consumed=false reason=focus_lost",
+    "timestamp": "2026-10-18T05:19:58.217Z",
+    "url": "http://localhost:4173/source-editor/stt-editor/runtime/wasmoon-1.16.0-a02489855cc3/wasmoon-editor-adapter.mjs"
+  }
+]

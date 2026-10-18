@@ -1,36 +1,36 @@
-# STT web editor: real-browser draft recovery candidate, 2026-10-18
+# STT 网页编辑器：真实浏览器修复候选包（2026-10-18）
 
-## What is delivered
+## 交付内容与适用范围
 
-A complete, buildable standalone editor candidate with its source, original assets, pinned dependency lockfile, tests, and real browser evidence. This is a candidate for review, not a production release or a full-site deployment. It is placed under a separate delivery directory on a separate GitHub branch; the existing repository root, `main`, and `stt-web-editor` are preserved.
+本目录包含可独立构建运行的编辑器源码、原始资源、锁定依赖、回归测试及真实浏览器验收证据。这是供复核的候选包，尚非正式发布或完整网站部署。交付位于独立 GitHub 分支的 `deliveries/stt-ui-20261018/`，保留仓库原有根目录、`main` 和 `stt-web-editor`。
 
-This continues the **2026-10-14 independent-review candidate**. It is **not** a recovered 2026-10-16 candidate. The later lost candidate has not been reconstructed. Frozen original game Lua is revision `aa79370c5736e26f5b1b77c90186e87d8d5473da` (114 assets); current game `main` parity is not established.
+本次接续的是 **2026-10-14 独立审查候选包**，**不是恢复出的 2026-10-16 版本**；后者丢失后尚未重建。冻结的游戏原始 Lua 为 `aa79370c5736e26f5b1b77c90186e87d8d5473da`，共 114 个资源文件。尚未建立它与当前游戏 `main` 的同版一致性。
 
-## New defects found and fixed today
+## 本次真实发现并修复的问题
 
-### Unsaved draft recovery
+### 未点“保存”的新草稿在刷新后丢失
 
-In an actual Chromium window, a fresh draft containing Chinese and emoji was edited without clicking the native Save button. Reloading lost the visible text and showed the protected-corrupt-draft warning. The Wasmoon adapter represents an empty Lua table as `[]`. The host assigned named document keys onto that array, and JSON serialization dropped those keys. Recovery then rejected the saved array.
+在实际 Chromium 窗口里，新草稿输入中文和 emoji 后未点原生“保存”，刷新导致可见文本丢失，并出现损坏草稿保护提示。原因是 Wasmoon 将 Lua 空表表示为 `[]`；宿主在数组上添加文档名称属性后，JSON 序列化丢弃了这些属性，恢复程序又拒绝了保存的数组。
 
-The host now copies incoming document tables into an object before adding document keys. Recovery also accepts the narrow legacy case `documents: []` **only when an explicit string `text` exists**. Nonempty arrays, missing-text arrays and other invalid records remain protected. The original Lua, adapter and Lua business rules were not changed by this fix.
+宿主现先将传入文档表复制为普通对象，再添加文档键。对旧数据仅兼容明确含有字符串 `text` 的 `documents: []`；非空数组、无文本数组和其他无效记录仍按保护逻辑处理。这项修复没有修改游戏原始 Lua、Wasmoon 适配器或 Lua 业务规则。
 
-### Stale time in hover tooltip after drag
+### 拖动后悬停提示仍显示旧时间
 
-Actual single-point and multi-point drag moved the timeline and source text, but the tooltip under the stationary pointer retained the old time. Pointer capture keeps the moved point under the same DOM node, so no new native enter event is guaranteed. The host now refreshes that node's native hover after a left-pointer move/release, using the newly accepted Lua bounds, hit insets and clipping. It does not move focus, change ordinary clicks, refresh a cancelled/outside release, or change the original Lua/adapter.
+真实单点和多点拖动已改变时间轴及源码，但鼠标停留原处时 tooltip 仍显示旧时间。指针捕获使移动后的点仍使用同一 DOM 节点，不保证再次触发原生 enter。宿主现仅在左键有效移动并释放后，依据新一轮 Lua 坐标、命中边界及裁剪区域刷新对应节点的悬停。不会移焦点，也不会改变普通点击、取消拖动、区外释放或原始 Lua/适配器。
 
-Actual Chromium checks after this change: single drag 9s → 11s immediately showed tooltip 11s; Ctrl-multiselect drag (11s,12s) → (13s,14s) immediately showed tooltip 13s while the pointer remained over the moved point. Direct click still focused the selected source line; Delete removed just that line and Ctrl+Z restored it. These exact sequences are covered; other focus/modifier combinations are not implied.
+实际复验：单点 9 秒 → 11 秒后，鼠标不离开即显示 11 秒；Ctrl 多选 (11,12) 秒 → (13,14) 秒后，同样即显示 13 秒。直接点击仍按原生逻辑聚焦选中的源码行；Delete 只删除该行，Ctrl+Z 可恢复。这里只覆盖这些具体序列，不代表其他焦点或修饰键组合全部通过。
 
-### Global Delete blocked by an unfocused edit box
+### 无焦点编辑框吞掉全局 Delete
 
-The real UI reported two selected timeline points, but Delete did nothing after the source editor had lost focus. Native route logs showed the key still being sent to an unfocused EditBox. The web compatibility bridge incorrectly included all keyboard-enabled EditBoxes in the unfocused/global candidate list. Its native-text handler stopped the timeline root from receiving the key.
+真实 UI 显示已选中两个时间点，源码编辑框也已失去焦点，但 Delete 没有删除任何点。原生路由日志显示按键仍进入无焦点 EditBox；网页兼容桥错误地把所有启用键盘的 EditBox 放入全局候选列表，其文本处理器提前终止路由，时间轴根节点收不到按键。
 
-`source/src/lib/stt-editor/bridge.lua` now excludes EditBoxes from that global candidate list. The focused-EditBox path is unchanged. Real Chromium confirms both row-header multi-select and Ctrl-multiselect followed by native Escape can delete two points and undo them. Clicking a point and retaining the source editor focus still deletes only that selected source line; its undo also works. The frozen game Lua bundle and Wasmoon adapter are unchanged; this new change is in the **web compatibility bridge**.
+`source/src/lib/stt-editor/bridge.lua` 现将 EditBox 从无焦点/全局候选列表排除，保留有焦点 EditBox 的原有优先路径。真实 Chromium 已验证：行标题多选，以及 Ctrl 多选后用原生 Escape 释放源码焦点，两者均可删除两点并撤销。直接点击事件并保留源码焦点时，Delete 仍只删除选中的源码行，撤销正常。冻结的游戏 Lua 包和 Wasmoon 适配器均未改动；本项改动仅属于 **网页兼容桥**。
 
-Product changes against the 10/14 baseline are shown in `evidence/product-fix.patch`; `evidence/keyboard-routing-fix.patch` isolates the bridge fix. Packaging additions include `source/scripts/serve-local.mjs` and `preview:local`; new regression cases are in the draft-recovery, import-context, hover-refresh and keyboard-routing test scripts. `evidence/hover-fix.patch` isolates the tooltip change. The remaining source/runtime/asset changes relative to the old remote branch come from the recovered baseline, not new 10/18 work.
+相对 10/14 基线的产品补丁见 `evidence/product-fix.patch`；独立 tooltip 和键盘桥补丁分别为 `hover-fix.patch`、`keyboard-routing-fix.patch`。打包新增 `source/scripts/serve-local.mjs` 与 `preview:local`；新增防回归位于 draft-recovery、import-context、hover-refresh、keyboard-routing 测试脚本。与旧远端分支相比，其余源码、运行时与资源差异来自恢复的基线，不能算作今天新写的改动。
 
-## Run after pulling
+## 拉取后如何运行
 
-From this delivery directory:
+进入本交付目录后执行：
 
 ```sh
 cd source
@@ -41,51 +41,59 @@ npm run build
 npm run preview:local
 ```
 
-Open `http://127.0.0.1:4173/source-editor/` in the same machine's browser. The preview server binds only loopback. Set `PORT=4178` if 4173 is occupied. No cloud deployment, external API account or user credential is needed to open the editor. The font, Wasmoon runtime and original texture assets are included. `node_modules` is intentionally excluded.
+在**同一台机器**的浏览器打开 `http://127.0.0.1:4173/source-editor/`。预览服务只监听 loopback。4173 被占用时可用 `PORT=4178 npm run preview:local`。打开编辑器无需云部署、外部 API 账号或用户凭据。字体、Wasmoon 运行时及原始纹理资源已随包提供；`node_modules` 不随包交付。
 
-The standalone server does not implement the full website API. A partial skill-metadata warning is expected; WCL integration and the complete website router are not validated here. This warning is not evidence that the game Lua failed to load. The footer should show `Lua: WASM`.
+独立服务没有实现完整网站 API，因此“部分技能资料未加载”提示是已知限制；不能把它解释成游戏 Lua 未加载。页脚应显示 `Lua: WASM`。随包技能仍可用于下述抽屉验收，但完整远端技能资料、WCL 集成和完整站点路由没有通过验证。
 
-## Checks actually performed
+## 已实际执行的浏览器验收
 
-Real cloud-desktop Chromium, with the HTTP server running on that same cloud desktop:
+环境：dot 云桌面的真实 Chromium；HTTP 服务运行在同一云桌面。所有方案内容均为合成测试数据。
 
-- Actual editor and Wasmoon load.
-- Chinese/emoji textarea edit, native Save, Copy, completed text Download and reload preservation.
-- Reproduced fresh-draft no-Save/reload data loss before the fix.
-- Recovered the same stored malformed draft after the fix.
-- Edited again without Save and verified preservation after reload.
-- Actual Ctrl+Z / Ctrl+Shift+Z, with exact copied text before and after.
-- Native horizontal/vertical menu transitions.
-- Native file chooser import of `evidence/import-ui-fixture.txt`, followed by exact clipboard equality.
-- Two separate unsaved drafts in Team and Personal scopes: switched both ways, reloaded the browser, and verified both exact texts remained.
-- Explicit original/legacy appearance persisted after reload and WASM readiness.
-- Native zoom slider Home/End reached both endpoints and changed actual tick scale; horizontal scrollbar thumb drag moved the viewport from 4:30 back to 0:00.
-- Personal timeline single-point drag changed 7s to 9s; Ctrl-multiselect batch drag changed (9s,12s) to (11s,14s). Native text and clipboard agreed.
-- Direct event click then Delete, retaining the native-selected source-line focus, removed that one event; undo restored it. This was repeated after the keyboard bridge fix.
-- Two-point row selection → Delete → native “deleted 2 points” hint → Ctrl+Z restored both exact source lines. Ctrl-multiselect → native Escape to release source focus → Delete → undo also passed. This is not an artificial button-focus test.
-- Imported a 116-line synthetic Chinese/emoji plan. Source-pane wheel scrolled down; scrollbar drag reached lines 72–116 and returned to the beginning. Copied source remained byte-for-byte equal to the fixture.
-- In vertical timeline view, wheel scrolled down and back up; scrollbar drag reached later rows (03:37–07:48, including bundled boss reference rows) and returned to 00:05. Copied source still exactly matched the synthetic fixture. No WCL or external account data was used.
+- 编辑器与 Wasmoon 实际加载。
+- 中文/emoji 文本编辑、原生保存、复制、完成文本下载，以及刷新保留。
+- 修复前真实复现新草稿未保存/刷新丢失；修复后恢复同一份旧损坏记录，再次不点保存编辑并刷新仍保留。
+- 真实 Ctrl+Z / Ctrl+Shift+Z；前后复制文本精确核对。
+- 原生水平/垂直视角菜单切换。
+- 原生文件选择器导入 `evidence/import-ui-fixture.txt`；剪贴板与文件内容精确相等。
+- 团队与个人两份不同的未保存草稿来回切换，再刷新；两份文本分别精确保留。
+- 明确选择“原版”外观后刷新，在 WASM 就绪时仍保持该外观。
+- 原生缩放滑块 Home/End 到达两端并改变实际刻度；水平滚动条拖动使视口从 4:30 附近回到 0:00。
+- 个人时间轴单点 7 秒 → 9 秒；Ctrl 多选批量拖动 (9,12) 秒 → (11,14) 秒。原生源码和剪贴板一致。
+- 直接点击事件后保留原生源码行焦点，Delete 只删该事件，撤销恢复；键盘桥修复后再次通过。
+- 行标题选中两点 → Delete → 原生提示“已删除 2 个技能点” → Ctrl+Z 精确恢复两行。Ctrl 多选 → 原生 Escape 释放源码焦点 → Delete → 撤销也通过。没有用强制 DOM 聚焦按钮来代替自然焦点流程。
+- 导入 116 行中文/emoji 合成方案：源码区滚轮向下，拖动垂直滚动条到第 72–116 行，再返回开头；复制结果与夹具逐字相同。
+- 垂直时间轴滚轮上下滚动，拖动滚动条到 03:37–07:48 的后续行（含包内 Boss 参考行），再返回 00:05；源码精确未变。没有调用 WCL 或外部账号数据。
+- **技能抽屉新增验收**：个人行 0:15 处右键 → “在此添加安排” → 抽屉选择包内已有的 `Abomination Limb`（1263569）→ 保存。原生提示已添加，源码新增且仅新增 `{time:0:15} {spell:1263569}`。点击编辑器原生撤销按钮后，剪贴板与插入前文本逐字相同（包括末尾换行）。重复插入并保持保存后自然获得的源码焦点，直接 Ctrl+Z 也精确恢复原文。未改技能数据或注入替代 metadata；该项不需要产品源码修复。
 
-Screenshots (raw JPEG capture bytes), the downloaded file, JSON observations, fixture and logs are in `evidence/`. These screenshots show the web editor, not the game client.
+截图为原始 JPEG 截图数据；下载文件、JSON 观察记录、夹具和日志都在 `evidence/`。这些截图显示的是网页编辑器，不能充当游戏客户端截图。技能抽屉证据为 `skill-drawer-*`；其中 `skill-drawer-keyboard-ax.txt` 保留保存后和快捷键撤销后的可访问性状态。第一次检查先点了页脚“复制”，使焦点位于编辑器外，此时 Ctrl+Z 没有进入 Lua 路由；这不计入快捷键通过。上面通过的快捷键序列是重复插入后不经复制、保持原生源码焦点执行的。
 
-Host tests: baseline 109 passed; draft-fix stage 113 passed; tooltip-fix stage 130 passed (`host-tests-final.tap`); final keyboard-routing stage 135 passed (`tests-keyboard-final.tap`). The newly added actual `accept` → `persist` regression fails against the saved baseline and passes against the fix (`fresh-draft-red.tap`, `fresh-draft-green.tap`). The 17 hover-refresh cases also fail against the saved pre-hover source and pass with the fix (`hover-refresh-red.tap`, `hover-refresh-green.tap`). Five new tests execute the actual Lua keyboard bridge branch with controlled frame doubles; unfocused/global routing fails before the fix and passes after it, while focused text behavior stays intact (`keyboard-routing-red.tap`, `keyboard-routing-green.tap`). These controlled tests are not additional real-browser acceptance checks. TypeScript and Vite build pass; latest logs are `typecheck-keyboard.log` and `build-keyboard.log`. Vite retains its existing externalized Node-module and large-chunk warnings. The local preview helper returned the editor, font and WASM with correct MIME types; `/api/raids` intentionally returned 404. Node used for checks: v24.19.0.
+## 自动化检查与真实 UI 的边界
 
-## Still open
+宿主测试：基线 109 项通过；草稿修复阶段 113 项；tooltip 阶段 130 项（`host-tests-final.tap`）；键盘路由阶段 135 项（`tests-keyboard-final.tap`）。新增的实际 `accept` → `persist` 回归对保存的基线失败、修复后通过（`fresh-draft-red.tap` / `fresh-draft-green.tap`）。17 个 hover-refresh 案例也先对旧源码失败再对修复通过（`hover-refresh-red.tap` / `hover-refresh-green.tap`）。
 
-- A second independent review began but did not finish due to platform quota. Do not label this independently approved.
-- No game-client launch, same-version game screenshot, or game/web visual parity acceptance.
-- No complete matrix for drag/selection/zoom: only the exact sequences above. Remaining modifier/focus combinations, skill drawer, WCL service and full-site routes remain unverified. Multi-delete coverage is keyboard-based; context-menu preservation of a multi-selection is not accepted by these checks.
-- **System Chinese IME composition remains unverified.** The actual cloud desktop has no installed ibus/fcitx/uim/pinyin input method (see `ime-environment-check.txt`). No input method was installed or configured. Direct Chinese text entry/import and simulated composition events do not establish a system-IME pass. The existing automated composition guard test is only controlled host coverage.
-- Vertical-scroll coverage is the source pane and vertical timeline's wheel/scrollbar sequences above. This does not claim a full vertical-view visual-parity or horizontal-view many-track virtualization matrix.
-- No deployment or publication performed. A GitHub delivery branch does not establish production readiness.
-- The existing pending permission for other preview routes remains unresolved; this local cloud-desktop route required no such deployment.
+5 个新增键盘测试用受控帧替身执行实际 Lua 兼容桥分支：无焦点全局路由修复前失败、修复后通过，同时保护有焦点文本行为（`keyboard-routing-red.tap` / `keyboard-routing-green.tap`）。主控另行阅读小补丁并重跑 draft-recovery、hover-refresh、keyboard-routing 三组，共 48 项通过，日志为 `root-selected-regression-20261018.tap`；这不算第二次独立浏览器验收，也不替代尚未完成的独立审查。
 
-## Provenance
+上述受控测试不是新增真实浏览器通过项。TypeScript 检查与 Vite 构建通过，最新日志为 `typecheck-keyboard.log`、`build-keyboard.log`。Vite 仍有既有 Node 模块 externalized 和大包警告。本地预览助手对编辑器、字体、WASM 返回正确 MIME 类型；`/api/raids` 按独立服务范围返回 404。测试所用 Node 为 v24.19.0。本次中文 README 与抽屉验收补交没有再修改产品源码。
 
-10/14 baseline archive: `STT-independent-review-candidate-NOT-RELEASE-20261014.zip`, 12,365,350 bytes, SHA-256 `ef99edf683a5e39fe67c399bfad618e3a7cd84bb2f8d95e27779eb9b19dd3669`.
+## 仍未验证或受限的部分
 
-Baseline `Editor.tsx`: SHA-256 `0f816d369a2af688fdb68bdfffde943e4892f1833aa4f8f1801df56a7e24ce09`.
+- 第二轮独立审查因平台额度未完成，不能标成独立审查通过。
+- 没有游戏客户端启动、同版本游戏截图或游戏/网页视觉一致性验收。
+- 拖动、选择、缩放只覆盖上文具体序列；其他修饰键/焦点组合、完整虚拟化矩阵仍未完成。多删通过项为键盘路径；右键菜单保留多选没有通过本次验收。
+- 技能抽屉只通过上述个人方案、自己、0:15、一个包内已有技能的选择/保存/撤销。搜索、分类、其他技能/对象/阶段/更多设置、语音试听、缺失的远端 metadata 均不能据此宣布通过。WCL 服务与完整网站路由仍未验证。
+- **系统中文 IME 组合输入未验证。** 同一实际云桌面未安装 ibus/fcitx/uim/pinyin 输入法，见 `ime-environment-check.txt`；本次没有安装或调整输入法。直接填中文、文件导入和模拟 composition 事件都不能证明真实系统输入法通过。既有 composition 防护测试仅属受控宿主测试。
+- 垂直滚动只覆盖源码区和垂直时间轴的滚轮/滚动条序列，不代表垂直视角完整视觉一致性，也不代表水平视角多轨道虚拟化完整矩阵。
+- 没有部署或公开发布；GitHub 独立交付分支不代表已达到生产发布标准。
+- 其他预览路线所需的既有待授权步骤尚未解决；本次云桌面本地运行路径不依赖这些部署步骤。
 
-Remote parent observed before delivery: `RuofanYou/planshare-stt`, `stt-web-editor` = `129a09f7a679a4ffd2c3ba30213b1253971bacc5`; `main` = `317531d392c15975e8fd328bebdb37ec85a29e44`.
+## 可追溯基线
 
-`MANIFEST.sha256` identifies all delivered source and evidence files. File-system timestamps in this environment are not the verification clock; the checks above were performed 2026-10-18 UTC.
+10/14 原始候选包：`STT-independent-review-candidate-NOT-RELEASE-20261014.zip`，12,365,350 字节，SHA-256：
+`ef99edf683a5e39fe67c399bfad618e3a7cd84bb2f8d95e27779eb9b19dd3669`。
+
+基线 `Editor.tsx` 的 SHA-256：
+`0f816d369a2af688fdb68bdfffde943e4892f1833aa4f8f1801df56a7e24ce09`。
+
+交付前核实的远端 `RuofanYou/planshare-stt`：`stt-web-editor` 为 `129a09f7a679a4ffd2c3ba30213b1253971bacc5`；`main` 为 `317531d392c15975e8fd328bebdb37ec85a29e44`。
+
+`MANIFEST.sha256` 列出所有交付源码和证据的校验值。环境中的文件系统时间戳不是验收时钟；以上检查实际执行于 2026-10-18 UTC。

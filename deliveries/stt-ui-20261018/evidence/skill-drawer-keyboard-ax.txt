@@ -1,0 +1,265 @@
+INSERTED
+Browser tab: 8, Title: "找板子 · STT战术板编辑器", URL: "http://localhost:4173/source-editor/".
+1 AXWebArea 找板子 · STT战术板编辑器, URL: localhost:4173/source-editor/
+	2 container
+		19 container STT 战术方案编辑器
+			20 button 图标按钮
+			166 text 已保存：玩家-Web
+			21 button 团队方案
+			22 button (disabled) 个人方案
+			23 button 保存
+			24 text 团队方案
+			25 text 个人方案
+			26 text 保存
+			35 button 图标按钮
+			36 button 图标按钮
+			37 text 0:15.00
+			38 text entry area (settable) Description: 战术方案文本, Value: [人员]
+
+[笔记]
+技能抽屉真实验收 中文😀
+
+[时间轴]
+{time:0:07} {spell:1263569}
+{time:0:12} {spell:363916}
+{time:0:15} {spell:1263569}
+			113 container
+				114 text [人员]
+
+[笔记]
+技能抽屉真实验收 中文😀
+
+[时间轴]
+ {time:0:07} {spell:1263569} {time:0:12} {spell:363916} {time:0:15} {spell:1263569}
+			69 button (disabled) 从模板重载
+			70 button (disabled) 同步方案
+			71 button (disabled) 导入团员
+			72 button 进入复盘
+			73 text 从模板重载
+			74 text 同步方案
+			75 text 导入团员
+			76 text 进入复盘
+			77 button 类型团本
+			78 button 副本潮缚石窟
+			79 button Boss尼姆瑞莎·唤波者
+			80 button 难度史诗
+			81 button 视角水平
+			82 button 解析方案团队+个人
+			83 text 类型
+			84 text 团本
+			85 text 副本
+			86 text 潮缚石窟
+			87 text Boss
+			88 text 尼姆瑞莎·唤波者
+			89 text 难度
+			90 text 史诗
+			91 text 视角
+			92 text 水平
+			93 text 解析方案
+			94 text 团队+个人
+			96 text 1
+2
+3
+4
+5
+6
+7
+8
+9
+			127 button 图标按钮
+			128 button (disabled) 图标按钮
+			129 button 图标按钮
+			130 text 对象
+			131 text 自己 · 战斗开始后 · 0:15.00
+			132 slider (settable, float) Description: 滑块, Value: 0.6579999923706055, Details: 0.658
+			133 button 图标按钮
+			134 button 图标按钮
+			135 text 0:00
+			136 text 0:02
+			137 text 0:04
+			138 text 0:06
+			139 text 0:08
+			140 text 0:10
+			141 text 0:12
+			142 text 0:14
+			143 text 0:16
+			144 text 0:18
+			145 button 图标按钮
+			146 text 自己 · 个人方案
+			147 button 图标按钮
+			148 button 图标按钮
+			149 button 图标按钮
+			150 text 尼姆瑞莎·唤波者
+			151 button 0:07
+			152 button 0:12
+			154 text 24s
+			155 button 图标按钮
+			156 button 24s0:08
+			157 button 图标按钮
+			158 button 已添加：个人方案 · 自己 · 战斗开始后 · 0:15 · Abomination Limb；可撤销
+			159 text 0:07
+			160 text 0:12
+			162 text 已添加：个人方案 · 自己 · 战斗开始后 · 0:15 · Abomination Limb；可撤销
+			163 text 0:08
+			164 text 0:18
+			165 button 图标按钮
+			167 button 0:15
+			168 text 0:15
+		3 container aa79370c5736e26f5b1b77c90186e87d8d5473da
+			4 text STT  aa79370
+		5 container Lua运行引擎
+			6 text Lua: WASM
+		7 container
+			8 text 外观
+			9 pop up button (collapsed, settable) Description: 编辑器外观, Value: 原版, Secondary Actions: Expand
+				10 menu
+					11 (selected) 原版
+					12 玻璃
+		13 button 复制战术方案
+		14 button 导出文本
+		15 container
+			16 text 导入文本
+			17 button 导入文本
+		18 text 部分技能资料未加载
+		97 button 重试技能资料
+
+The focused UI element is 38 text entry area (settable) Description: 战术方案文本, Value: [人员]
+
+[笔记]
+技能抽屉真实验收 中文😀
+
+[时间轴]
+{time:0:07} {spell:1263569}
+{time:0:12} {spell:363916}
+{time:0:15} {spell:1263569}
+UNDONE
+Browser tab: 8, Title: "找板子 · STT战术板编辑器", URL: "http://localhost:4173/source-editor/".
+1 AXWebArea 找板子 · STT战术板编辑器, URL: localhost:4173/source-editor/
+	2 container
+		19 container STT 战术方案编辑器
+			20 button 图标按钮
+			166 text 已保存：玩家-Web ×2
+			21 button 团队方案
+			22 button (disabled) 个人方案
+			23 button 保存
+			24 text 团队方案
+			25 text 个人方案
+			26 text 保存
+			35 button 图标按钮
+			36 button 图标按钮
+			37 text 0:15.00
+			38 text entry area (settable) Description: 战术方案文本, Value: [人员]
+
+[笔记]
+技能抽屉真实验收 中文😀
+
+[时间轴]
+{time:0:07} {spell:1263569}
+{time:0:12} {spell:363916}
+
+			113 container
+				114 text [人员]
+
+[笔记]
+技能抽屉真实验收 中文😀
+
+[时间轴]
+ {time:0:07} {spell:1263569} {time:0:12} {spell:363916}
+			69 button (disabled) 从模板重载
+			70 button (disabled) 同步方案
+			71 button (disabled) 导入团员
+			72 button 进入复盘
+			73 text 从模板重载
+			74 text 同步方案
+			75 text 导入团员
+			76 text 进入复盘
+			77 button 类型团本
+			78 button 副本潮缚石窟
+			79 button Boss尼姆瑞莎·唤波者
+			80 button 难度史诗
+			81 button 视角水平
+			82 button 解析方案团队+个人
+			83 text 类型
+			84 text 团本
+			85 text 副本
+			86 text 潮缚石窟
+			87 text Boss
+			88 text 尼姆瑞莎·唤波者
+			89 text 难度
+			90 text 史诗
+			91 text 视角
+			92 text 水平
+			93 text 解析方案
+			94 text 团队+个人
+			96 text 1
+2
+3
+4
+5
+6
+7
+8
+9
+			127 button 图标按钮
+			128 button 图标按钮
+			129 button 图标按钮
+			130 text 对象
+			131 text 自己 · 战斗开始后 · 0:07.00
+			132 slider (settable, float) Description: 滑块, Value: 0.6579999923706055, Details: 0.658
+			133 button 图标按钮
+			134 button 图标按钮
+			135 text 0:00
+			136 text 0:02
+			137 text 0:04
+			138 text 0:06
+			139 text 0:08
+			140 text 0:10
+			141 text 0:12
+			142 text 0:14
+			143 text 0:16
+			144 text 0:18
+			145 button 图标按钮
+			146 text 自己 · 个人方案
+			147 button 图标按钮
+			148 button 图标按钮
+			149 button 图标按钮
+			150 text 尼姆瑞莎·唤波者
+			151 button 0:07
+			152 button 0:12
+			154 text 24s
+			155 button 图标按钮
+			156 button 24s0:08
+			157 button 图标按钮
+			158 button 已撤销 · Ctrl/Command+Shift+Z 可重做
+			159 text 0:07
+			160 text 0:12
+			162 text 已撤销 · Ctrl/Command+Shift+Z 可重做
+			163 text 0:08
+			164 text 0:18
+			165 button 图标按钮
+		3 container aa79370c5736e26f5b1b77c90186e87d8d5473da
+			4 text STT  aa79370
+		5 container Lua运行引擎
+			6 text Lua: WASM
+		7 container
+			8 text 外观
+			9 pop up button (collapsed, settable) Description: 编辑器外观, Value: 原版, Secondary Actions: Expand
+				10 menu
+					11 (selected) 原版
+					12 玻璃
+		13 button 复制战术方案
+		14 button 导出文本
+		15 container
+			16 text 导入文本
+			17 button 导入文本
+		18 text 部分技能资料未加载
+		97 button 重试技能资料
+
+The focused UI element is 38 text entry area (settable) Description: 战术方案文本, Value: [人员]
+
+[笔记]
+技能抽屉真实验收 中文😀
+
+[时间轴]
+{time:0:07} {spell:1263569}
+{time:0:12} {spell:363916}

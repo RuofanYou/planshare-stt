@@ -192,6 +192,25 @@
       "result": "not_run",
       "actual": "No ibus/fcitx/uim/pinyin installed on same actual cloud desktop host; no input method installed/configured. Text fill/import and synthetic events not used as IME acceptance.",
       "evidence": "ime-environment-check.txt"
+    },
+    {
+      "name": "实际技能抽屉选择、插入与两种撤销",
+      "result": "pass",
+      "time_utc": "2026-10-18T05:18:48Z/2026-10-18T05:19:57Z",
+      "actual": "个人行0:15右键→在此添加安排→选择包内Abomination Limb(1263569)→保存生成且仅生成{time:0:15} {spell:1263569}。原生撤销按钮精确恢复插入前文本（含末尾换行）；重复插入、保持保存后自然获得的源码焦点，Ctrl+Z亦精确恢复。",
+      "evidence": [
+        "skill-drawer-open.jpg",
+        "skill-drawer-selected.jpg",
+        "skill-drawer-inserted.jpg",
+        "skill-drawer-undone.jpg",
+        "skill-drawer-keyboard-undo.jpg",
+        "skill-drawer-keyboard-ax.txt",
+        "skill-drawer-keyboard-routing.json",
+        "skill-drawer-before.txt",
+        "skill-drawer-inserted.txt",
+        "skill-drawer-undone.txt"
+      ],
+      "limit": "只验证一个随包已有技能/个人方案/自己/0:15；无metadata注入、无WCL/外部账号、无产品源码修复。首次点页脚复制后Ctrl+Z没有进入Lua路由，未算通过；复测保持自然源码焦点通过。搜索分类、其他技能/对象/阶段/设置与语音未验。"
     }
   ],
   "limits": [
@@ -202,6 +221,6 @@
     "No public/site deployment; remote branch delivery is separately authorized",
     "No current STT main parity; frozen game sources are aa79370",
     "Drag, selection, zoom, horizontal/vertical scroll and multi-delete cover only exact listed sequences; other modifier/focus combinations and full virtualization matrix remain unverified",
-    "Skill drawer not accepted"
+    "技能抽屉仅验一个包内技能选择/插入/原生撤销按钮与保存后自然源码焦点Ctrl+Z；搜索分类等完整矩阵未验。"
   ]
 }
