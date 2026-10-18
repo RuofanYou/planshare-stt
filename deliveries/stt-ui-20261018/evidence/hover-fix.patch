@@ -1,0 +1,35 @@
+--- baseline/Editor.before-hover-fix.tsx
++++ source/src/pages/Editor.tsx
+@@ -121,7 +121,7 @@
+     const events={
+       onPointerDown:(e:React.PointerEvent)=>{const p=payload(e);gesture.current={id:e.pointerId,x:e.clientX,y:e.clientY,button:p.button,dragging:false};suppressClick.current=false;e.currentTarget.setPointerCapture(e.pointerId);send('OnMouseDown',node,p)},
+       onPointerMove:(e:React.PointerEvent)=>{const g=gesture.current;if(g?.id===e.pointerId&&!g.dragging&&node.dragButtons?.includes(g.button)&&Math.hypot(e.clientX-g.x,e.clientY-g.y)>=4){g.dragging=true;suppressClick.current=true;send('OnDragStart',node,payload(e))}},
+-      onPointerUp:(e:React.PointerEvent)=>{const g=gesture.current;if(g?.id===e.pointerId){if(g.dragging)send('OnDragStop',node,payload(e));gesture.current=null}send('OnMouseUp',node,payload(e))},
++      onPointerUp:(e:React.PointerEvent)=>{const g=gesture.current;const refreshHover=g?.id===e.pointerId&&g.button==='LeftButton'&&Math.hypot(e.clientX-g.x,e.clientY-g.y)>=4;if(g?.id===e.pointerId){if(g.dragging)send('OnDragStop',node,payload(e));gesture.current=null}send('OnMouseUp',node,{...payload(e),refreshHover})},
+       onPointerCancel:(e:React.PointerEvent)=>{if(gesture.current?.id===e.pointerId){gesture.current=null;suppressClick.current=true;send('OnPointerCancel',node,payload(e))}},
+       onLostPointerCapture:(e:React.PointerEvent)=>{if(gesture.current?.id===e.pointerId){gesture.current=null;suppressClick.current=true;send('OnPointerCancel',node,payload(e))}},
+       onPointerEnter:(e:React.PointerEvent)=>send('OnEnter',node,payload(e)),
+@@ -199,7 +199,22 @@
+   const fail=(reason:unknown)=>{setError(String(reason));console.error('[STT editor host]',{result:'failed',reason:String(reason)})}
+   const call=(action:string,args:Parameters<EditorRuntimeHandle['call']>[1]={})=>{try{const v=runtime.current?.call<EditorView>(action,args);if(v?.ui)accept(v);return v}catch(e){fail(e)}}
+   acceptRef.current=accept;failRef.current=fail
+-  sendRef.current??=((event,node,args={})=>{if(['OnMouseDown','OnMouseUp','OnClick','OnEnter','OnLeave','OnMouseWheel'].includes(event))pointerDirty.current=true;const point=typeof args.x==='number'&&typeof args.y==='number'?editorPoint(args.x,args.y,viewportRef.current,viewport().scale):{};try{const v=runtime.current?.call<EditorView>('uiEvent',{id:node.id,event,...args,...point});if(v?.ui)acceptRef.current?.(v)}catch(e){failRef.current?.(e)}})
++  sendRef.current??=((event,node,args={})=>{
++    if(['OnMouseDown','OnMouseUp','OnClick','OnEnter','OnLeave','OnMouseWheel'].includes(event))pointerDirty.current=true
++    const {refreshHover,...input}=args
++    const point=typeof input.x==='number'&&typeof input.y==='number'?editorPoint(input.x,input.y,viewportRef.current,viewport().scale):{}
++    try{
++      const v=runtime.current?.call<EditorView>('uiEvent',{id:node.id,event,...input,...point});if(v?.ui)acceptRef.current?.(v)
++      // Pointer capture keeps a moved chip under the same DOM node. Re-enter
++      // only after its new Lua bounds are accepted, without moving focus.
++      if(event==='OnMouseUp'&&refreshHover&&'x'in point&&'y'in point&&typeof point.x==='number'&&typeof point.y==='number'){
++        const current=uiNodes.current.get(node.id),x=point.x,y=point.y,c=current?.clip,i=current?.hitRectInsets||[0,0,0,0]
++        if(current?.mouse&&x>=current.x+i[0]&&x<=current.x+current.width-i[1]&&y>=current.y+i[2]&&y<=current.y+current.height-i[3]&&(!c||x>=c.left&&x<=c.right&&y>=c.top&&y<=c.bottom)){
++          const hovered=runtime.current?.call<EditorView>('uiEvent',{id:node.id,event:'OnEnter',...input,x,y});if(hovered?.ui)acceptRef.current?.(hovered)
++        }
++      }
++    }catch(e){failRef.current?.(e)}
++  })
+   const send=sendRef.current
+   useEffect(()=>{
+     let disposed=false

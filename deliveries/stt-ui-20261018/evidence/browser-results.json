@@ -65,6 +65,75 @@
       "result": "pass",
       "actual": "Team text 切换保留测试：团队😀 and personal text 切换保留测试：个人😀 each retained after switching both ways and actual Control+r reload",
       "evidence": "context-switch-reload-real-browser.jpg"
+    },
+    {
+      "name": "explicit legacy appearance and browser reload",
+      "result": "pass",
+      "actual": "After engine became WASM, select value was legacy and native original appearance visible",
+      "evidence": "legacy-appearance-real-browser.jpg"
+    },
+    {
+      "name": "native range slider keyboard zoom limits",
+      "result": "pass",
+      "actual": "Home set 0 (minute-scale ticks); End set 1 (half-second-scale ticks)",
+      "evidence": [
+        "zoom-min-real-browser.jpg",
+        "zoom-max-real-browser.jpg"
+      ],
+      "limit": "keyboard endpoints; not pointer-centered modifier-wheel coverage"
+    },
+    {
+      "name": "actual horizontal scrollbar thumb drag",
+      "result": "pass",
+      "actual": "Viewport moved from 4:30 vicinity back to 0:00; 7s and 12s personal events became visible",
+      "evidence": "timeline-before-drag.jpg"
+    },
+    {
+      "name": "actual single personal-event drag",
+      "result": "pass",
+      "actual": "7s event moved to 9s; 12s event unchanged; native text and clipboard both matched",
+      "evidence": [
+        "timeline-before-drag.jpg",
+        "timeline-after-drag.jpg"
+      ]
+    },
+    {
+      "name": "actual Ctrl-multiselect and batch drag",
+      "result": "pass",
+      "actual": "Selected 9s and 12s; dragged first point +2s; text/clipboard became 11s and 14s; native hint stated two points moved",
+      "evidence": "timeline-multiselect-drag.jpg"
+    },
+    {
+      "name": "actual single-point click then Delete and undo",
+      "result": "pass",
+      "actual": "After undoing batch drag to 9s/12s, clicked 9s event; native focus moved to selected source line; Delete removed that line; clipboard confirmed remaining12s. Ctrl+Z restored9s/12s",
+      "evidence": "timeline-single-delete.jpg",
+      "limit": "Does not validate multi-delete or artificial button-focused deletion"
+    },
+    {
+      "name": "stale hover tooltip before fix",
+      "result": "fail",
+      "actual": "Observed in real browser: 7→9 retained tooltip7; 9→11 retained tooltip9 while pointer stayed over moved event. Text/copy used new time; leaving/re-entering refreshed tooltip.",
+      "limit": "Earlier after-drag saved screenshots were taken after clipboard action; observation is not a claim that those image files preserve the stale hover."
+    },
+    {
+      "name": "fixed single drag hover refresh",
+      "result": "pass",
+      "actual": "9s→11s, unmoved12s; tooltip immediately11 while pointer remained over event; native text11/12.",
+      "evidence": "hover-after-drag-fixed.jpg"
+    },
+    {
+      "name": "fixed Ctrl-multiselect drag hover refresh",
+      "result": "pass",
+      "actual": "11s/12s→13s/14s; tooltip immediately13 while pointer remained over dragged event; native text13/14 and native two-point hint.",
+      "evidence": "hover-multidrag-fixed.jpg"
+    },
+    {
+      "name": "post-hover-fix direct click focus, Delete and undo",
+      "result": "pass",
+      "actual": "Clicked13s point; native focus moved to selected source line; Delete removed13s line leaving14s, exact clipboard verified. Textarea Ctrl+Z restored13s/14s, exact clipboard verified. No artificial button focus used for Delete.",
+      "evidence": "hover-fix-click-delete-undo.jpg",
+      "limit": "Single deletion only; no multi-delete claim."
     }
   ],
   "limits": [
@@ -73,7 +142,8 @@
     "Skills metadata API absent on static localhost; WCL requests not functional",
     "System IME composition not tested by text fill",
     "No public/site deployment; remote branch delivery is separately authorized",
-    "No drag, multiselect, zoom, scroll, skill-drawer acceptance",
-    "No current STT main parity; frozen game sources are aa79370"
+    "No current STT main parity; frozen game sources are aa79370",
+    "Drag/multiselect/zoom/horizontal-scroll are covered only by the specific sequences above; multi-delete, vertical scroll and remaining modifier/focus combinations unverified",
+    "Skill drawer not accepted"
   ]
 }

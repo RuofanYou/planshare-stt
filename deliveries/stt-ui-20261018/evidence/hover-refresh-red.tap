@@ -1,0 +1,113 @@
+✖ drag release refreshes hover using accepted new bounds, without leaking host flag (34.061009ms)
+✔ hover refresh is skipped for click (5.354417ms)
+✔ hover refresh is skipped for outside (4.774949ms)
+✔ hover refresh is skipped for hidden (3.4805ms)
+✔ hover refresh is skipped for no-mouse (4.372491ms)
+✔ hover refresh is skipped for clipped (3.951508ms)
+✔ hover refresh is skipped for inset (3.90649ms)
+✔ hover refresh is skipped for other-event (4.475924ms)
+✖ hover refresh uses translated editor coordinates (4.065306ms)
+✔ runtime failure stops refresh and remains visible (3.068689ms)
+✖ actual pointer-up handler: left move (10.165869ms)
+✔ actual pointer-up handler: click (4.767908ms)
+✔ actual pointer-up handler: right move (4.820175ms)
+✔ actual pointer-up handler: middle move (4.842107ms)
+✔ actual pointer-up handler: wrong pointer (4.904641ms)
+✔ actual pointer-up handler: cancelled (7.9171ms)
+✖ actual pointer-up handler: registered drag (4.271742ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 13
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 462.578593
+
+✖ failing tests:
+
+test at scripts/test-stt-hover-refresh.mjs:26:1
+✖ drag release refreshes hover using accepted new bounds, without leaking host flag (34.061009ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'OnMouseUp',
+  -   'OnEnter'
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-hover-refresh.mjs:28:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'OnMouseUp' ],
+    expected: [ 'OnMouseUp', 'OnEnter' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/test-stt-hover-refresh.mjs:41:1
+✖ hover refresh uses translated editor coordinates (4.065306ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 2
+  
+      at TestContext.<anonymous> (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-hover-refresh.mjs:43:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/test-stt-hover-refresh.mjs:56:3
+✖ actual pointer-up handler: left move (10.165869ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-hover-refresh.mjs:60:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/test-stt-hover-refresh.mjs:56:3
+✖ actual pointer-up handler: registered drag (4.271742ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/shared/stt-ui-20261018/source/scripts/test-stt-hover-refresh.mjs:60:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

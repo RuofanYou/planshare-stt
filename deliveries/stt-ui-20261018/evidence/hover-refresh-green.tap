@@ -1,0 +1,25 @@
+✔ drag release refreshes hover using accepted new bounds, without leaking host flag (43.483276ms)
+✔ hover refresh is skipped for click (8.460061ms)
+✔ hover refresh is skipped for outside (6.461558ms)
+✔ hover refresh is skipped for hidden (5.176854ms)
+✔ hover refresh is skipped for no-mouse (4.956056ms)
+✔ hover refresh is skipped for clipped (4.061791ms)
+✔ hover refresh is skipped for inset (6.657889ms)
+✔ hover refresh is skipped for other-event (4.144022ms)
+✔ hover refresh uses translated editor coordinates (5.008214ms)
+✔ runtime failure stops refresh and remains visible (6.045231ms)
+✔ actual pointer-up handler: left move (7.99402ms)
+✔ actual pointer-up handler: click (5.076845ms)
+✔ actual pointer-up handler: right move (7.755236ms)
+✔ actual pointer-up handler: middle move (3.701897ms)
+✔ actual pointer-up handler: wrong pointer (3.944186ms)
+✔ actual pointer-up handler: cancelled (3.759193ms)
+✔ actual pointer-up handler: registered drag (3.038675ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 453.405336
